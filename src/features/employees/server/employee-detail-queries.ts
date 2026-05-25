@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { formatFullName, formatMinutesToHours } from "@/lib/utils/formatting";
 import type {
   EmployeeDetail,
+  EmployeeEducationalBackgroundDetail,
   EmployeeRecentAttendance,
 } from "../types/employee-types";
 
@@ -13,6 +14,22 @@ function parseEmployeeId(empId: string): number | null {
   }
 
   return parsed;
+}
+
+function dash(value: string | null | undefined): string {
+  return value?.trim() ? value : "—";
+}
+
+function formatPersonName(input: {
+  firstName?: string | null;
+  middleName?: string | null;
+  lastName?: string | null;
+}): string {
+  const parts = [input.firstName, input.middleName, input.lastName]
+    .map((value) => value?.trim())
+    .filter(Boolean);
+
+  return parts.length > 0 ? parts.join(" ") : "—";
 }
 
 function formatDate(date: Date | null | undefined): string {
@@ -55,24 +72,31 @@ function formatTime(date: Date | null | undefined): string {
   }).format(date);
 }
 
-function mapRecentAttendance(
-  attendance: {
-    attendanceId: number;
-    attDate: Date;
-    timeIn: Date | null;
-    timeOut: Date | null;
-    status: string;
-    totalMinutes: number | null;
-    inSource: string | null;
-    outSource: string | null;
-    inBranch: {
-      name: string;
-    } | null;
-    outBranch: {
-      name: string;
-    } | null;
-  },
-): EmployeeRecentAttendance {
+const educationLevelLabelMap: Record<string, string> = {
+  ELEMENTARY: "Elementary",
+  SECONDARY: "Secondary",
+  VOCATIONAL: "Vocational Course",
+  COLLEGE: "College",
+  MASTERS: "Masters",
+  DOCTORATE: "Doctorate",
+};
+
+function mapRecentAttendance(attendance: {
+  attendanceId: number;
+  attDate: Date;
+  timeIn: Date | null;
+  timeOut: Date | null;
+  status: string;
+  totalMinutes: number | null;
+  inSource: string | null;
+  outSource: string | null;
+  inBranch: {
+    name: string;
+  } | null;
+  outBranch: {
+    name: string;
+  } | null;
+}): EmployeeRecentAttendance {
   return {
     attendanceId: attendance.attendanceId,
     attDate: formatDate(attendance.attDate),
@@ -82,6 +106,26 @@ function mapRecentAttendance(
     totalHours: formatMinutesToHours(attendance.totalMinutes),
     source: attendance.outSource ?? attendance.inSource ?? "—",
     branch: attendance.outBranch?.name ?? attendance.inBranch?.name ?? "—",
+  };
+}
+
+function mapEducationBackground(input: {
+  level: string;
+  schoolName: string | null;
+  yearGraduated: string | null;
+  course: string | null;
+  units: string | null;
+  academicHonors: string | null;
+  address: string | null;
+}): EmployeeEducationalBackgroundDetail {
+  return {
+    level: educationLevelLabelMap[input.level] ?? input.level,
+    schoolName: dash(input.schoolName),
+    yearGraduated: dash(input.yearGraduated),
+    course: dash(input.course),
+    units: dash(input.units),
+    academicHonors: dash(input.academicHonors),
+    address: dash(input.address),
   };
 }
 
@@ -200,6 +244,74 @@ export async function getEmployeeDetail(
           },
           take: 10,
         },
+        familyBackground: {
+          select: {
+            fatherLastName: true,
+            fatherFirstName: true,
+            fatherMiddleName: true,
+            fatherAddress: true,
+            fatherOccupation: true,
+            motherLastName: true,
+            motherFirstName: true,
+            motherMiddleName: true,
+            motherAddress: true,
+            motherOccupation: true,
+            spouseLastName: true,
+            spouseFirstName: true,
+            spouseMiddleName: true,
+            spouseAddress: true,
+            spouseOccupation: true,
+            employer: true,
+            employerAddress: true,
+            employerPhone: true,
+          },
+        },
+        children: {
+          select: {
+            fullName: true,
+            dateOfBirth: true,
+          },
+          orderBy: {
+            childId: "asc",
+          },
+        },
+        educationSummary: {
+          select: {
+            letPasser: true,
+          },
+        },
+        educationalBackgrounds: {
+          select: {
+            level: true,
+            schoolName: true,
+            yearGraduated: true,
+            course: true,
+            units: true,
+            academicHonors: true,
+            address: true,
+          },
+          orderBy: {
+            educationalBackgroundId: "asc",
+          },
+        },
+        workExperiences: {
+          select: {
+            company: true,
+            position: true,
+            inclusiveDates: true,
+          },
+          orderBy: {
+            workExperienceId: "asc",
+          },
+        },
+        contract: {
+          select: {
+            dateHired: true,
+            dateOfJoining: true,
+            signature: true,
+            dateSigned: true,
+          },
+        },
       },
     }),
 
@@ -299,6 +411,8 @@ export async function getEmployeeDetail(
     lastName: employee.lastName,
   });
 
+  const family = employee.familyBackground;
+
   return {
     profile: {
       empId: employee.empId,
@@ -371,5 +485,52 @@ export async function getEmployeeDetail(
       missingTimeout,
     },
     recentAttendance: recentAttendance.map(mapRecentAttendance),
+    familyBackground: {
+      fatherFullName: formatPersonName({
+        firstName: family?.fatherFirstName,
+        middleName: family?.fatherMiddleName,
+        lastName: family?.fatherLastName,
+      }),
+      fatherAddress: dash(family?.fatherAddress),
+      fatherOccupation: dash(family?.fatherOccupation),
+      motherFullName: formatPersonName({
+        firstName: family?.motherFirstName,
+        middleName: family?.motherMiddleName,
+        lastName: family?.motherLastName,
+      }),
+      motherAddress: dash(family?.motherAddress),
+      motherOccupation: dash(family?.motherOccupation),
+      spouseFullName: formatPersonName({
+        firstName: family?.spouseFirstName,
+        middleName: family?.spouseMiddleName,
+        lastName: family?.spouseLastName,
+      }),
+      spouseAddress: dash(family?.spouseAddress),
+      spouseOccupation: dash(family?.spouseOccupation),
+      employer: dash(family?.employer),
+      employerAddress: dash(family?.employerAddress),
+      employerPhone: dash(family?.employerPhone),
+    },
+    children: employee.children.map((child) => ({
+      fullName: child.fullName,
+      dateOfBirth: formatDate(child.dateOfBirth),
+    })),
+    education: {
+      letPasser: employee.educationSummary?.letPasser ?? false,
+      backgrounds: employee.educationalBackgrounds.map(mapEducationBackground),
+    },
+    workExperiences: employee.workExperiences.map((workExperience) => ({
+      company: workExperience.company,
+      position: workExperience.position,
+      inclusiveDates: dash(workExperience.inclusiveDates),
+    })),
+    contract: employee.contract
+      ? {
+          dateHired: formatDate(employee.contract.dateHired),
+          dateOfJoining: formatDate(employee.contract.dateOfJoining),
+          signature: employee.contract.signature,
+          dateSigned: formatDate(employee.contract.dateSigned),
+        }
+      : null,
   };
 }

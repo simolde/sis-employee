@@ -4,8 +4,11 @@ import { ArrowLeft, Pencil } from "lucide-react";
 import { EmployeeAccountCard } from "@/features/employees/components/employee-account-card";
 import { EmployeeAttendanceSummary } from "@/features/employees/components/employee-attendance-summary";
 import { EmployeeDetailCard } from "@/features/employees/components/employee-detail-card";
+import { EmployeeEducationCard } from "@/features/employees/components/employee-education-card";
+import { EmployeeFamilyBackgroundCard } from "@/features/employees/components/employee-family-background-card";
 import { EmployeeRecentAttendanceTable } from "@/features/employees/components/employee-recent-attendance-table";
 import { EmployeeRfidCard } from "@/features/employees/components/employee-rfid-card";
+import { EmployeeWorkContractCard } from "@/features/employees/components/employee-work-contract-card";
 import { getEmployeeDetail } from "@/features/employees/server/employee-detail-queries";
 
 type EmployeeDetailPageProps = {
@@ -35,8 +38,9 @@ export default async function EmployeeDetailPage({
             Employee Profile
           </h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            View profile, account security, RFID cards, attendance summary, and
-            recent attendance records.
+            View profile, family background, education, work experience,
+            contract signing, account security, RFID cards, and attendance
+            records.
           </p>
         </div>
 
@@ -60,6 +64,18 @@ export default async function EmployeeDetailPage({
       </div>
 
       <EmployeeDetailCard employee={employee} />
+
+      <EmployeeFamilyBackgroundCard
+        familyBackground={employee.familyBackground}
+        children={employee.children}
+      />
+
+      <EmployeeEducationCard education={employee.education} />
+
+      <EmployeeWorkContractCard
+        workExperiences={employee.workExperiences}
+        contract={employee.contract}
+      />
 
       <EmployeeAttendanceSummary summary={employee.attendanceSummary} />
 

@@ -228,6 +228,54 @@ export type EmployeeRecentAttendance = {
   branch: string;
 };
 
+export type EmployeeFamilyBackgroundDetail = {
+  fatherFullName: string;
+  fatherAddress: string;
+  fatherOccupation: string;
+  motherFullName: string;
+  motherAddress: string;
+  motherOccupation: string;
+  spouseFullName: string;
+  spouseAddress: string;
+  spouseOccupation: string;
+  employer: string;
+  employerAddress: string;
+  employerPhone: string;
+};
+
+export type EmployeeChildDetail = {
+  fullName: string;
+  dateOfBirth: string;
+};
+
+export type EmployeeEducationalBackgroundDetail = {
+  level: string;
+  schoolName: string;
+  yearGraduated: string;
+  course: string;
+  units: string;
+  academicHonors: string;
+  address: string;
+};
+
+export type EmployeeEducationDetail = {
+  letPasser: boolean;
+  backgrounds: EmployeeEducationalBackgroundDetail[];
+};
+
+export type EmployeeWorkExperienceDetail = {
+  company: string;
+  position: string;
+  inclusiveDates: string;
+};
+
+export type EmployeeContractDetail = {
+  dateHired: string;
+  dateOfJoining: string;
+  signature: string;
+  dateSigned: string;
+};
+
 export type EmployeeDetail = {
   profile: {
     empId: number;
@@ -267,4 +315,9 @@ export type EmployeeDetail = {
   rfidCards: EmployeeRfidDetail[];
   attendanceSummary: EmployeeAttendanceSummary;
   recentAttendance: EmployeeRecentAttendance[];
+  familyBackground: EmployeeFamilyBackgroundDetail;
+  children: EmployeeChildDetail[];
+  education: EmployeeEducationDetail;
+  workExperiences: EmployeeWorkExperienceDetail[];
+  contract: EmployeeContractDetail | null;
 };
