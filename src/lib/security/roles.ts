@@ -35,6 +35,10 @@ export function canManageEmployees(role: SystemRole): boolean {
   return ["SUPER_ADMIN", "HR", "ADMIN"].includes(role);
 }
 
+export function canManageAttendance(role: SystemRole): boolean {
+  return ["SUPER_ADMIN", "HR", "ADMIN"].includes(role);
+}
+
 export function canViewAuditLogs(role: SystemRole): boolean {
   return role === "SUPER_ADMIN";
 }

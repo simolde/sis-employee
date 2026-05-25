@@ -3,6 +3,8 @@ import { AttendanceListFilters } from "@/features/attendance/components/attendan
 import { AttendancePagination } from "@/features/attendance/components/attendance-pagination";
 import { AttendanceSummaryCards } from "@/features/attendance/components/attendance-summary-cards";
 import { AttendanceTable } from "@/features/attendance/components/attendance-table";
+import { TimeInOutForm } from "@/features/attendance/components/time-in-out-form";
+import { getAttendanceFormOptions } from "@/features/attendance/server/attendance-form-queries";
 import {
   getAttendanceDetail,
   getAttendanceList,
@@ -19,9 +21,10 @@ export default async function AttendancePage({
   const resolvedSearchParams = await searchParams;
   const filters = parseAttendanceListSearchParams(resolvedSearchParams);
 
-  const [result, detail] = await Promise.all([
+  const [result, detail, formOptions] = await Promise.all([
     getAttendanceList(filters),
     filters.detailId ? getAttendanceDetail(filters.detailId) : null,
+    getAttendanceFormOptions(),
   ]);
 
   return (
@@ -34,10 +37,12 @@ export default async function AttendancePage({
           Attendance
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-          View employee time-in/time-out records, schedule status, source,
-          branch, GPS details, photos, manual flags, sync status, and logs.
+          View records and record manual web time-in/time-out with GPS, address,
+          branch, photo path, reason, and attendance logs.
         </p>
       </div>
+
+      <TimeInOutForm options={formOptions} />
 
       <AttendanceSummaryCards summary={result.summary} />
 
