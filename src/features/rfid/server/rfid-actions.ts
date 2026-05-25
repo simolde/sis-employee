@@ -7,17 +7,7 @@ import { prisma } from "@/lib/db/prisma";
 import { canManageRfid } from "@/lib/security/roles";
 import { getCurrentSession } from "@/features/auth/server/session";
 import { assignRfidValidationSchema } from "../validators/rfid-validation";
-
-export type RfidActionState = {
-  ok: boolean;
-  message: string;
-  fieldErrors?: Record<string, string[] | undefined>;
-};
-
-export const initialRfidActionState: RfidActionState = {
-  ok: false,
-  message: "",
-};
+import type { RfidActionState } from "../types/rfid-action-state";
 
 function formDataToObject(formData: FormData): Record<string, FormDataEntryValue> {
   return Object.fromEntries(formData.entries());

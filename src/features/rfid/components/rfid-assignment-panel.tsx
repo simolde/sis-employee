@@ -2,10 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { IdCard, Loader2, RadioTower, Save } from "lucide-react";
-import {
-  assignRfidCardAction,
-  initialRfidActionState,
-} from "../server/rfid-actions";
+import { assignRfidCardAction } from "../server/rfid-actions";
+import { initialRfidActionState } from "../types/rfid-action-state";
 import type { RfidEmployeeOption } from "../types/rfid-types";
 
 type RfidAssignmentPanelProps = {
