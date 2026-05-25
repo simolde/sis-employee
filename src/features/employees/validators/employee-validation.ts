@@ -14,6 +14,11 @@ const optionalTextSchema = z.preprocess(
   z.string().trim().max(191).nullable(),
 );
 
+const optionalShortTextSchema = z.preprocess(
+  emptyToNull,
+  z.string().trim().max(80).nullable(),
+);
+
 const optionalLongTextSchema = z.preprocess(
   emptyToNull,
   z.string().trim().max(1000).nullable(),
@@ -29,6 +34,12 @@ const optionalDateSchema = z.preprocess(
   z.coerce.date().nullable(),
 );
 
+const requiredDateSchema = z
+  .string()
+  .trim()
+  .min(1, "This date is required.")
+  .pipe(z.coerce.date());
+
 const optionalIdSchema = z.preprocess(
   emptyToNull,
   z.coerce.number().int().positive().nullable(),
@@ -40,6 +51,12 @@ const requiredIdSchema = z.coerce
   })
   .int()
   .positive("This field is required.");
+
+const requiredSignatureSchema = z
+  .string()
+  .trim()
+  .min(1, "Signature is required.")
+  .max(255, "Signature path is too long.");
 
 export const employeeMutationValidationSchema = z.object({
   empNumber: z
@@ -97,8 +114,85 @@ export const employeeMutationValidationSchema = z.object({
   tin: optionalTextSchema,
   img: z.preprocess(emptyToNull, z.string().trim().max(255).nullable()),
 
-  dateHired: optionalDateSchema,
-  dateSigned: optionalDateSchema,
+  fatherLastName: z.preprocess(emptyToNull, z.string().trim().max(100).nullable()),
+  fatherFirstName: z.preprocess(emptyToNull, z.string().trim().max(100).nullable()),
+  fatherMiddleName: z.preprocess(emptyToNull, z.string().trim().max(100).nullable()),
+  fatherAddress: optionalLongTextSchema,
+  fatherOccupation: optionalTextSchema,
+
+  motherLastName: z.preprocess(emptyToNull, z.string().trim().max(100).nullable()),
+  motherFirstName: z.preprocess(emptyToNull, z.string().trim().max(100).nullable()),
+  motherMiddleName: z.preprocess(emptyToNull, z.string().trim().max(100).nullable()),
+  motherAddress: optionalLongTextSchema,
+  motherOccupation: optionalTextSchema,
+
+  spouseLastName: z.preprocess(emptyToNull, z.string().trim().max(100).nullable()),
+  spouseFirstName: z.preprocess(emptyToNull, z.string().trim().max(100).nullable()),
+  spouseMiddleName: z.preprocess(emptyToNull, z.string().trim().max(100).nullable()),
+  spouseAddress: optionalLongTextSchema,
+  spouseOccupation: optionalTextSchema,
+
+  employer: optionalTextSchema,
+  employerAddress: optionalLongTextSchema,
+  employerPhone: z.preprocess(emptyToNull, z.string().trim().max(40).nullable()),
+
+  child1FullName: optionalTextSchema,
+  child1DateOfBirth: optionalDateSchema,
+  child2FullName: optionalTextSchema,
+  child2DateOfBirth: optionalDateSchema,
+  child3FullName: optionalTextSchema,
+  child3DateOfBirth: optionalDateSchema,
+
+  elementarySchoolName: optionalTextSchema,
+  elementaryYearGraduated: optionalShortTextSchema,
+  elementaryAddress: optionalLongTextSchema,
+
+  secondarySchoolName: optionalTextSchema,
+  secondaryYearGraduated: optionalShortTextSchema,
+  secondaryAddress: optionalLongTextSchema,
+
+  vocationalSchoolName: optionalTextSchema,
+  vocationalYearGraduated: optionalShortTextSchema,
+  vocationalCourse: optionalTextSchema,
+  vocationalAddress: optionalLongTextSchema,
+
+  collegeSchoolName: optionalTextSchema,
+  collegeYearGraduated: optionalShortTextSchema,
+  collegeCourse: optionalTextSchema,
+  collegeAcademicHonors: optionalTextSchema,
+  collegeAddress: optionalLongTextSchema,
+
+  mastersSchoolName: optionalTextSchema,
+  mastersYear: optionalShortTextSchema,
+  mastersUnits: optionalShortTextSchema,
+  mastersAcademicHonors: optionalTextSchema,
+  mastersAddress: optionalLongTextSchema,
+
+  doctorateSchoolName: optionalTextSchema,
+  doctorateYear: optionalShortTextSchema,
+  doctorateUnits: optionalShortTextSchema,
+  doctorateAcademicHonors: optionalTextSchema,
+  doctorateAddress: optionalLongTextSchema,
+
+  letPasser: z.preprocess(
+    (value) => value === "on" || value === "true",
+    z.boolean(),
+  ),
+
+  work1Company: optionalTextSchema,
+  work1Position: optionalTextSchema,
+  work1InclusiveDates: optionalTextSchema,
+  work2Company: optionalTextSchema,
+  work2Position: optionalTextSchema,
+  work2InclusiveDates: optionalTextSchema,
+  work3Company: optionalTextSchema,
+  work3Position: optionalTextSchema,
+  work3InclusiveDates: optionalTextSchema,
+
+  dateHired: requiredDateSchema,
+  dateOfJoining: requiredDateSchema,
+  signature: requiredSignatureSchema,
+  dateSigned: requiredDateSchema,
 
   status: z.enum(employeeStatusValues).default("ACTIVE"),
 });

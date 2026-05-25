@@ -90,7 +90,7 @@ function formatDate(date: Date | null): string {
   return date.toISOString().slice(0, 10);
 }
 
-function formatDateForInput(date: Date | null): string {
+function formatDateForInput(date: Date | null | undefined): string {
   if (!date) {
     return "";
   }
@@ -98,7 +98,7 @@ function formatDateForInput(date: Date | null): string {
   return date.toISOString().slice(0, 10);
 }
 
-function nullableString(value: string | null): string {
+function nullableString(value: string | null | undefined): string {
   return value ?? "";
 }
 
@@ -344,6 +344,21 @@ export async function getEmployeeCreateFormOptions(): Promise<EmployeeFormOption
   };
 }
 
+function findEducation(
+  backgrounds: Array<{
+    level: string;
+    schoolName: string | null;
+    yearGraduated: string | null;
+    course: string | null;
+    units: string | null;
+    academicHonors: string | null;
+    address: string | null;
+  }>,
+  level: string,
+) {
+  return backgrounds.find((education) => education.level === level);
+}
+
 function mapEmployeeEditFormData(employee: {
   empId: number;
   empNumber: string;
@@ -375,7 +390,73 @@ function mapEmployeeEditFormData(employee: {
   dateHired: Date | null;
   dateSigned: Date | null;
   status: EmployeeStatusValue;
+  familyBackground: {
+    fatherLastName: string | null;
+    fatherFirstName: string | null;
+    fatherMiddleName: string | null;
+    fatherAddress: string | null;
+    fatherOccupation: string | null;
+    motherLastName: string | null;
+    motherFirstName: string | null;
+    motherMiddleName: string | null;
+    motherAddress: string | null;
+    motherOccupation: string | null;
+    spouseLastName: string | null;
+    spouseFirstName: string | null;
+    spouseMiddleName: string | null;
+    spouseAddress: string | null;
+    spouseOccupation: string | null;
+    employer: string | null;
+    employerAddress: string | null;
+    employerPhone: string | null;
+  } | null;
+  children: Array<{
+    fullName: string;
+    dateOfBirth: Date | null;
+  }>;
+  educationSummary: {
+    letPasser: boolean;
+  } | null;
+  educationalBackgrounds: Array<{
+    level: string;
+    schoolName: string | null;
+    yearGraduated: string | null;
+    course: string | null;
+    units: string | null;
+    academicHonors: string | null;
+    address: string | null;
+  }>;
+  workExperiences: Array<{
+    company: string;
+    position: string;
+    inclusiveDates: string | null;
+  }>;
+  contract: {
+    dateHired: Date;
+    dateOfJoining: Date;
+    signature: string;
+    dateSigned: Date;
+  } | null;
 }): EmployeeEditFormData {
+  const family = employee.familyBackground;
+  const child1 = employee.children[0];
+  const child2 = employee.children[1];
+  const child3 = employee.children[2];
+
+  const elementary = findEducation(
+    employee.educationalBackgrounds,
+    "ELEMENTARY",
+  );
+  const secondary = findEducation(employee.educationalBackgrounds, "SECONDARY");
+  const vocational = findEducation(employee.educationalBackgrounds, "VOCATIONAL");
+  const college = findEducation(employee.educationalBackgrounds, "COLLEGE");
+  const masters = findEducation(employee.educationalBackgrounds, "MASTERS");
+  const doctorate = findEducation(employee.educationalBackgrounds, "DOCTORATE");
+
+  const work1 = employee.workExperiences[0];
+  const work2 = employee.workExperiences[1];
+  const work3 = employee.workExperiences[2];
+
   return {
     empId: employee.empId,
     empNumber: employee.empNumber,
@@ -404,9 +485,84 @@ function mapEmployeeEditFormData(employee: {
     philhealth: nullableString(employee.philhealth),
     tin: nullableString(employee.tin),
     img: nullableString(employee.img),
-    dateHired: formatDateForInput(employee.dateHired),
-    dateSigned: formatDateForInput(employee.dateSigned),
     status: employee.status,
+
+    fatherLastName: nullableString(family?.fatherLastName),
+    fatherFirstName: nullableString(family?.fatherFirstName),
+    fatherMiddleName: nullableString(family?.fatherMiddleName),
+    fatherAddress: nullableString(family?.fatherAddress),
+    fatherOccupation: nullableString(family?.fatherOccupation),
+
+    motherLastName: nullableString(family?.motherLastName),
+    motherFirstName: nullableString(family?.motherFirstName),
+    motherMiddleName: nullableString(family?.motherMiddleName),
+    motherAddress: nullableString(family?.motherAddress),
+    motherOccupation: nullableString(family?.motherOccupation),
+
+    spouseLastName: nullableString(family?.spouseLastName),
+    spouseFirstName: nullableString(family?.spouseFirstName),
+    spouseMiddleName: nullableString(family?.spouseMiddleName),
+    spouseAddress: nullableString(family?.spouseAddress),
+    spouseOccupation: nullableString(family?.spouseOccupation),
+
+    employer: nullableString(family?.employer),
+    employerAddress: nullableString(family?.employerAddress),
+    employerPhone: nullableString(family?.employerPhone),
+
+    child1FullName: nullableString(child1?.fullName),
+    child1DateOfBirth: formatDateForInput(child1?.dateOfBirth),
+    child2FullName: nullableString(child2?.fullName),
+    child2DateOfBirth: formatDateForInput(child2?.dateOfBirth),
+    child3FullName: nullableString(child3?.fullName),
+    child3DateOfBirth: formatDateForInput(child3?.dateOfBirth),
+
+    elementarySchoolName: nullableString(elementary?.schoolName),
+    elementaryYearGraduated: nullableString(elementary?.yearGraduated),
+    elementaryAddress: nullableString(elementary?.address),
+
+    secondarySchoolName: nullableString(secondary?.schoolName),
+    secondaryYearGraduated: nullableString(secondary?.yearGraduated),
+    secondaryAddress: nullableString(secondary?.address),
+
+    vocationalSchoolName: nullableString(vocational?.schoolName),
+    vocationalYearGraduated: nullableString(vocational?.yearGraduated),
+    vocationalCourse: nullableString(vocational?.course),
+    vocationalAddress: nullableString(vocational?.address),
+
+    collegeSchoolName: nullableString(college?.schoolName),
+    collegeYearGraduated: nullableString(college?.yearGraduated),
+    collegeCourse: nullableString(college?.course),
+    collegeAcademicHonors: nullableString(college?.academicHonors),
+    collegeAddress: nullableString(college?.address),
+
+    mastersSchoolName: nullableString(masters?.schoolName),
+    mastersYear: nullableString(masters?.yearGraduated),
+    mastersUnits: nullableString(masters?.units),
+    mastersAcademicHonors: nullableString(masters?.academicHonors),
+    mastersAddress: nullableString(masters?.address),
+
+    doctorateSchoolName: nullableString(doctorate?.schoolName),
+    doctorateYear: nullableString(doctorate?.yearGraduated),
+    doctorateUnits: nullableString(doctorate?.units),
+    doctorateAcademicHonors: nullableString(doctorate?.academicHonors),
+    doctorateAddress: nullableString(doctorate?.address),
+
+    letPasser: employee.educationSummary?.letPasser ?? false,
+
+    work1Company: nullableString(work1?.company),
+    work1Position: nullableString(work1?.position),
+    work1InclusiveDates: nullableString(work1?.inclusiveDates),
+    work2Company: nullableString(work2?.company),
+    work2Position: nullableString(work2?.position),
+    work2InclusiveDates: nullableString(work2?.inclusiveDates),
+    work3Company: nullableString(work3?.company),
+    work3Position: nullableString(work3?.position),
+    work3InclusiveDates: nullableString(work3?.inclusiveDates),
+
+    dateHired: formatDateForInput(employee.contract?.dateHired ?? employee.dateHired),
+    dateOfJoining: formatDateForInput(employee.contract?.dateOfJoining),
+    signature: nullableString(employee.contract?.signature),
+    dateSigned: formatDateForInput(employee.contract?.dateSigned ?? employee.dateSigned),
   };
 }
 
@@ -455,6 +611,73 @@ export async function getEmployeeEditData(
         dateHired: true,
         dateSigned: true,
         status: true,
+        familyBackground: {
+          select: {
+            fatherLastName: true,
+            fatherFirstName: true,
+            fatherMiddleName: true,
+            fatherAddress: true,
+            fatherOccupation: true,
+            motherLastName: true,
+            motherFirstName: true,
+            motherMiddleName: true,
+            motherAddress: true,
+            motherOccupation: true,
+            spouseLastName: true,
+            spouseFirstName: true,
+            spouseMiddleName: true,
+            spouseAddress: true,
+            spouseOccupation: true,
+            employer: true,
+            employerAddress: true,
+            employerPhone: true,
+          },
+        },
+        children: {
+          select: {
+            fullName: true,
+            dateOfBirth: true,
+          },
+          orderBy: {
+            childId: "asc",
+          },
+          take: 3,
+        },
+        educationSummary: {
+          select: {
+            letPasser: true,
+          },
+        },
+        educationalBackgrounds: {
+          select: {
+            level: true,
+            schoolName: true,
+            yearGraduated: true,
+            course: true,
+            units: true,
+            academicHonors: true,
+            address: true,
+          },
+        },
+        workExperiences: {
+          select: {
+            company: true,
+            position: true,
+            inclusiveDates: true,
+          },
+          orderBy: {
+            workExperienceId: "asc",
+          },
+          take: 3,
+        },
+        contract: {
+          select: {
+            dateHired: true,
+            dateOfJoining: true,
+            signature: true,
+            dateSigned: true,
+          },
+        },
       },
     }),
     getEmployeeCreateFormOptions(),
