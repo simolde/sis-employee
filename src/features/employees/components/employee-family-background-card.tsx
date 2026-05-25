@@ -3,7 +3,7 @@ import type { EmployeeDetail } from "../types/employee-types";
 
 type EmployeeFamilyBackgroundCardProps = {
   familyBackground: EmployeeDetail["familyBackground"];
-  children: EmployeeDetail["children"];
+  employeeChildren: EmployeeDetail["children"];
 };
 
 function DetailItem({
@@ -53,7 +53,7 @@ function PersonBlock({
 
 export function EmployeeFamilyBackgroundCard({
   familyBackground,
-  children,
+  employeeChildren,
 }: EmployeeFamilyBackgroundCardProps) {
   return (
     <section className="starland-card p-5">
@@ -127,9 +127,9 @@ export function EmployeeFamilyBackgroundCard({
           </h3>
         </div>
 
-        {children.length > 0 ? (
+        {employeeChildren.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-3">
-            {children.map((child) => (
+            {employeeChildren.map((child) => (
               <div
                 key={`${child.fullName}-${child.dateOfBirth}`}
                 className="rounded-2xl bg-[var(--starland-modern-bg)] p-4"

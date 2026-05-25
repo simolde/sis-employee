@@ -67,7 +67,7 @@ export default async function EmployeeDetailPage({
 
       <EmployeeFamilyBackgroundCard
         familyBackground={employee.familyBackground}
-        children={employee.children}
+        employeeChildren={employee.children}
       />
 
       <EmployeeEducationCard education={employee.education} />
