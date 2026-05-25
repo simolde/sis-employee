@@ -1,0 +1,529 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum RecordStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  RESIGNED
+  TERMINATED
+  ON_LEAVE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  DISABLED
+}
+
+enum RfidStatus {
+  ACTIVE
+  DISABLED
+  LOST
+  REPLACED
+}
+
+enum AttendanceStatus {
+  ON_TIME
+  LATE
+  HALF_DAY
+  ABSENT
+  EXCUSED
+  PENDING_REVIEW
+  MISSING_TIMEOUT
+}
+
+enum AttendanceSource {
+  RFID
+  WEB
+  MANUAL
+  KIOSK
+  MOBILE
+}
+
+enum PunchType {
+  TIME_IN
+  TIME_OUT
+  REPEATED_SCAN
+  MANUAL_EDIT
+  CORRECTION
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum NoticeStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Branch {
+  branchId   Int          @id @default(autoincrement()) @map("branch_id")
+  branchCode String       @unique @map("branch_code") @db.VarChar(50)
+  name       String       @db.VarChar(191)
+  address    String?      @db.Text
+  latitude   Decimal?     @db.Decimal(10, 7)
+  longitude  Decimal?     @db.Decimal(10, 7)
+  radiusM    Int?         @map("radius_m")
+  status     RecordStatus @default(ACTIVE)
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  employees            Employee[]
+  notices              Notice[]
+  attendanceInRecords  Attendance[] @relation("AttendanceInBranch")
+  attendanceOutRecords Attendance[] @relation("AttendanceOutBranch")
+  attendanceLogs       AttendanceLog[]
+
+  @@map("branches")
+}
+
+model Department {
+  departmentId   Int          @id @default(autoincrement()) @map("department_id")
+  departmentCode String       @unique @map("department_code") @db.VarChar(50)
+  name           String       @db.VarChar(191)
+  status         RecordStatus @default(ACTIVE)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  employees Employee[]
+  notices   Notice[]
+
+  @@map("departments")
+}
+
+model Designation {
+  designationId   Int          @id @default(autoincrement()) @map("designation_id")
+  designationCode String       @unique @map("designation_code") @db.VarChar(50)
+  name            String       @db.VarChar(191)
+  status          RecordStatus @default(ACTIVE)
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  employees Employee[]
+
+  @@map("designations")
+}
+
+model EmpType {
+  empTypeId   Int          @id @default(autoincrement()) @map("emp_type_id")
+  empTypeCode String       @unique @map("emp_type_code") @db.VarChar(50)
+  name        String       @db.VarChar(191)
+  status      RecordStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  employees Employee[]
+
+  @@map("emp_types")
+}
+
+model Employee {
+  empId         Int            @id @default(autoincrement()) @map("emp_id")
+  empNumber     String         @unique @map("emp_number") @db.VarChar(80)
+  prc           String?        @db.VarChar(80)
+  lastName      String         @map("last_name") @db.VarChar(100)
+  firstName     String         @map("first_name") @db.VarChar(100)
+  middleName    String?        @map("middle_name") @db.VarChar(100)
+  gender        String?        @db.VarChar(30)
+  dob           DateTime?      @db.Date
+  pob           String?        @db.VarChar(191)
+  email         String?        @unique @db.VarChar(191)
+  phone         String?        @db.VarChar(40)
+  landline      String?        @db.VarChar(40)
+  civilStatus   String?        @map("civil_status") @db.VarChar(60)
+  citizenship   String?        @db.VarChar(100)
+  address       String?        @db.Text
+  branchId      Int            @map("branch_id")
+  departmentId  Int?           @map("department_id")
+  designationId Int?           @map("designation_id")
+  empTypeId     Int?           @map("emp_type_id")
+  scheduleId    Int?           @map("schedule_id")
+  isFlexible    Boolean        @default(false) @map("is_flexible")
+  avLeave       Float          @default(0) @map("av_leave")
+  sss           String?        @db.VarChar(80)
+  pagibig       String?        @db.VarChar(80)
+  philhealth    String?        @db.VarChar(80)
+  tin           String?        @db.VarChar(80)
+  img           String?        @db.VarChar(255)
+  dateHired     DateTime?      @map("date_hired") @db.Date
+  dateSigned    DateTime?      @map("date_signed") @db.Date
+  status        EmployeeStatus @default(ACTIVE)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  branch      Branch         @relation(fields: [branchId], references: [branchId], onDelete: Restrict)
+  department  Department?    @relation(fields: [departmentId], references: [departmentId], onDelete: SetNull)
+  designation Designation?   @relation(fields: [designationId], references: [designationId], onDelete: SetNull)
+  empType     EmpType?       @relation(fields: [empTypeId], references: [empTypeId], onDelete: SetNull)
+  schedule    ShiftSchedule? @relation("EmployeeCurrentSchedule", fields: [scheduleId], references: [scheduleId], onDelete: SetNull)
+
+  user                        User?
+  rfidCards                   RfidCard[]
+  attendanceRecords           Attendance[]
+  attendanceLogs              AttendanceLog[]
+  leaves                      Leave[]
+  employeeScheduleAssignments EmployeeScheduleAssignment[]
+
+  @@index([branchId])
+  @@index([departmentId])
+  @@index([designationId])
+  @@index([empTypeId])
+  @@index([scheduleId])
+  @@index([status])
+  @@map("employees")
+}
+
+model Role {
+  roleId      Int          @id @default(autoincrement()) @map("role_id")
+  code        String       @unique @db.VarChar(80)
+  name        String       @db.VarChar(120)
+  description String?      @db.Text
+  status      RecordStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  permissionId Int          @id @default(autoincrement()) @map("permission_id")
+  code         String       @unique @db.VarChar(120)
+  name         String       @db.VarChar(150)
+  module       String       @db.VarChar(80)
+  description  String?      @db.Text
+  status       RecordStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  rolePermissions RolePermission[]
+
+  @@index([module])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       Int      @map("role_id")
+  permissionId Int      @map("permission_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  role       Role       @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [permissionId], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+model User {
+  userId             Int        @id @default(autoincrement()) @map("user_id")
+  empId              Int?       @unique @map("emp_id")
+  username           String     @unique @db.VarChar(191)
+  email              String     @unique @db.VarChar(191)
+  passwordHash       String     @map("password_hash") @db.VarChar(255)
+  roleId             Int        @map("role_id")
+  mustChangePassword Boolean    @default(true) @map("must_change_password")
+  failedAttempts     Int        @default(0) @map("failed_attempts")
+  isLocked           Boolean    @default(false) @map("is_locked")
+  lockoutUntil       DateTime?  @map("lockout_until")
+  lastLoginAt        DateTime?  @map("last_login_at")
+  status             UserStatus @default(ACTIVE)
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+
+  employee Employee? @relation(fields: [empId], references: [empId], onDelete: SetNull)
+  role     Role      @relation(fields: [roleId], references: [roleId], onDelete: Restrict)
+
+  verifiedAttendances Attendance[] @relation("AttendanceVerifiedBy")
+  approvedAttendances Attendance[] @relation("AttendanceApprovedBy")
+  createdAttendances  Attendance[] @relation("AttendanceCreatedBy")
+  updatedAttendances  Attendance[] @relation("AttendanceUpdatedBy")
+  assignedSchedules   EmployeeScheduleAssignment[] @relation("ScheduleAssignedBy")
+  approvedLeaves      Leave[] @relation("LeaveApprovedBy")
+  createdLeaves       Leave[] @relation("LeaveCreatedBy")
+  notices             Notice[] @relation("NoticeCreatedBy")
+  activityLogs        ActivityLog[]
+
+  @@index([roleId])
+  @@index([status])
+  @@map("users")
+}
+
+model Shift {
+  shiftId      Int          @id @default(autoincrement()) @map("shift_id")
+  shiftCode    String       @unique @map("shift_code") @db.VarChar(50)
+  name         String       @db.VarChar(120)
+  startTime    String       @map("start_time") @db.VarChar(8)
+  endTime      String       @map("end_time") @db.VarChar(8)
+  graceMinutes Int          @default(0) @map("grace_minutes")
+  isOvernight  Boolean      @default(false) @map("is_overnight")
+  status       RecordStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  schedules ShiftSchedule[]
+
+  @@map("shifts")
+}
+
+model ShiftSchedule {
+  scheduleId    Int          @id @default(autoincrement()) @map("schedule_id")
+  shiftId       Int          @map("shift_id")
+  scheduleCode  String       @unique @map("schedule_code") @db.VarChar(50)
+  name          String       @db.VarChar(120)
+  daysOfWeek    String?      @map("days_of_week") @db.VarChar(50)
+  effectiveFrom DateTime     @map("effective_from") @db.Date
+  effectiveTo   DateTime?    @map("effective_to") @db.Date
+  status        RecordStatus @default(ACTIVE)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  shift                    Shift                        @relation(fields: [shiftId], references: [shiftId], onDelete: Restrict)
+  currentEmployees         Employee[]                   @relation("EmployeeCurrentSchedule")
+  employeeAssignments      EmployeeScheduleAssignment[]
+  attendanceRecords        Attendance[]
+
+  @@index([shiftId])
+  @@index([status])
+  @@map("shift_schedules")
+}
+
+model EmployeeScheduleAssignment {
+  assignmentId Int       @id @default(autoincrement()) @map("assignment_id")
+  empId        Int       @map("emp_id")
+  scheduleId   Int       @map("schedule_id")
+  validFrom    DateTime  @map("valid_from") @db.Date
+  validTo      DateTime? @map("valid_to") @db.Date
+  isActive     Boolean   @default(true) @map("is_active")
+  assignedById Int?      @map("assigned_by")
+  remarks      String?   @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  employee   Employee      @relation(fields: [empId], references: [empId], onDelete: Cascade)
+  schedule   ShiftSchedule @relation(fields: [scheduleId], references: [scheduleId], onDelete: Restrict)
+  assignedBy User?         @relation("ScheduleAssignedBy", fields: [assignedById], references: [userId], onDelete: SetNull)
+
+  @@index([empId])
+  @@index([scheduleId])
+  @@index([assignedById])
+  @@index([isActive])
+  @@map("employee_schedule_assignments")
+}
+
+model RfidCard {
+  rfidId     Int        @id @default(autoincrement()) @map("rfid_id")
+  empId      Int        @map("emp_id")
+  rfidUid    String     @map("rfid_uid") @db.VarChar(191)
+  status     RfidStatus @default(ACTIVE)
+  assignedAt DateTime   @default(now()) @map("assigned_at")
+  disabledAt DateTime?  @map("disabled_at")
+  remarks    String?    @db.Text
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  employee Employee @relation(fields: [empId], references: [empId], onDelete: Cascade)
+
+  @@unique([rfidUid, status])
+  @@index([empId])
+  @@index([rfidUid])
+  @@index([status])
+  @@map("rfid_cards")
+}
+
+model Attendance {
+  attendanceId Int       @id @default(autoincrement()) @map("attendance_id")
+  empId        Int       @map("emp_id")
+  scheduleId   Int?      @map("schedule_id")
+  attDate      DateTime  @map("att_date") @db.Date
+
+  timeIn      DateTime?        @map("time_in")
+  inRemark    String?          @map("in_remark") @db.VarChar(120)
+  inReason    String?          @map("in_reason") @db.Text
+  inLatitude  Decimal?         @map("in_latitude") @db.Decimal(10, 7)
+  inLongitude Decimal?         @map("in_longitude") @db.Decimal(10, 7)
+  inPhoto     String?          @map("in_photo") @db.VarChar(255)
+  inSource    AttendanceSource? @map("in_source")
+  inBranchId  Int?             @map("in_branch_id")
+  inAddress   String?          @map("in_address") @db.Text
+
+  timeOut      DateTime?        @map("time_out")
+  outRemark    String?          @map("out_remark") @db.VarChar(120)
+  outReason    String?          @map("out_reason") @db.Text
+  outLatitude  Decimal?         @map("out_latitude") @db.Decimal(10, 7)
+  outLongitude Decimal?         @map("out_longitude") @db.Decimal(10, 7)
+  outPhoto     String?          @map("out_photo") @db.VarChar(255)
+  outSource    AttendanceSource? @map("out_source")
+  outBranchId  Int?             @map("out_branch_id")
+  outAddress   String?          @map("out_address") @db.Text
+
+  status       AttendanceStatus @default(PENDING_REVIEW)
+  totalMinutes Int?             @map("total_minutes")
+  isSynced     Boolean          @default(true) @map("is_synced")
+  isManual     Boolean          @default(false) @map("is_manual")
+
+  verifiedById Int?      @map("verified_by")
+  verifiedAt   DateTime? @map("verified_at")
+  approvedById Int?      @map("approved_by")
+  approvedAt   DateTime? @map("approved_at")
+  createdById  Int?      @map("created_by")
+  updatedById  Int?      @map("updated_by")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  employee   Employee       @relation(fields: [empId], references: [empId], onDelete: Cascade)
+  schedule   ShiftSchedule? @relation(fields: [scheduleId], references: [scheduleId], onDelete: SetNull)
+  inBranch   Branch?        @relation("AttendanceInBranch", fields: [inBranchId], references: [branchId], onDelete: SetNull)
+  outBranch  Branch?        @relation("AttendanceOutBranch", fields: [outBranchId], references: [branchId], onDelete: SetNull)
+  verifiedBy User?          @relation("AttendanceVerifiedBy", fields: [verifiedById], references: [userId], onDelete: SetNull)
+  approvedBy User?          @relation("AttendanceApprovedBy", fields: [approvedById], references: [userId], onDelete: SetNull)
+  createdBy  User?          @relation("AttendanceCreatedBy", fields: [createdById], references: [userId], onDelete: SetNull)
+  updatedBy  User?          @relation("AttendanceUpdatedBy", fields: [updatedById], references: [userId], onDelete: SetNull)
+  logs       AttendanceLog[]
+
+  @@unique([empId, attDate])
+  @@index([scheduleId])
+  @@index([attDate])
+  @@index([status])
+  @@index([inBranchId])
+  @@index([outBranchId])
+  @@index([verifiedById])
+  @@index([approvedById])
+  @@index([createdById])
+  @@index([updatedById])
+  @@map("attendance")
+}
+
+model AttendanceLog {
+  logId        Int              @id @default(autoincrement()) @map("log_id")
+  attendanceId Int             @map("attendance_id")
+  empId        Int             @map("emp_id")
+  punchType    PunchType       @map("punch_type")
+  punchedAt    DateTime        @default(now()) @map("punched_at")
+  latitude     Decimal?        @db.Decimal(10, 7)
+  longitude    Decimal?        @db.Decimal(10, 7)
+  photo        String?         @db.VarChar(255)
+  address      String?         @db.Text
+  source       AttendanceSource
+  branchId     Int?            @map("branch_id")
+  remarks      String?         @db.VarChar(120)
+  reason       String?         @db.Text
+  createdAt    DateTime        @default(now()) @map("created_at")
+
+  attendance Attendance @relation(fields: [attendanceId], references: [attendanceId], onDelete: Cascade)
+  employee   Employee   @relation(fields: [empId], references: [empId], onDelete: Cascade)
+  branch     Branch?    @relation(fields: [branchId], references: [branchId], onDelete: SetNull)
+
+  @@index([attendanceId])
+  @@index([empId])
+  @@index([punchedAt])
+  @@index([branchId])
+  @@map("attendance_logs")
+}
+
+model LeaveType {
+  leaveTypeId Int          @id @default(autoincrement()) @map("leave_type_id")
+  code        String       @unique @db.VarChar(50)
+  name        String       @db.VarChar(120)
+  isPaid      Boolean      @default(true) @map("is_paid")
+  status      RecordStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  leaves Leave[]
+
+  @@map("leave_types")
+}
+
+model Leave {
+  leaveId         Int         @id @default(autoincrement()) @map("leave_id")
+  empId           Int         @map("emp_id")
+  leaveTypeId     Int         @map("leave_type_id")
+  dateFrom        DateTime    @map("date_from") @db.Date
+  dateTo          DateTime    @map("date_to") @db.Date
+  totalDays       Float       @map("total_days")
+  reason          String      @db.Text
+  status          LeaveStatus @default(PENDING)
+  approvedById    Int?        @map("approved_by")
+  approvedAt      DateTime?   @map("approved_at")
+  rejectionReason String?     @map("rejection_reason") @db.Text
+  createdById     Int?        @map("created_by")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  employee   Employee  @relation(fields: [empId], references: [empId], onDelete: Cascade)
+  leaveType  LeaveType @relation(fields: [leaveTypeId], references: [leaveTypeId], onDelete: Restrict)
+  approvedBy User?     @relation("LeaveApprovedBy", fields: [approvedById], references: [userId], onDelete: SetNull)
+  createdBy  User?     @relation("LeaveCreatedBy", fields: [createdById], references: [userId], onDelete: SetNull)
+
+  @@index([empId])
+  @@index([leaveTypeId])
+  @@index([status])
+  @@index([approvedById])
+  @@index([createdById])
+  @@map("leaves")
+}
+
+model Notice {
+  noticeId     Int          @id @default(autoincrement()) @map("notice_id")
+  title        String       @db.VarChar(191)
+  body         String       @db.Text
+  branchId     Int?         @map("branch_id")
+  departmentId Int?         @map("department_id")
+  status       NoticeStatus @default(DRAFT)
+  publishedAt  DateTime?    @map("published_at")
+  expiresAt    DateTime?    @map("expires_at")
+  createdById  Int?         @map("created_by")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  branch     Branch?     @relation(fields: [branchId], references: [branchId], onDelete: SetNull)
+  department Department? @relation(fields: [departmentId], references: [departmentId], onDelete: SetNull)
+  createdBy  User?       @relation("NoticeCreatedBy", fields: [createdById], references: [userId], onDelete: SetNull)
+
+  @@index([branchId])
+  @@index([departmentId])
+  @@index([status])
+  @@index([createdById])
+  @@map("notices")
+}
+
+model ActivityLog {
+  activityLogId Int      @id @default(autoincrement()) @map("activity_log_id")
+  actorUserId   Int?     @map("actor_user_id")
+  action        String   @db.VarChar(120)
+  entityType    String   @map("entity_type") @db.VarChar(120)
+  entityId      String?  @map("entity_id") @db.VarChar(120)
+  oldValue      Json?    @map("old_value")
+  newValue      Json?    @map("new_value")
+  ipAddress     String?  @map("ip_address") @db.VarChar(80)
+  userAgent     String?  @map("user_agent") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  actorUser User? @relation(fields: [actorUserId], references: [userId], onDelete: SetNull)
+
+  @@index([actorUserId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
