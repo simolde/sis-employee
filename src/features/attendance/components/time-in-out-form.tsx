@@ -1,10 +1,12 @@
 "use client";
 
+import { FormEvent, useRef, useState, useTransition } from "react";
 import { useActionState } from "react";
 import { Loader2, Save } from "lucide-react";
 import { recordManualAttendanceAction } from "../server/attendance-actions";
 import { initialAttendanceActionState } from "../types/attendance-action-state";
 import type { AttendanceFormOptions } from "../server/attendance-form-queries";
+import { getBrowserLocationWithAddress } from "../utils/browser-location";
 import { LocationCapture } from "./location-capture";
 import { WebcamCapture } from "./webcam-capture";
 
@@ -25,10 +27,90 @@ function FieldError({ messages }: { messages?: string[] }) {
 }
 
 export function TimeInOutForm({ options }: TimeInOutFormProps) {
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const submitReadyRef = useRef(false);
+
+  const [clientMessage, setClientMessage] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [address, setAddress] = useState("");
+  const [isLocating, startLocationTransition] = useTransition();
+
   const [state, formAction, isPending] = useActionState(
     recordManualAttendanceAction,
     initialAttendanceActionState,
   );
+
+  async function captureLocation() {
+    setClientMessage("");
+
+    const location = await getBrowserLocationWithAddress();
+
+    setLatitude(location.latitude);
+    setLongitude(location.longitude);
+    setAddress(location.address);
+
+    return location;
+  }
+
+  function handleRefreshLocation() {
+    startLocationTransition(async () => {
+      try {
+        await captureLocation();
+        setClientMessage("GPS and full address captured successfully.");
+      } catch (error) {
+        setClientMessage(
+          error instanceof Error
+            ? error.message
+            : "Unable to capture GPS and full address.",
+        );
+      }
+    });
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    if (submitReadyRef.current) {
+      submitReadyRef.current = false;
+      return;
+    }
+
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const photoPath = String(formData.get("photoPath") ?? "");
+
+    if (!photoPath) {
+      setClientMessage(
+        "Please open the camera and capture a uniform selfie before submitting.",
+      );
+      return;
+    }
+
+    startLocationTransition(async () => {
+      try {
+        const location = await captureLocation();
+
+        setClientMessage(
+          `Location captured: ${location.address}. Submitting attendance...`,
+        );
+
+        submitReadyRef.current = true;
+
+        window.setTimeout(() => {
+          formRef.current?.requestSubmit();
+        }, 0);
+      } catch (error) {
+        setClientMessage(
+          error instanceof Error
+            ? error.message
+            : "Unable to capture GPS and full address.",
+        );
+      }
+    });
+  }
+
+  const isBusy = isPending || isLocating;
 
   return (
     <section className="starland-card overflow-hidden">
@@ -40,12 +122,18 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
           Time-In / Time-Out
         </h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
-          Record a web-based attendance punch with branch, GPS coordinates,
-          address, photo path, reason, and remarks.
+          Capture a uniform selfie first. When you click submit, the system will
+          automatically get GPS, convert it to a full address, and save the
+          punch.
         </p>
       </div>
 
-      <form action={formAction} className="space-y-5 p-5 sm:p-6">
+      <form
+        ref={formRef}
+        action={formAction}
+        onSubmit={handleSubmit}
+        className="space-y-5 p-5 sm:p-6"
+      >
         {state.message ? (
           <div
             className={[
@@ -56,6 +144,12 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
             ].join(" ")}
           >
             {state.message}
+          </div>
+        ) : null}
+
+        {clientMessage ? (
+          <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] px-4 py-3 text-sm font-semibold text-[var(--starland-dark-text)]">
+            {clientMessage}
           </div>
         ) : null}
 
@@ -72,7 +166,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
               name="empId"
               className="starland-input mt-2"
               defaultValue=""
-              disabled={isPending}
+              disabled={isBusy}
             >
               <option value="">Select employee</option>
               {options.employees.map((employee) => (
@@ -96,7 +190,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
               name="branchId"
               className="starland-input mt-2"
               defaultValue=""
-              disabled={isPending}
+              disabled={isBusy}
             >
               <option value="">Select branch</option>
               {options.branches.map((branch) => (
@@ -120,7 +214,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
               name="punchType"
               className="starland-input mt-2"
               defaultValue="TIME_IN"
-              disabled={isPending}
+              disabled={isBusy}
             >
               <option value="TIME_IN">Time In</option>
               <option value="TIME_OUT">Time Out</option>
@@ -129,62 +223,23 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
           </div>
         </div>
 
-        <WebcamCapture disabled={isPending} />
+        <WebcamCapture
+          disabled={isBusy}
+          errorMessages={state.fieldErrors?.photoPath}
+        />
 
-        <div className="grid gap-4 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
-          <div>
-            <label
-              htmlFor="latitude"
-              className="text-sm font-bold text-[var(--starland-dark-text)]"
-            >
-              Latitude
-            </label>
-            <input
-              id="latitude"
-              name="latitude"
-              className="starland-input mt-2"
-              placeholder="14.5995"
-              disabled={isPending}
-            />
-            <FieldError messages={state.fieldErrors?.latitude} />
-          </div>
+        <LocationCapture
+          latitude={latitude}
+          longitude={longitude}
+          address={address}
+          disabled={isBusy}
+          isLocating={isLocating}
+          onRefresh={handleRefreshLocation}
+        />
 
-          <div>
-            <label
-              htmlFor="longitude"
-              className="text-sm font-bold text-[var(--starland-dark-text)]"
-            >
-              Longitude
-            </label>
-            <input
-              id="longitude"
-              name="longitude"
-              className="starland-input mt-2"
-              placeholder="120.9842"
-              disabled={isPending}
-            />
-            <FieldError messages={state.fieldErrors?.longitude} />
-          </div>
-
-          <LocationCapture disabled={isPending} />
-        </div>
-
-        <div>
-          <label
-            htmlFor="address"
-            className="text-sm font-bold text-[var(--starland-dark-text)]"
-          >
-            Address
-          </label>
-          <textarea
-            id="address"
-            name="address"
-            className="starland-input mt-2 min-h-24 resize-y"
-            placeholder="Readable location address"
-            disabled={isPending}
-          />
-          <FieldError messages={state.fieldErrors?.address} />
-        </div>
+        <FieldError messages={state.fieldErrors?.latitude} />
+        <FieldError messages={state.fieldErrors?.longitude} />
+        <FieldError messages={state.fieldErrors?.address} />
 
         <div className="grid gap-4 lg:grid-cols-2">
           <div>
@@ -199,7 +254,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
               name="remarks"
               className="starland-input mt-2 min-h-24 resize-y"
               placeholder="Optional remarks"
-              disabled={isPending}
+              disabled={isBusy}
             />
             <FieldError messages={state.fieldErrors?.remarks} />
           </div>
@@ -216,7 +271,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
               name="reason"
               className="starland-input mt-2 min-h-24 resize-y"
               placeholder="Reason for manual/web punch"
-              disabled={isPending}
+              disabled={isBusy}
             />
             <FieldError messages={state.fieldErrors?.reason} />
           </div>
@@ -225,17 +280,17 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
         <button
           type="submit"
           className="starland-btn starland-btn-primary w-full"
-          disabled={isPending}
+          disabled={isBusy}
         >
-          {isPending ? (
+          {isBusy ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              Recording...
+              {isLocating ? "Getting GPS and Address..." : "Recording..."}
             </>
           ) : (
             <>
               <Save className="h-4 w-4" aria-hidden="true" />
-              Record Attendance
+              Submit Attendance
             </>
           )}
         </button>

@@ -8,14 +8,11 @@ function emptyToNull(value: unknown): unknown {
   return value;
 }
 
-const optionalDecimalStringSchema = z.preprocess(
-  emptyToNull,
-  z
-    .string()
-    .trim()
-    .regex(/^-?\d+(\.\d+)?$/, "Enter a valid coordinate.")
-    .nullable(),
-);
+const requiredCoordinateSchema = z
+  .string()
+  .trim()
+  .min(1, "GPS location is required.")
+  .regex(/^-?\d+(\.\d+)?$/, "Enter a valid coordinate.");
 
 const optionalTextSchema = z.preprocess(
   emptyToNull,
@@ -41,15 +38,20 @@ export const manualAttendanceValidationSchema = z.object({
     error: "Punch type is required.",
   }),
 
-  latitude: optionalDecimalStringSchema,
-  longitude: optionalDecimalStringSchema,
+  latitude: requiredCoordinateSchema,
+  longitude: requiredCoordinateSchema,
 
-  address: optionalTextSchema,
+  address: z
+    .string()
+    .trim()
+    .min(1, "Full address is required.")
+    .max(1000, "Address is too long."),
 
-  photoPath: z.preprocess(
-    emptyToNull,
-    z.string().trim().max(255, "Photo path is too long.").nullable(),
-  ),
+  photoPath: z
+    .string()
+    .trim()
+    .min(1, "Selfie photo is required.")
+    .max(255, "Photo path is too long."),
 
   remarks: optionalTextSchema,
   reason: optionalTextSchema,
