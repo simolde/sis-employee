@@ -389,6 +389,12 @@ export const ModelName = {
   Designation: 'Designation',
   EmpType: 'EmpType',
   Employee: 'Employee',
+  EmployeeFamilyBackground: 'EmployeeFamilyBackground',
+  EmployeeChild: 'EmployeeChild',
+  EmployeeEducationSummary: 'EmployeeEducationSummary',
+  EmployeeEducationalBackground: 'EmployeeEducationalBackground',
+  EmployeeWorkExperience: 'EmployeeWorkExperience',
+  EmployeeContract: 'EmployeeContract',
   Role: 'Role',
   Permission: 'Permission',
   RolePermission: 'RolePermission',
@@ -418,7 +424,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "branch" | "department" | "designation" | "empType" | "employee" | "role" | "permission" | "rolePermission" | "user" | "shift" | "shiftSchedule" | "employeeScheduleAssignment" | "rfidCard" | "attendance" | "attendanceLog" | "leaveType" | "leave" | "notice" | "activityLog"
+    modelProps: "branch" | "department" | "designation" | "empType" | "employee" | "employeeFamilyBackground" | "employeeChild" | "employeeEducationSummary" | "employeeEducationalBackground" | "employeeWorkExperience" | "employeeContract" | "role" | "permission" | "rolePermission" | "user" | "shift" | "shiftSchedule" | "employeeScheduleAssignment" | "rfidCard" | "attendance" | "attendanceLog" | "leaveType" | "leave" | "notice" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -749,6 +755,402 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EmployeeCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EmployeeCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmployeeFamilyBackground: {
+      payload: Prisma.$EmployeeFamilyBackgroundPayload<ExtArgs>
+      fields: Prisma.EmployeeFamilyBackgroundFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeFamilyBackgroundFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeFamilyBackgroundPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeFamilyBackgroundFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeFamilyBackgroundPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeFamilyBackgroundFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeFamilyBackgroundPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeFamilyBackgroundFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeFamilyBackgroundPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeFamilyBackgroundFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeFamilyBackgroundPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeFamilyBackgroundCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeFamilyBackgroundPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeFamilyBackgroundCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmployeeFamilyBackgroundDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeFamilyBackgroundPayload>
+        }
+        update: {
+          args: Prisma.EmployeeFamilyBackgroundUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeFamilyBackgroundPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeFamilyBackgroundDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeFamilyBackgroundUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmployeeFamilyBackgroundUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeFamilyBackgroundPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeFamilyBackgroundAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeFamilyBackground>
+        }
+        groupBy: {
+          args: Prisma.EmployeeFamilyBackgroundGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeFamilyBackgroundGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeFamilyBackgroundCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeFamilyBackgroundCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmployeeChild: {
+      payload: Prisma.$EmployeeChildPayload<ExtArgs>
+      fields: Prisma.EmployeeChildFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeChildFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeChildPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeChildFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeChildPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeChildFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeChildPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeChildFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeChildPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeChildFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeChildPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeChildCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeChildPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeChildCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmployeeChildDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeChildPayload>
+        }
+        update: {
+          args: Prisma.EmployeeChildUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeChildPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeChildDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeChildUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmployeeChildUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeChildPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeChildAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeChild>
+        }
+        groupBy: {
+          args: Prisma.EmployeeChildGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeChildGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeChildCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeChildCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmployeeEducationSummary: {
+      payload: Prisma.$EmployeeEducationSummaryPayload<ExtArgs>
+      fields: Prisma.EmployeeEducationSummaryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeEducationSummaryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationSummaryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeEducationSummaryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationSummaryPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeEducationSummaryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationSummaryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeEducationSummaryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationSummaryPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeEducationSummaryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationSummaryPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeEducationSummaryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationSummaryPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeEducationSummaryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmployeeEducationSummaryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationSummaryPayload>
+        }
+        update: {
+          args: Prisma.EmployeeEducationSummaryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationSummaryPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeEducationSummaryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeEducationSummaryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmployeeEducationSummaryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationSummaryPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeEducationSummaryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeEducationSummary>
+        }
+        groupBy: {
+          args: Prisma.EmployeeEducationSummaryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeEducationSummaryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeEducationSummaryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeEducationSummaryCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmployeeEducationalBackground: {
+      payload: Prisma.$EmployeeEducationalBackgroundPayload<ExtArgs>
+      fields: Prisma.EmployeeEducationalBackgroundFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeEducationalBackgroundFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationalBackgroundPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeEducationalBackgroundFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationalBackgroundPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeEducationalBackgroundFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationalBackgroundPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeEducationalBackgroundFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationalBackgroundPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeEducationalBackgroundFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationalBackgroundPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeEducationalBackgroundCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationalBackgroundPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeEducationalBackgroundCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmployeeEducationalBackgroundDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationalBackgroundPayload>
+        }
+        update: {
+          args: Prisma.EmployeeEducationalBackgroundUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationalBackgroundPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeEducationalBackgroundDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeEducationalBackgroundUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmployeeEducationalBackgroundUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeEducationalBackgroundPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeEducationalBackgroundAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeEducationalBackground>
+        }
+        groupBy: {
+          args: Prisma.EmployeeEducationalBackgroundGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeEducationalBackgroundGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeEducationalBackgroundCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeEducationalBackgroundCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmployeeWorkExperience: {
+      payload: Prisma.$EmployeeWorkExperiencePayload<ExtArgs>
+      fields: Prisma.EmployeeWorkExperienceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeWorkExperienceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeWorkExperiencePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeWorkExperienceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeWorkExperiencePayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeWorkExperienceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeWorkExperiencePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeWorkExperienceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeWorkExperiencePayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeWorkExperienceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeWorkExperiencePayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeWorkExperienceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeWorkExperiencePayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeWorkExperienceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmployeeWorkExperienceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeWorkExperiencePayload>
+        }
+        update: {
+          args: Prisma.EmployeeWorkExperienceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeWorkExperiencePayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeWorkExperienceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeWorkExperienceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmployeeWorkExperienceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeWorkExperiencePayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeWorkExperienceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeWorkExperience>
+        }
+        groupBy: {
+          args: Prisma.EmployeeWorkExperienceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeWorkExperienceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeWorkExperienceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeWorkExperienceCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmployeeContract: {
+      payload: Prisma.$EmployeeContractPayload<ExtArgs>
+      fields: Prisma.EmployeeContractFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeContractFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeContractPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeContractFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeContractPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeContractFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeContractPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeContractFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeContractPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeContractFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeContractPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeContractCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeContractPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeContractCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmployeeContractDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeContractPayload>
+        }
+        update: {
+          args: Prisma.EmployeeContractUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeContractPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeContractDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeContractUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmployeeContractUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeContractPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeContractAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeContract>
+        }
+        groupBy: {
+          args: Prisma.EmployeeContractGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeContractGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeContractCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeContractCountAggregateOutputType> | number
         }
       }
     }
@@ -1805,6 +2207,101 @@ export const EmployeeScalarFieldEnum = {
 export type EmployeeScalarFieldEnum = (typeof EmployeeScalarFieldEnum)[keyof typeof EmployeeScalarFieldEnum]
 
 
+export const EmployeeFamilyBackgroundScalarFieldEnum = {
+  familyBackgroundId: 'familyBackgroundId',
+  empId: 'empId',
+  fatherLastName: 'fatherLastName',
+  fatherFirstName: 'fatherFirstName',
+  fatherMiddleName: 'fatherMiddleName',
+  fatherAddress: 'fatherAddress',
+  fatherOccupation: 'fatherOccupation',
+  motherLastName: 'motherLastName',
+  motherFirstName: 'motherFirstName',
+  motherMiddleName: 'motherMiddleName',
+  motherAddress: 'motherAddress',
+  motherOccupation: 'motherOccupation',
+  spouseLastName: 'spouseLastName',
+  spouseFirstName: 'spouseFirstName',
+  spouseMiddleName: 'spouseMiddleName',
+  spouseAddress: 'spouseAddress',
+  spouseOccupation: 'spouseOccupation',
+  employer: 'employer',
+  employerAddress: 'employerAddress',
+  employerPhone: 'employerPhone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeFamilyBackgroundScalarFieldEnum = (typeof EmployeeFamilyBackgroundScalarFieldEnum)[keyof typeof EmployeeFamilyBackgroundScalarFieldEnum]
+
+
+export const EmployeeChildScalarFieldEnum = {
+  childId: 'childId',
+  empId: 'empId',
+  fullName: 'fullName',
+  dateOfBirth: 'dateOfBirth',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeChildScalarFieldEnum = (typeof EmployeeChildScalarFieldEnum)[keyof typeof EmployeeChildScalarFieldEnum]
+
+
+export const EmployeeEducationSummaryScalarFieldEnum = {
+  educationSummaryId: 'educationSummaryId',
+  empId: 'empId',
+  letPasser: 'letPasser',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeEducationSummaryScalarFieldEnum = (typeof EmployeeEducationSummaryScalarFieldEnum)[keyof typeof EmployeeEducationSummaryScalarFieldEnum]
+
+
+export const EmployeeEducationalBackgroundScalarFieldEnum = {
+  educationalBackgroundId: 'educationalBackgroundId',
+  empId: 'empId',
+  level: 'level',
+  schoolName: 'schoolName',
+  yearGraduated: 'yearGraduated',
+  course: 'course',
+  units: 'units',
+  academicHonors: 'academicHonors',
+  address: 'address',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeEducationalBackgroundScalarFieldEnum = (typeof EmployeeEducationalBackgroundScalarFieldEnum)[keyof typeof EmployeeEducationalBackgroundScalarFieldEnum]
+
+
+export const EmployeeWorkExperienceScalarFieldEnum = {
+  workExperienceId: 'workExperienceId',
+  empId: 'empId',
+  company: 'company',
+  position: 'position',
+  inclusiveDates: 'inclusiveDates',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeWorkExperienceScalarFieldEnum = (typeof EmployeeWorkExperienceScalarFieldEnum)[keyof typeof EmployeeWorkExperienceScalarFieldEnum]
+
+
+export const EmployeeContractScalarFieldEnum = {
+  contractId: 'contractId',
+  empId: 'empId',
+  dateHired: 'dateHired',
+  dateOfJoining: 'dateOfJoining',
+  signature: 'signature',
+  dateSigned: 'dateSigned',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeContractScalarFieldEnum = (typeof EmployeeContractScalarFieldEnum)[keyof typeof EmployeeContractScalarFieldEnum]
+
+
 export const RoleScalarFieldEnum = {
   roleId: 'roleId',
   code: 'code',
@@ -2131,6 +2628,65 @@ export const EmployeeOrderByRelevanceFieldEnum = {
 export type EmployeeOrderByRelevanceFieldEnum = (typeof EmployeeOrderByRelevanceFieldEnum)[keyof typeof EmployeeOrderByRelevanceFieldEnum]
 
 
+export const EmployeeFamilyBackgroundOrderByRelevanceFieldEnum = {
+  fatherLastName: 'fatherLastName',
+  fatherFirstName: 'fatherFirstName',
+  fatherMiddleName: 'fatherMiddleName',
+  fatherAddress: 'fatherAddress',
+  fatherOccupation: 'fatherOccupation',
+  motherLastName: 'motherLastName',
+  motherFirstName: 'motherFirstName',
+  motherMiddleName: 'motherMiddleName',
+  motherAddress: 'motherAddress',
+  motherOccupation: 'motherOccupation',
+  spouseLastName: 'spouseLastName',
+  spouseFirstName: 'spouseFirstName',
+  spouseMiddleName: 'spouseMiddleName',
+  spouseAddress: 'spouseAddress',
+  spouseOccupation: 'spouseOccupation',
+  employer: 'employer',
+  employerAddress: 'employerAddress',
+  employerPhone: 'employerPhone'
+} as const
+
+export type EmployeeFamilyBackgroundOrderByRelevanceFieldEnum = (typeof EmployeeFamilyBackgroundOrderByRelevanceFieldEnum)[keyof typeof EmployeeFamilyBackgroundOrderByRelevanceFieldEnum]
+
+
+export const EmployeeChildOrderByRelevanceFieldEnum = {
+  fullName: 'fullName'
+} as const
+
+export type EmployeeChildOrderByRelevanceFieldEnum = (typeof EmployeeChildOrderByRelevanceFieldEnum)[keyof typeof EmployeeChildOrderByRelevanceFieldEnum]
+
+
+export const EmployeeEducationalBackgroundOrderByRelevanceFieldEnum = {
+  schoolName: 'schoolName',
+  yearGraduated: 'yearGraduated',
+  course: 'course',
+  units: 'units',
+  academicHonors: 'academicHonors',
+  address: 'address'
+} as const
+
+export type EmployeeEducationalBackgroundOrderByRelevanceFieldEnum = (typeof EmployeeEducationalBackgroundOrderByRelevanceFieldEnum)[keyof typeof EmployeeEducationalBackgroundOrderByRelevanceFieldEnum]
+
+
+export const EmployeeWorkExperienceOrderByRelevanceFieldEnum = {
+  company: 'company',
+  position: 'position',
+  inclusiveDates: 'inclusiveDates'
+} as const
+
+export type EmployeeWorkExperienceOrderByRelevanceFieldEnum = (typeof EmployeeWorkExperienceOrderByRelevanceFieldEnum)[keyof typeof EmployeeWorkExperienceOrderByRelevanceFieldEnum]
+
+
+export const EmployeeContractOrderByRelevanceFieldEnum = {
+  signature: 'signature'
+} as const
+
+export type EmployeeContractOrderByRelevanceFieldEnum = (typeof EmployeeContractOrderByRelevanceFieldEnum)[keyof typeof EmployeeContractOrderByRelevanceFieldEnum]
+
+
 export const RoleOrderByRelevanceFieldEnum = {
   code: 'code',
   name: 'name',
@@ -2332,6 +2888,13 @@ export type EnumEmployeeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
+ * Reference to a field of type 'EducationLevel'
+ */
+export type EnumEducationLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EducationLevel'>
+    
+
+
+/**
  * Reference to a field of type 'UserStatus'
  */
 export type EnumUserStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserStatus'>
@@ -2508,6 +3071,12 @@ export type GlobalOmitConfig = {
   designation?: Prisma.DesignationOmit
   empType?: Prisma.EmpTypeOmit
   employee?: Prisma.EmployeeOmit
+  employeeFamilyBackground?: Prisma.EmployeeFamilyBackgroundOmit
+  employeeChild?: Prisma.EmployeeChildOmit
+  employeeEducationSummary?: Prisma.EmployeeEducationSummaryOmit
+  employeeEducationalBackground?: Prisma.EmployeeEducationalBackgroundOmit
+  employeeWorkExperience?: Prisma.EmployeeWorkExperienceOmit
+  employeeContract?: Prisma.EmployeeContractOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
   rolePermission?: Prisma.RolePermissionOmit

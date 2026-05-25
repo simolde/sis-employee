@@ -290,6 +290,23 @@ export type EnumEmployeeStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumEmployeeStatusFilter<$PrismaModel>
 }
 
+export type EnumEducationLevelFilter<$PrismaModel = never> = {
+  equals?: $Enums.EducationLevel | Prisma.EnumEducationLevelFieldRefInput<$PrismaModel>
+  in?: $Enums.EducationLevel[]
+  notIn?: $Enums.EducationLevel[]
+  not?: Prisma.NestedEnumEducationLevelFilter<$PrismaModel> | $Enums.EducationLevel
+}
+
+export type EnumEducationLevelWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EducationLevel | Prisma.EnumEducationLevelFieldRefInput<$PrismaModel>
+  in?: $Enums.EducationLevel[]
+  notIn?: $Enums.EducationLevel[]
+  not?: Prisma.NestedEnumEducationLevelWithAggregatesFilter<$PrismaModel> | $Enums.EducationLevel
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEducationLevelFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEducationLevelFilter<$PrismaModel>
+}
+
 export type EnumUserStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.UserStatus | Prisma.EnumUserStatusFieldRefInput<$PrismaModel>
   in?: $Enums.UserStatus[]
@@ -757,6 +774,23 @@ export type NestedEnumEmployeeStatusWithAggregatesFilter<$PrismaModel = never> =
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumEmployeeStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumEmployeeStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumEducationLevelFilter<$PrismaModel = never> = {
+  equals?: $Enums.EducationLevel | Prisma.EnumEducationLevelFieldRefInput<$PrismaModel>
+  in?: $Enums.EducationLevel[]
+  notIn?: $Enums.EducationLevel[]
+  not?: Prisma.NestedEnumEducationLevelFilter<$PrismaModel> | $Enums.EducationLevel
+}
+
+export type NestedEnumEducationLevelWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EducationLevel | Prisma.EnumEducationLevelFieldRefInput<$PrismaModel>
+  in?: $Enums.EducationLevel[]
+  notIn?: $Enums.EducationLevel[]
+  not?: Prisma.NestedEnumEducationLevelWithAggregatesFilter<$PrismaModel> | $Enums.EducationLevel
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEducationLevelFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEducationLevelFilter<$PrismaModel>
 }
 
 export type NestedEnumUserStatusFilter<$PrismaModel = never> = {

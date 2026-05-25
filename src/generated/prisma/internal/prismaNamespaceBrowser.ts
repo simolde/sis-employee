@@ -56,6 +56,12 @@ export const ModelName = {
   Designation: 'Designation',
   EmpType: 'EmpType',
   Employee: 'Employee',
+  EmployeeFamilyBackground: 'EmployeeFamilyBackground',
+  EmployeeChild: 'EmployeeChild',
+  EmployeeEducationSummary: 'EmployeeEducationSummary',
+  EmployeeEducationalBackground: 'EmployeeEducationalBackground',
+  EmployeeWorkExperience: 'EmployeeWorkExperience',
+  EmployeeContract: 'EmployeeContract',
   Role: 'Role',
   Permission: 'Permission',
   RolePermission: 'RolePermission',
@@ -176,6 +182,101 @@ export const EmployeeScalarFieldEnum = {
 } as const
 
 export type EmployeeScalarFieldEnum = (typeof EmployeeScalarFieldEnum)[keyof typeof EmployeeScalarFieldEnum]
+
+
+export const EmployeeFamilyBackgroundScalarFieldEnum = {
+  familyBackgroundId: 'familyBackgroundId',
+  empId: 'empId',
+  fatherLastName: 'fatherLastName',
+  fatherFirstName: 'fatherFirstName',
+  fatherMiddleName: 'fatherMiddleName',
+  fatherAddress: 'fatherAddress',
+  fatherOccupation: 'fatherOccupation',
+  motherLastName: 'motherLastName',
+  motherFirstName: 'motherFirstName',
+  motherMiddleName: 'motherMiddleName',
+  motherAddress: 'motherAddress',
+  motherOccupation: 'motherOccupation',
+  spouseLastName: 'spouseLastName',
+  spouseFirstName: 'spouseFirstName',
+  spouseMiddleName: 'spouseMiddleName',
+  spouseAddress: 'spouseAddress',
+  spouseOccupation: 'spouseOccupation',
+  employer: 'employer',
+  employerAddress: 'employerAddress',
+  employerPhone: 'employerPhone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeFamilyBackgroundScalarFieldEnum = (typeof EmployeeFamilyBackgroundScalarFieldEnum)[keyof typeof EmployeeFamilyBackgroundScalarFieldEnum]
+
+
+export const EmployeeChildScalarFieldEnum = {
+  childId: 'childId',
+  empId: 'empId',
+  fullName: 'fullName',
+  dateOfBirth: 'dateOfBirth',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeChildScalarFieldEnum = (typeof EmployeeChildScalarFieldEnum)[keyof typeof EmployeeChildScalarFieldEnum]
+
+
+export const EmployeeEducationSummaryScalarFieldEnum = {
+  educationSummaryId: 'educationSummaryId',
+  empId: 'empId',
+  letPasser: 'letPasser',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeEducationSummaryScalarFieldEnum = (typeof EmployeeEducationSummaryScalarFieldEnum)[keyof typeof EmployeeEducationSummaryScalarFieldEnum]
+
+
+export const EmployeeEducationalBackgroundScalarFieldEnum = {
+  educationalBackgroundId: 'educationalBackgroundId',
+  empId: 'empId',
+  level: 'level',
+  schoolName: 'schoolName',
+  yearGraduated: 'yearGraduated',
+  course: 'course',
+  units: 'units',
+  academicHonors: 'academicHonors',
+  address: 'address',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeEducationalBackgroundScalarFieldEnum = (typeof EmployeeEducationalBackgroundScalarFieldEnum)[keyof typeof EmployeeEducationalBackgroundScalarFieldEnum]
+
+
+export const EmployeeWorkExperienceScalarFieldEnum = {
+  workExperienceId: 'workExperienceId',
+  empId: 'empId',
+  company: 'company',
+  position: 'position',
+  inclusiveDates: 'inclusiveDates',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeWorkExperienceScalarFieldEnum = (typeof EmployeeWorkExperienceScalarFieldEnum)[keyof typeof EmployeeWorkExperienceScalarFieldEnum]
+
+
+export const EmployeeContractScalarFieldEnum = {
+  contractId: 'contractId',
+  empId: 'empId',
+  dateHired: 'dateHired',
+  dateOfJoining: 'dateOfJoining',
+  signature: 'signature',
+  dateSigned: 'dateSigned',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeContractScalarFieldEnum = (typeof EmployeeContractScalarFieldEnum)[keyof typeof EmployeeContractScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
@@ -502,6 +603,65 @@ export const EmployeeOrderByRelevanceFieldEnum = {
 } as const
 
 export type EmployeeOrderByRelevanceFieldEnum = (typeof EmployeeOrderByRelevanceFieldEnum)[keyof typeof EmployeeOrderByRelevanceFieldEnum]
+
+
+export const EmployeeFamilyBackgroundOrderByRelevanceFieldEnum = {
+  fatherLastName: 'fatherLastName',
+  fatherFirstName: 'fatherFirstName',
+  fatherMiddleName: 'fatherMiddleName',
+  fatherAddress: 'fatherAddress',
+  fatherOccupation: 'fatherOccupation',
+  motherLastName: 'motherLastName',
+  motherFirstName: 'motherFirstName',
+  motherMiddleName: 'motherMiddleName',
+  motherAddress: 'motherAddress',
+  motherOccupation: 'motherOccupation',
+  spouseLastName: 'spouseLastName',
+  spouseFirstName: 'spouseFirstName',
+  spouseMiddleName: 'spouseMiddleName',
+  spouseAddress: 'spouseAddress',
+  spouseOccupation: 'spouseOccupation',
+  employer: 'employer',
+  employerAddress: 'employerAddress',
+  employerPhone: 'employerPhone'
+} as const
+
+export type EmployeeFamilyBackgroundOrderByRelevanceFieldEnum = (typeof EmployeeFamilyBackgroundOrderByRelevanceFieldEnum)[keyof typeof EmployeeFamilyBackgroundOrderByRelevanceFieldEnum]
+
+
+export const EmployeeChildOrderByRelevanceFieldEnum = {
+  fullName: 'fullName'
+} as const
+
+export type EmployeeChildOrderByRelevanceFieldEnum = (typeof EmployeeChildOrderByRelevanceFieldEnum)[keyof typeof EmployeeChildOrderByRelevanceFieldEnum]
+
+
+export const EmployeeEducationalBackgroundOrderByRelevanceFieldEnum = {
+  schoolName: 'schoolName',
+  yearGraduated: 'yearGraduated',
+  course: 'course',
+  units: 'units',
+  academicHonors: 'academicHonors',
+  address: 'address'
+} as const
+
+export type EmployeeEducationalBackgroundOrderByRelevanceFieldEnum = (typeof EmployeeEducationalBackgroundOrderByRelevanceFieldEnum)[keyof typeof EmployeeEducationalBackgroundOrderByRelevanceFieldEnum]
+
+
+export const EmployeeWorkExperienceOrderByRelevanceFieldEnum = {
+  company: 'company',
+  position: 'position',
+  inclusiveDates: 'inclusiveDates'
+} as const
+
+export type EmployeeWorkExperienceOrderByRelevanceFieldEnum = (typeof EmployeeWorkExperienceOrderByRelevanceFieldEnum)[keyof typeof EmployeeWorkExperienceOrderByRelevanceFieldEnum]
+
+
+export const EmployeeContractOrderByRelevanceFieldEnum = {
+  signature: 'signature'
+} as const
+
+export type EmployeeContractOrderByRelevanceFieldEnum = (typeof EmployeeContractOrderByRelevanceFieldEnum)[keyof typeof EmployeeContractOrderByRelevanceFieldEnum]
 
 
 export const RoleOrderByRelevanceFieldEnum = {

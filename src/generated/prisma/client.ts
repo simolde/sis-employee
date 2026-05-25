@@ -67,6 +67,36 @@ export type EmpType = Prisma.EmpTypeModel
  */
 export type Employee = Prisma.EmployeeModel
 /**
+ * Model EmployeeFamilyBackground
+ * 
+ */
+export type EmployeeFamilyBackground = Prisma.EmployeeFamilyBackgroundModel
+/**
+ * Model EmployeeChild
+ * 
+ */
+export type EmployeeChild = Prisma.EmployeeChildModel
+/**
+ * Model EmployeeEducationSummary
+ * 
+ */
+export type EmployeeEducationSummary = Prisma.EmployeeEducationSummaryModel
+/**
+ * Model EmployeeEducationalBackground
+ * 
+ */
+export type EmployeeEducationalBackground = Prisma.EmployeeEducationalBackgroundModel
+/**
+ * Model EmployeeWorkExperience
+ * 
+ */
+export type EmployeeWorkExperience = Prisma.EmployeeWorkExperienceModel
+/**
+ * Model EmployeeContract
+ * 
+ */
+export type EmployeeContract = Prisma.EmployeeContractModel
+/**
  * Model Role
  * 
  */

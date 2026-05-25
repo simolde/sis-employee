@@ -73,6 +73,15 @@ enum NoticeStatus {
   ARCHIVED
 }
 
+enum EducationLevel {
+  ELEMENTARY
+  SECONDARY
+  VOCATIONAL
+  COLLEGE
+  MASTERS
+  DOCTORATE
+}
+
 model Branch {
   branchId   Int          @id @default(autoincrement()) @map("branch_id")
   branchCode String       @unique @map("branch_code") @db.VarChar(50)
@@ -180,6 +189,12 @@ model Employee {
   attendanceLogs              AttendanceLog[]
   leaves                      Leave[]
   employeeScheduleAssignments EmployeeScheduleAssignment[]
+  familyBackground            EmployeeFamilyBackground?
+  children                    EmployeeChild[]
+  educationSummary            EmployeeEducationSummary?
+  educationalBackgrounds      EmployeeEducationalBackground[]
+  workExperiences             EmployeeWorkExperience[]
+  contract                    EmployeeContract?
 
   @@index([branchId])
   @@index([departmentId])
@@ -188,6 +203,116 @@ model Employee {
   @@index([scheduleId])
   @@index([status])
   @@map("employees")
+}
+
+model EmployeeFamilyBackground {
+  familyBackgroundId Int      @id @default(autoincrement()) @map("family_background_id")
+  empId              Int      @unique @map("emp_id")
+
+  fatherLastName     String?  @map("father_last_name") @db.VarChar(100)
+  fatherFirstName    String?  @map("father_first_name") @db.VarChar(100)
+  fatherMiddleName   String?  @map("father_middle_name") @db.VarChar(100)
+  fatherAddress      String?  @map("father_address") @db.Text
+  fatherOccupation   String?  @map("father_occupation") @db.VarChar(191)
+
+  motherLastName     String?  @map("mother_last_name") @db.VarChar(100)
+  motherFirstName    String?  @map("mother_first_name") @db.VarChar(100)
+  motherMiddleName   String?  @map("mother_middle_name") @db.VarChar(100)
+  motherAddress      String?  @map("mother_address") @db.Text
+  motherOccupation   String?  @map("mother_occupation") @db.VarChar(191)
+
+  spouseLastName     String?  @map("spouse_last_name") @db.VarChar(100)
+  spouseFirstName    String?  @map("spouse_first_name") @db.VarChar(100)
+  spouseMiddleName   String?  @map("spouse_middle_name") @db.VarChar(100)
+  spouseAddress      String?  @map("spouse_address") @db.Text
+  spouseOccupation   String?  @map("spouse_occupation") @db.VarChar(191)
+
+  employer           String?  @db.VarChar(191)
+  employerAddress    String?  @map("employer_address") @db.Text
+  employerPhone      String?  @map("employer_phone") @db.VarChar(40)
+
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  employee           Employee @relation(fields: [empId], references: [empId], onDelete: Cascade)
+
+  @@map("employee_family_backgrounds")
+}
+
+model EmployeeChild {
+  childId     Int       @id @default(autoincrement()) @map("child_id")
+  empId       Int       @map("emp_id")
+  fullName    String    @map("full_name") @db.VarChar(191)
+  dateOfBirth DateTime? @map("date_of_birth") @db.Date
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  employee    Employee  @relation(fields: [empId], references: [empId], onDelete: Cascade)
+
+  @@index([empId])
+  @@map("employee_children")
+}
+
+model EmployeeEducationSummary {
+  educationSummaryId Int      @id @default(autoincrement()) @map("education_summary_id")
+  empId              Int      @unique @map("emp_id")
+  letPasser          Boolean  @default(false) @map("let_passer")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  employee           Employee @relation(fields: [empId], references: [empId], onDelete: Cascade)
+
+  @@map("employee_education_summaries")
+}
+
+model EmployeeEducationalBackground {
+  educationalBackgroundId Int            @id @default(autoincrement()) @map("educational_background_id")
+  empId                   Int            @map("emp_id")
+  level                   EducationLevel
+  schoolName              String?        @map("school_name") @db.VarChar(191)
+  yearGraduated           String?        @map("year_graduated") @db.VarChar(50)
+  course                  String?        @db.VarChar(191)
+  units                   String?        @db.VarChar(80)
+  academicHonors          String?        @map("academic_honors") @db.VarChar(191)
+  address                 String?        @db.Text
+  createdAt               DateTime       @default(now()) @map("created_at")
+  updatedAt               DateTime       @updatedAt @map("updated_at")
+
+  employee                Employee       @relation(fields: [empId], references: [empId], onDelete: Cascade)
+
+  @@unique([empId, level])
+  @@index([empId])
+  @@map("employee_educational_backgrounds")
+}
+
+model EmployeeWorkExperience {
+  workExperienceId Int      @id @default(autoincrement()) @map("work_experience_id")
+  empId            Int      @map("emp_id")
+  company          String   @db.VarChar(191)
+  position         String   @db.VarChar(191)
+  inclusiveDates   String?  @map("inclusive_dates") @db.VarChar(191)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  employee         Employee @relation(fields: [empId], references: [empId], onDelete: Cascade)
+
+  @@index([empId])
+  @@map("employee_work_experiences")
+}
+
+model EmployeeContract {
+  contractId    Int      @id @default(autoincrement()) @map("contract_id")
+  empId         Int      @unique @map("emp_id")
+  dateHired     DateTime @map("date_hired") @db.Date
+  dateOfJoining DateTime @map("date_of_joining") @db.Date
+  signature     String   @db.VarChar(255)
+  dateSigned    DateTime @map("date_signed") @db.Date
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  employee      Employee @relation(fields: [empId], references: [empId], onDelete: Cascade)
+
+  @@map("employee_contracts")
 }
 
 model Role {

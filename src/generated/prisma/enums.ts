@@ -100,3 +100,15 @@ export const NoticeStatus = {
 } as const
 
 export type NoticeStatus = (typeof NoticeStatus)[keyof typeof NoticeStatus]
+
+
+export const EducationLevel = {
+  ELEMENTARY: 'ELEMENTARY',
+  SECONDARY: 'SECONDARY',
+  VOCATIONAL: 'VOCATIONAL',
+  COLLEGE: 'COLLEGE',
+  MASTERS: 'MASTERS',
+  DOCTORATE: 'DOCTORATE'
+} as const
+
+export type EducationLevel = (typeof EducationLevel)[keyof typeof EducationLevel]
