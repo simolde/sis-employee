@@ -6,7 +6,7 @@ type LocationCaptureProps = {
   address: string;
   disabled: boolean;
   isLocating: boolean;
-  onRefresh: () => void;
+  onGetLocation: () => void;
 };
 
 export function LocationCapture({
@@ -15,30 +15,42 @@ export function LocationCapture({
   address,
   disabled,
   isLocating,
-  onRefresh,
+  onGetLocation,
 }: LocationCaptureProps) {
+  const hasLocation = Boolean(latitude && longitude && address);
+
   return (
     <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-extrabold text-[var(--starland-dark-text)]">
-            Automatic GPS and Address
+            Required GPS and Full Address
           </p>
           <p className="mt-1 text-xs leading-5 text-[var(--starland-muted-text)]">
-            GPS and full address are captured automatically when you click
-            submit. The values are read-only to prevent manual editing.
+            Click Get Location before submitting. Latitude and longitude are
+            read-only, and the full address is converted automatically.
           </p>
         </div>
 
         <button
           type="button"
-          className="starland-btn starland-btn-soft starland-btn-sm"
-          onClick={onRefresh}
+          className="starland-btn starland-btn-primary starland-btn-sm"
+          onClick={onGetLocation}
           disabled={disabled || isLocating}
         >
-          {isLocating ? "Getting Location..." : "Refresh GPS"}
+          {isLocating ? "Getting Location..." : "Get Location"}
         </button>
       </div>
+
+      {hasLocation ? (
+        <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 p-3 text-sm font-semibold text-green-700">
+          Location captured successfully.
+        </div>
+      ) : (
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-700">
+          Location is required before submitting attendance.
+        </div>
+      )}
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <div>
@@ -88,7 +100,7 @@ export function LocationCapture({
           name="address"
           className="starland-input mt-2 min-h-24 resize-y bg-slate-50"
           value={address}
-          placeholder="Full address will be converted automatically from GPS."
+          placeholder="Full address will appear here after GPS capture."
           readOnly
         />
       </div>

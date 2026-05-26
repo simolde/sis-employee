@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useRef, useState, useTransition } from "react";
+import { FormEvent, useState } from "react";
 import { useActionState } from "react";
 import { Loader2, Save } from "lucide-react";
 import { recordManualAttendanceAction } from "../server/attendance-actions";
@@ -27,90 +27,58 @@ function FieldError({ messages }: { messages?: string[] }) {
 }
 
 export function TimeInOutForm({ options }: TimeInOutFormProps) {
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const submitReadyRef = useRef(false);
-
   const [clientMessage, setClientMessage] = useState("");
+  const [photoPath, setPhotoPath] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [address, setAddress] = useState("");
-  const [isLocating, startLocationTransition] = useTransition();
+  const [isLocating, setIsLocating] = useState(false);
 
   const [state, formAction, isPending] = useActionState(
     recordManualAttendanceAction,
     initialAttendanceActionState,
   );
 
-  async function captureLocation() {
+  async function handleGetLocation() {
     setClientMessage("");
+    setIsLocating(true);
 
-    const location = await getBrowserLocationWithAddress();
+    try {
+      const location = await getBrowserLocationWithAddress();
 
-    setLatitude(location.latitude);
-    setLongitude(location.longitude);
-    setAddress(location.address);
-
-    return location;
-  }
-
-  function handleRefreshLocation() {
-    startLocationTransition(async () => {
-      try {
-        await captureLocation();
-        setClientMessage("GPS and full address captured successfully.");
-      } catch (error) {
-        setClientMessage(
-          error instanceof Error
-            ? error.message
-            : "Unable to capture GPS and full address.",
-        );
-      }
-    });
+      setLatitude(location.latitude);
+      setLongitude(location.longitude);
+      setAddress(location.address);
+      setClientMessage("GPS and full address captured successfully.");
+    } catch (error) {
+      setLatitude("");
+      setLongitude("");
+      setAddress("");
+      setClientMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to capture GPS and full address.",
+      );
+    } finally {
+      setIsLocating(false);
+    }
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    if (submitReadyRef.current) {
-      submitReadyRef.current = false;
-      return;
-    }
-
-    event.preventDefault();
-
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    const photoPath = String(formData.get("photoPath") ?? "");
-
     if (!photoPath) {
-      setClientMessage(
-        "Please open the camera and capture a uniform selfie before submitting.",
-      );
+      event.preventDefault();
+      setClientMessage("Please capture a uniform selfie before submitting.");
       return;
     }
 
-    startLocationTransition(async () => {
-      try {
-        const location = await captureLocation();
-
-        setClientMessage(
-          `Location captured: ${location.address}. Submitting attendance...`,
-        );
-
-        submitReadyRef.current = true;
-
-        window.setTimeout(() => {
-          formRef.current?.requestSubmit();
-        }, 0);
-      } catch (error) {
-        setClientMessage(
-          error instanceof Error
-            ? error.message
-            : "Unable to capture GPS and full address.",
-        );
-      }
-    });
+    if (!latitude || !longitude || !address) {
+      event.preventDefault();
+      setClientMessage("Please click Get Location before submitting.");
+    }
   }
 
   const isBusy = isPending || isLocating;
+  const isReadyToSubmit = Boolean(photoPath && latitude && longitude && address);
 
   return (
     <section className="starland-card overflow-hidden">
@@ -122,14 +90,12 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
           Time-In / Time-Out
         </h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
-          Capture a uniform selfie first. When you click submit, the system will
-          automatically get GPS, convert it to a full address, and save the
-          punch.
+          Attendance submission is locked until the employee captures a uniform
+          selfie and gets GPS location with full address.
         </p>
       </div>
 
       <form
-        ref={formRef}
         action={formAction}
         onSubmit={handleSubmit}
         className="space-y-5 p-5 sm:p-6"
@@ -225,6 +191,8 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
 
         <WebcamCapture
           disabled={isBusy}
+          photoPath={photoPath}
+          onPhotoPathChange={setPhotoPath}
           errorMessages={state.fieldErrors?.photoPath}
         />
 
@@ -234,7 +202,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
           address={address}
           disabled={isBusy}
           isLocating={isLocating}
-          onRefresh={handleRefreshLocation}
+          onGetLocation={handleGetLocation}
         />
 
         <FieldError messages={state.fieldErrors?.latitude} />
@@ -277,15 +245,26 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
           </div>
         </div>
 
+        {!isReadyToSubmit ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-700">
+            Required before submit: capture uniform selfie and click Get
+            Location.
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-semibold text-green-700">
+            Ready to submit. Selfie and full address are complete.
+          </div>
+        )}
+
         <button
           type="submit"
           className="starland-btn starland-btn-primary w-full"
-          disabled={isBusy}
+          disabled={isBusy || !isReadyToSubmit}
         >
           {isBusy ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              {isLocating ? "Getting GPS and Address..." : "Recording..."}
+              {isLocating ? "Getting Location..." : "Recording..."}
             </>
           ) : (
             <>

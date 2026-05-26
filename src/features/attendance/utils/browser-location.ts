@@ -47,7 +47,7 @@ async function reverseGeocode(
   );
 
   if (!response.ok) {
-    throw new Error("Unable to convert GPS coordinates to full address.");
+    throw new Error("Unable to convert GPS coordinates to a full address.");
   }
 
   const data = (await response.json()) as ReverseGeocodeResponse;

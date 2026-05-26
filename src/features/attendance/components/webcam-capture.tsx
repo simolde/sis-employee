@@ -6,6 +6,8 @@ import type { AttendancePhotoUploadResponse } from "../types/attendance-upload-t
 
 type WebcamCaptureProps = {
   disabled: boolean;
+  photoPath: string;
+  onPhotoPathChange: (path: string) => void;
   errorMessages?: string[];
 };
 
@@ -39,6 +41,8 @@ function FieldError({ messages }: { messages?: string[] }) {
 
 export function WebcamCapture({
   disabled,
+  photoPath,
+  onPhotoPathChange,
   errorMessages,
 }: WebcamCaptureProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -46,7 +50,6 @@ export function WebcamCapture({
   const streamRef = useRef<MediaStream | null>(null);
 
   const [photoPreview, setPhotoPreview] = useState("");
-  const [photoPath, setPhotoPath] = useState("");
   const [message, setMessage] = useState("");
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -61,7 +64,7 @@ export function WebcamCapture({
     setMessage("");
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      setMessage("Webcam is not supported by this browser.");
+      setMessage("Camera is not supported by this browser.");
       return;
     }
 
@@ -110,13 +113,15 @@ export function WebcamCapture({
 
       if (!response.ok || !result.ok || !result.path) {
         setMessage(result.message || "Failed to upload selfie photo.");
+        onPhotoPathChange("");
         return;
       }
 
-      setPhotoPath(result.path);
+      onPhotoPathChange(result.path);
       setMessage("Selfie captured and uploaded successfully.");
     } catch {
       setMessage("Unable to upload selfie photo.");
+      onPhotoPathChange("");
     } finally {
       setIsUploading(false);
     }
@@ -154,7 +159,7 @@ export function WebcamCapture({
 
   function clearPhoto() {
     setPhotoPreview("");
-    setPhotoPath("");
+    onPhotoPathChange("");
     setMessage("");
   }
 
@@ -173,11 +178,11 @@ export function WebcamCapture({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-extrabold text-[var(--starland-dark-text)]">
-            Required Selfie Photo
+            Required Uniform Selfie
           </p>
           <p className="mt-1 text-xs leading-5 text-[var(--starland-muted-text)]">
-            Use the phone or laptop front camera. Employee must be wearing the
-            proper Starland uniform before capturing the selfie.
+            Employee must use the phone or laptop front camera and take a selfie
+            while wearing the proper Starland uniform.
           </p>
         </div>
 
@@ -234,6 +239,16 @@ export function WebcamCapture({
         </div>
       </div>
 
+      {photoPath ? (
+        <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 p-3 text-sm font-semibold text-green-700">
+          Selfie captured successfully.
+        </div>
+      ) : (
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-700">
+          Selfie is required before submitting attendance.
+        </div>
+      )}
+
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <div className="overflow-hidden rounded-2xl border border-[var(--starland-border)] bg-black">
           <video
@@ -264,9 +279,9 @@ export function WebcamCapture({
       <canvas ref={canvasRef} className="hidden" />
 
       {photoPath ? (
-        <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 p-3 text-sm font-semibold text-green-700">
-          Saved selfie path: {photoPath}
-        </div>
+        <p className="mt-3 text-xs font-semibold text-[var(--starland-muted-text)]">
+          Saved path: {photoPath}
+        </p>
       ) : null}
 
       <FieldError messages={errorMessages} />
