@@ -1,73 +1,108 @@
+import {
+  ClipboardList,
+  FileText,
+  Fingerprint,
+  Gauge,
+  Megaphone,
+  Settings,
+  ShieldCheck,
+  UserRoundCog,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
-  Bell,
-  CalendarCheck,
-  ClipboardList,
-  FileClock,
-  Home,
-  IdCard,
-  Settings,
-  Users,
-} from "lucide-react";
+  canManageEmployees,
+  canManageRfid,
+  canManageSettings,
+  canViewAllAttendance,
+  canViewAuditLogs,
+  type SystemRole,
+} from "@/lib/security/roles";
 
-export type NavigationItem = {
-  label: string;
+export type SidebarNavigationItem = {
   href: string;
+  label: string;
   icon: LucideIcon;
+  description: string;
 };
 
-export const navigationItems: NavigationItem[] = [
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: Home,
-  },
-  {
-    label: "Employees",
-    href: "/dashboard/employees",
-    icon: Users,
-  },
-  {
-    label: "Attendance",
-    href: "/dashboard/attendance",
-    icon: CalendarCheck,
-  },
-  {
-    href: "/dashboard/attendance/odl",
-    label: "ODL Attendance",
-    icon: CalendarCheck,
-  },
-  {
-    label: "RFID Cards",
-    href: "/dashboard/rfid",
-    icon: IdCard,
-  },
-  {
-    label: "Leaves",
-    href: "/dashboard/leaves",
-    icon: FileClock,
-  },
-  {
-    label: "Notices",
-    href: "/dashboard/notices",
-    icon: Bell,
-  },
-  {
-    label: "Audit Logs",
-    href: "/dashboard/audit-logs",
-    icon: ClipboardList,
-  },
-  {
-    label: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
-  },
-];
+export function getSidebarNavigation(
+  role: SystemRole,
+): SidebarNavigationItem[] {
+  const items: SidebarNavigationItem[] = [
+    {
+      href: "/dashboard",
+      label: "Dashboard",
+      icon: Gauge,
+      description: "Overview and quick actions",
+    },
+  ];
 
-export function isActiveNavigationItem(pathname: string, href: string): boolean {
-  if (href === "/dashboard") {
-    return pathname === href;
+  if (canManageEmployees(role)) {
+    items.push({
+      href: "/dashboard/employees",
+      label: "Employees",
+      icon: UserRoundCog,
+      description: "Employee records and accounts",
+    });
   }
 
-  return pathname === href || pathname.startsWith(`${href}/`);
+  if (canViewAllAttendance(role)) {
+    items.push({
+      href: "/dashboard/attendance",
+      label: "Attendance",
+      icon: ClipboardList,
+      description: "Attendance management",
+    });
+  } else {
+    items.push({
+      href: "/dashboard/attendance/odl",
+      label: "ODL Attendance",
+      icon: ClipboardList,
+      description: "Self-service time-in/time-out",
+    });
+  }
+
+  if (canManageRfid(role)) {
+    items.push({
+      href: "/dashboard/rfid",
+      label: "RFID Cards",
+      icon: Fingerprint,
+      description: "RFID assignment and history",
+    });
+  }
+
+  items.push(
+    {
+      href: "/dashboard/leaves",
+      label: "Leaves",
+      icon: FileText,
+      description: "Leave requests and balances",
+    },
+    {
+      href: "/dashboard/notices",
+      label: "Notices",
+      icon: Megaphone,
+      description: "Announcements and advisories",
+    },
+  );
+
+  if (canViewAuditLogs(role)) {
+    items.push({
+      href: "/dashboard/audit-logs",
+      label: "Audit Logs",
+      icon: ShieldCheck,
+      description: "System activity history",
+    });
+  }
+
+  if (canManageSettings(role)) {
+    items.push({
+      href: "/dashboard/settings",
+      label: "Settings",
+      icon: Settings,
+      description: "System configuration",
+    });
+  }
+
+  return items;
 }
