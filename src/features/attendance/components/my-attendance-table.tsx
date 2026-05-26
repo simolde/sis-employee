@@ -13,7 +13,7 @@ function createPageHref(page: number): string {
   params.set("page", String(page));
   params.set("pageSize", "10");
 
-  return `/dashboard/attendance?${params.toString()}`;
+  return `/dashboard/attendance/odl?${params.toString()}`;
 }
 
 function createDetailHref(attendanceId: number): string {
@@ -21,7 +21,7 @@ function createDetailHref(attendanceId: number): string {
 
   params.set("detailId", String(attendanceId));
 
-  return `/dashboard/attendance?${params.toString()}`;
+  return `/dashboard/attendance/odl?${params.toString()}`;
 }
 
 export function MyAttendanceTable({ result }: MyAttendanceTableProps) {
@@ -32,7 +32,7 @@ export function MyAttendanceTable({ result }: MyAttendanceTableProps) {
           My Attendance History
         </h2>
         <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
-          Only your own web/RFID/biometric attendance records are shown here.
+          Only your own attendance records are shown here.
         </p>
       </div>
 
@@ -141,7 +141,10 @@ export function MyAttendanceTable({ result }: MyAttendanceTableProps) {
                 Previous
               </Link>
             ) : (
-              <span className="starland-btn starland-btn-secondary starland-btn-sm">
+              <span
+                aria-disabled="true"
+                className="starland-btn starland-btn-secondary starland-btn-sm"
+              >
                 Previous
               </span>
             )}
@@ -154,7 +157,10 @@ export function MyAttendanceTable({ result }: MyAttendanceTableProps) {
                 Next
               </Link>
             ) : (
-              <span className="starland-btn starland-btn-secondary starland-btn-sm">
+              <span
+                aria-disabled="true"
+                className="starland-btn starland-btn-secondary starland-btn-sm"
+              >
                 Next
               </span>
             )}

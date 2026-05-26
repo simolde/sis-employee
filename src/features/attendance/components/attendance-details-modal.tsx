@@ -5,6 +5,7 @@ import { AttendanceStatusBadge } from "./attendance-status-badge";
 
 type AttendanceDetailsModalProps = {
   detail: AttendanceDetail | null;
+  closeHref?: string;
 };
 
 function DetailItem({
@@ -57,7 +58,10 @@ function PunchCard({
   );
 }
 
-export function AttendanceDetailsModal({ detail }: AttendanceDetailsModalProps) {
+export function AttendanceDetailsModal({
+  detail,
+  closeHref = "/dashboard/attendance",
+}: AttendanceDetailsModalProps) {
   if (!detail) {
     return null;
   }
@@ -80,7 +84,7 @@ export function AttendanceDetailsModal({ detail }: AttendanceDetailsModalProps) 
             </div>
 
             <Link
-              href="/dashboard/attendance"
+              href={closeHref}
               className="starland-btn starland-btn-secondary starland-btn-sm"
               aria-label="Close attendance details"
             >
@@ -96,8 +100,14 @@ export function AttendanceDetailsModal({ detail }: AttendanceDetailsModalProps) 
               <DetailItem label="Shift" value={detail.shiftTime} />
               <DetailItem label="Total Hours" value={detail.totalHours} />
               <DetailItem label="Employee Branch" value={detail.branchName} />
-              <DetailItem label="Manual?" value={detail.isManual ? "Yes" : "No"} />
-              <DetailItem label="Synced?" value={detail.isSynced ? "Yes" : "No"} />
+              <DetailItem
+                label="Manual?"
+                value={detail.isManual ? "Yes" : "No"}
+              />
+              <DetailItem
+                label="Synced?"
+                value={detail.isSynced ? "Yes" : "No"}
+              />
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
                   Status

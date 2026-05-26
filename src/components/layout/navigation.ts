@@ -33,6 +33,11 @@ export const navigationItems: NavigationItem[] = [
     icon: CalendarCheck,
   },
   {
+    href: "/dashboard/attendance/odl",
+    label: "ODL Attendance",
+    icon: CalendarCheck,
+  },
+  {
     label: "RFID Cards",
     href: "/dashboard/rfid",
     icon: IdCard,
