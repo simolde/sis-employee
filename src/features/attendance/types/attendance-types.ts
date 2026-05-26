@@ -72,6 +72,18 @@ export type AttendanceListResult = {
   };
 };
 
+export type MyAttendanceListResult = {
+  records: AttendanceListItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+  };
+};
+
 export type AttendanceDetailPunch = {
   time: string;
   source: string;

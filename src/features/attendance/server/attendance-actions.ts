@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db/prisma";
-import { canManageAttendance } from "@/lib/security/roles";
+import { canUseOdlWebAttendance } from "@/lib/security/roles";
 import { getCurrentSession } from "@/features/auth/server/session";
 import {
   calculateTimeInStatus,
@@ -62,10 +62,10 @@ export async function recordOdlAttendanceAction(
     redirect("/login");
   }
 
-  if (!canManageAttendance(session.role)) {
+  if (!canUseOdlWebAttendance(session.role)) {
     return {
       ok: false,
-      message: "You do not have permission to record ODL web attendance.",
+      message: "You do not have permission to use ODL web attendance.",
     };
   }
 

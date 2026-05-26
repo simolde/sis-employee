@@ -1,4 +1,4 @@
-export const SYSTEM_ROLES = [
+export const systemRoles = [
   "SUPER_ADMIN",
   "HR",
   "ADMIN",
@@ -8,30 +8,21 @@ export const SYSTEM_ROLES = [
   "MAINTENANCE",
 ] as const;
 
-export type SystemRole = (typeof SYSTEM_ROLES)[number];
+export type SystemRole = (typeof systemRoles)[number];
 
-export const ROLE_LABELS: Record<SystemRole, string> = {
-  SUPER_ADMIN: "Super Admin",
-  HR: "Human Resource",
-  ADMIN: "Admin",
-  HEAD: "Department Head",
-  STAFF: "Staff",
-  FACULTY: "Faculty",
-  MAINTENANCE: "Maintenance",
-};
-
-export const PROTECTED_DASHBOARD_PATH = "/dashboard";
-export const LOGIN_PATH = "/login";
-
-export function isSystemRole(value: string): value is SystemRole {
-  return SYSTEM_ROLES.includes(value as SystemRole);
+export function isSystemRole(role: string): role is SystemRole {
+  return systemRoles.includes(role as SystemRole);
 }
 
-export function canAccessAdminArea(role: SystemRole): boolean {
-  return ["SUPER_ADMIN", "HR", "ADMIN"].includes(role);
+export function canAccessProtectedApp(role: SystemRole): boolean {
+  return systemRoles.includes(role);
 }
 
 export function canManageEmployees(role: SystemRole): boolean {
+  return ["SUPER_ADMIN", "HR", "ADMIN"].includes(role);
+}
+
+export function canManageRfid(role: SystemRole): boolean {
   return ["SUPER_ADMIN", "HR", "ADMIN"].includes(role);
 }
 
@@ -39,10 +30,34 @@ export function canManageAttendance(role: SystemRole): boolean {
   return ["SUPER_ADMIN", "HR", "ADMIN"].includes(role);
 }
 
-export function canViewAuditLogs(role: SystemRole): boolean {
-  return role === "SUPER_ADMIN";
+export function canViewAllAttendance(role: SystemRole): boolean {
+  return ["SUPER_ADMIN", "HR", "ADMIN", "HEAD"].includes(role);
 }
 
-export function canManageRfid(role: SystemRole): boolean {
+export function canUseOdlWebAttendance(role: SystemRole): boolean {
+  return [
+    "SUPER_ADMIN",
+    "HR",
+    "ADMIN",
+    "HEAD",
+    "STAFF",
+    "FACULTY",
+    "MAINTENANCE",
+  ].includes(role);
+}
+
+export function canManageLeaves(role: SystemRole): boolean {
+  return ["SUPER_ADMIN", "HR", "ADMIN", "HEAD"].includes(role);
+}
+
+export function canManageNotices(role: SystemRole): boolean {
   return ["SUPER_ADMIN", "HR", "ADMIN"].includes(role);
+}
+
+export function canViewAuditLogs(role: SystemRole): boolean {
+  return ["SUPER_ADMIN", "HR", "ADMIN"].includes(role);
+}
+
+export function canManageSettings(role: SystemRole): boolean {
+  return ["SUPER_ADMIN"].includes(role);
 }
