@@ -10,8 +10,10 @@ import {
   calculateTotalMinutes,
   getManilaDateOnly,
 } from "./attendance-calculations";
-import { manualAttendanceValidationSchema } from "../validators/attendance-validation";
+import { odlAttendanceValidationSchema } from "../validators/attendance-validation";
 import type { AttendanceActionState } from "../types/attendance-action-state";
+
+const MINUTES_BEFORE_TIMEOUT = 30;
 
 function formDataToObject(formData: FormData): Record<string, FormDataEntryValue> {
   return Object.fromEntries(formData.entries());
@@ -46,7 +48,11 @@ function isOdlTeacherRecord(input: {
   return hasOdl && hasTeacherRole;
 }
 
-export async function recordManualAttendanceAction(
+function getMinutesDifference(start: Date, end: Date): number {
+  return Math.floor((end.getTime() - start.getTime()) / 60000);
+}
+
+export async function recordOdlAttendanceAction(
   _previousState: AttendanceActionState,
   formData: FormData,
 ): Promise<AttendanceActionState> {
@@ -63,7 +69,7 @@ export async function recordManualAttendanceAction(
     };
   }
 
-  const parsed = manualAttendanceValidationSchema.safeParse(
+  const parsed = odlAttendanceValidationSchema.safeParse(
     formDataToObject(formData),
   );
 
@@ -80,35 +86,40 @@ export async function recordManualAttendanceAction(
   const now = new Date();
   const attDate = getManilaDateOnly(now);
 
-  const employee = await prisma.employee.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
-      empId: data.empId,
+      userId: session.userId,
     },
     select: {
-      empId: true,
-      status: true,
-      scheduleId: true,
-      department: {
+      employee: {
         select: {
-          name: true,
-        },
-      },
-      empType: {
-        select: {
-          name: true,
-        },
-      },
-      designation: {
-        select: {
-          name: true,
-        },
-      },
-      schedule: {
-        select: {
-          shift: {
+          empId: true,
+          status: true,
+          branchId: true,
+          scheduleId: true,
+          department: {
             select: {
-              startTime: true,
-              graceMinutes: true,
+              name: true,
+            },
+          },
+          empType: {
+            select: {
+              name: true,
+            },
+          },
+          designation: {
+            select: {
+              name: true,
+            },
+          },
+          schedule: {
+            select: {
+              shift: {
+                select: {
+                  startTime: true,
+                  graceMinutes: true,
+                },
+              },
             },
           },
         },
@@ -116,13 +127,12 @@ export async function recordManualAttendanceAction(
     },
   });
 
+  const employee = user?.employee;
+
   if (!employee || employee.status !== "ACTIVE") {
     return {
       ok: false,
-      message: "Selected employee is not active or does not exist.",
-      fieldErrors: {
-        empId: ["Selected employee is not active or does not exist."],
-      },
+      message: "No active employee profile is connected to this login account.",
     };
   }
 
@@ -136,157 +146,14 @@ export async function recordManualAttendanceAction(
     return {
       ok: false,
       message:
-        "Web time-in/time-out is only allowed for ODL teachers. Face-to-face teachers must use the lobby RFID/biometric attendance system.",
-      fieldErrors: {
-        empId: ["This employee is not marked as an ODL teacher."],
-      },
-    };
-  }
-
-  const branch = await prisma.branch.findUnique({
-    where: {
-      branchId: data.branchId,
-    },
-    select: {
-      branchId: true,
-      status: true,
-    },
-  });
-
-  if (!branch || branch.status !== "ACTIVE") {
-    return {
-      ok: false,
-      message: "Selected branch is not active or does not exist.",
-      fieldErrors: {
-        branchId: ["Selected branch is not active or does not exist."],
-      },
-    };
-  }
-
-  if (data.punchType === "TIME_IN") {
-    const existingAttendance = await prisma.attendance.findUnique({
-      where: {
-        empId_attDate: {
-          empId: data.empId,
-          attDate,
-        },
-      },
-      select: {
-        attendanceId: true,
-        timeIn: true,
-      },
-    });
-
-    if (existingAttendance?.timeIn) {
-      await prisma.attendanceLog.create({
-        data: {
-          attendanceId: existingAttendance.attendanceId,
-          empId: data.empId,
-          punchType: "TIME_IN",
-          punchedAt: now,
-          latitude: data.latitude,
-          longitude: data.longitude,
-          photo: data.photoPath,
-          address: data.address,
-          source: "WEB",
-          branchId: data.branchId,
-          remarks: data.remarks
-            ? `Repeated ODL web time-in. ${data.remarks}`
-            : "Repeated ODL web time-in.",
-          reason: data.reason,
-        },
-      });
-
-      revalidatePath("/dashboard/attendance");
-
-      return {
-        ok: false,
-        message:
-          "This ODL teacher already has a time-in today. Repeated attempt was logged for review.",
-      };
-    }
-
-    const status = calculateTimeInStatus({
-      punchAt: now,
-      scheduleStartTime: employee.schedule?.shift.startTime ?? null,
-      graceMinutes: employee.schedule?.shift.graceMinutes ?? 0,
-    });
-
-    const attendance = await prisma.attendance.upsert({
-      where: {
-        empId_attDate: {
-          empId: data.empId,
-          attDate,
-        },
-      },
-      create: {
-        empId: data.empId,
-        scheduleId: employee.scheduleId,
-        attDate,
-        timeIn: now,
-        inRemark: data.remarks,
-        inReason: data.reason,
-        inLatitude: data.latitude,
-        inLongitude: data.longitude,
-        inPhoto: data.photoPath,
-        inSource: "WEB",
-        inBranchId: data.branchId,
-        inAddress: data.address,
-        status,
-        totalMinutes: null,
-        isSynced: true,
-        isManual: true,
-        createdById: session.userId,
-      },
-      update: {
-        timeIn: now,
-        inRemark: data.remarks,
-        inReason: data.reason,
-        inLatitude: data.latitude,
-        inLongitude: data.longitude,
-        inPhoto: data.photoPath,
-        inSource: "WEB",
-        inBranchId: data.branchId,
-        inAddress: data.address,
-        status,
-        isManual: true,
-        updatedById: session.userId,
-      },
-      select: {
-        attendanceId: true,
-      },
-    });
-
-    await prisma.attendanceLog.create({
-      data: {
-        attendanceId: attendance.attendanceId,
-        empId: data.empId,
-        punchType: "TIME_IN",
-        punchedAt: now,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        photo: data.photoPath,
-        address: data.address,
-        source: "WEB",
-        branchId: data.branchId,
-        remarks: data.remarks,
-        reason: data.reason,
-      },
-    });
-
-    revalidatePath("/dashboard/attendance");
-    revalidatePath(`/dashboard/employees/${data.empId}`);
-
-    return {
-      ok: true,
-      message: `ODL web time-in recorded successfully. Status: ${status.replaceAll("_", " ")}.`,
+        "Web attendance is only for ODL teachers. Face-to-face teachers must use the lobby RFID/biometric attendance system.",
     };
   }
 
   const existingAttendance = await prisma.attendance.findUnique({
     where: {
       empId_attDate: {
-        empId: data.empId,
+        empId: employee.empId,
         attDate,
       },
     },
@@ -298,19 +165,78 @@ export async function recordManualAttendanceAction(
     },
   });
 
-  if (!existingAttendance || !existingAttendance.timeIn) {
+  if (!existingAttendance?.timeIn) {
+    const status = calculateTimeInStatus({
+      punchAt: now,
+      scheduleStartTime: employee.schedule?.shift.startTime ?? null,
+      graceMinutes: employee.schedule?.shift.graceMinutes ?? 0,
+    });
+
+    const attendance = await prisma.attendance.create({
+      data: {
+        empId: employee.empId,
+        scheduleId: employee.scheduleId,
+        attDate,
+        timeIn: now,
+        inRemark: data.remarks,
+        inReason: data.reason,
+        inLatitude: data.latitude,
+        inLongitude: data.longitude,
+        inPhoto: data.photoPath,
+        inSource: "WEB",
+        inBranchId: employee.branchId,
+        inAddress: data.address,
+        status,
+        totalMinutes: null,
+        isSynced: true,
+        isManual: false,
+        createdById: session.userId,
+      },
+      select: {
+        attendanceId: true,
+      },
+    });
+
+    await prisma.attendanceLog.create({
+      data: {
+        attendanceId: attendance.attendanceId,
+        empId: employee.empId,
+        punchType: "TIME_IN",
+        punchedAt: now,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        photo: data.photoPath,
+        address: data.address,
+        source: "WEB",
+        branchId: employee.branchId,
+        remarks: data.remarks,
+        reason: data.reason,
+      },
+    });
+
+    revalidatePath("/dashboard/attendance");
+    revalidatePath(`/dashboard/employees/${employee.empId}`);
+
     return {
-      ok: false,
-      message:
-        "Cannot record ODL web time-out because this teacher has no time-in today.",
+      ok: true,
+      message: `ODL web TIME IN recorded successfully. Status: ${status.replaceAll("_", " ")}.`,
     };
   }
 
   if (existingAttendance.timeOut) {
+    return {
+      ok: false,
+      message: "You already completed time-in and time-out today.",
+    };
+  }
+
+  const minutesSinceTimeIn = getMinutesDifference(existingAttendance.timeIn, now);
+
+  if (minutesSinceTimeIn < MINUTES_BEFORE_TIMEOUT) {
     await prisma.attendanceLog.create({
       data: {
         attendanceId: existingAttendance.attendanceId,
-        empId: data.empId,
+        empId: employee.empId,
         punchType: "TIME_OUT",
         punchedAt: now,
         latitude: data.latitude,
@@ -318,20 +244,19 @@ export async function recordManualAttendanceAction(
         photo: data.photoPath,
         address: data.address,
         source: "WEB",
-        branchId: data.branchId,
+        branchId: employee.branchId,
         remarks: data.remarks
-          ? `Repeated ODL web time-out. ${data.remarks}`
-          : "Repeated ODL web time-out.",
+          ? `Early ODL time-out attempt. ${data.remarks}`
+          : "Early ODL time-out attempt.",
         reason: data.reason,
       },
     });
 
-    revalidatePath("/dashboard/attendance");
-
     return {
       ok: false,
-      message:
-        "This ODL teacher already has a time-out today. Repeated attempt was logged for review.",
+      message: `Time-out is only allowed after ${MINUTES_BEFORE_TIMEOUT} minutes from time-in. Please try again in ${
+        MINUTES_BEFORE_TIMEOUT - minutesSinceTimeIn
+      } minute(s).`,
     };
   }
 
@@ -353,11 +278,11 @@ export async function recordManualAttendanceAction(
       outLongitude: data.longitude,
       outPhoto: data.photoPath,
       outSource: "WEB",
-      outBranchId: data.branchId,
+      outBranchId: employee.branchId,
       outAddress: data.address,
       totalMinutes,
       status: nextStatus,
-      isManual: true,
+      isManual: false,
       updatedById: session.userId,
     },
   });
@@ -365,7 +290,7 @@ export async function recordManualAttendanceAction(
   await prisma.attendanceLog.create({
     data: {
       attendanceId: existingAttendance.attendanceId,
-      empId: data.empId,
+      empId: employee.empId,
       punchType: "TIME_OUT",
       punchedAt: now,
       latitude: data.latitude,
@@ -373,17 +298,17 @@ export async function recordManualAttendanceAction(
       photo: data.photoPath,
       address: data.address,
       source: "WEB",
-      branchId: data.branchId,
+      branchId: employee.branchId,
       remarks: data.remarks,
       reason: data.reason,
     },
   });
 
   revalidatePath("/dashboard/attendance");
-  revalidatePath(`/dashboard/employees/${data.empId}`);
+  revalidatePath(`/dashboard/employees/${employee.empId}`);
 
   return {
     ok: true,
-    message: "ODL web time-out recorded successfully.",
+    message: "ODL web TIME OUT recorded successfully.",
   };
 }

@@ -4,7 +4,7 @@ import { AttendancePagination } from "@/features/attendance/components/attendanc
 import { AttendanceSummaryCards } from "@/features/attendance/components/attendance-summary-cards";
 import { AttendanceTable } from "@/features/attendance/components/attendance-table";
 import { TimeInOutForm } from "@/features/attendance/components/time-in-out-form";
-import { getAttendanceFormOptions } from "@/features/attendance/server/attendance-form-queries";
+import { getOdlAttendancePageData } from "@/features/attendance/server/attendance-form-queries";
 import {
   getAttendanceDetail,
   getAttendanceList,
@@ -21,28 +21,28 @@ export default async function AttendancePage({
   const resolvedSearchParams = await searchParams;
   const filters = parseAttendanceListSearchParams(resolvedSearchParams);
 
-  const [result, detail, formOptions] = await Promise.all([
+  const [result, detail, odlAttendancePageData] = await Promise.all([
     getAttendanceList(filters),
     filters.detailId ? getAttendanceDetail(filters.detailId) : null,
-    getAttendanceFormOptions(),
+    getOdlAttendancePageData(),
   ]);
 
   return (
     <section className="starland-page space-y-5">
       <div>
         <span className="starland-badge starland-badge-success">
-          Attendance Records
+          ODL Attendance
         </span>
         <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
           Attendance
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-          View records and record manual web time-in/time-out with GPS, address,
-          branch, photo path, reason, and attendance logs.
+          ODL teachers use web attendance with automatic location and selfie.
+          Face-to-face teachers use the lobby RFID/biometric system.
         </p>
       </div>
 
-      <TimeInOutForm options={formOptions} />
+      <TimeInOutForm pageData={odlAttendancePageData} />
 
       <AttendanceSummaryCards summary={result.summary} />
 

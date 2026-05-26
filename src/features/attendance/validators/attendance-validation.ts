@@ -19,25 +19,7 @@ const optionalTextSchema = z.preprocess(
   z.string().trim().max(1000, "This field is too long.").nullable(),
 );
 
-export const manualAttendanceValidationSchema = z.object({
-  empId: z.coerce
-    .number({
-      error: "Employee is required.",
-    })
-    .int()
-    .positive("Employee is required."),
-
-  branchId: z.coerce
-    .number({
-      error: "Branch is required.",
-    })
-    .int()
-    .positive("Branch is required."),
-
-  punchType: z.enum(["TIME_IN", "TIME_OUT"], {
-    error: "Punch type is required.",
-  }),
-
+export const odlAttendanceValidationSchema = z.object({
   latitude: requiredCoordinateSchema,
   longitude: requiredCoordinateSchema,
 
@@ -57,6 +39,4 @@ export const manualAttendanceValidationSchema = z.object({
   reason: optionalTextSchema,
 });
 
-export type ManualAttendanceInput = z.infer<
-  typeof manualAttendanceValidationSchema
->;
+export type OdlAttendanceInput = z.infer<typeof odlAttendanceValidationSchema>;

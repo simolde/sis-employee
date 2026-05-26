@@ -24,9 +24,8 @@ export function LocationCapture({
           Automatic GPS and Full Address
         </p>
         <p className="mt-1 text-xs leading-5 text-[var(--starland-muted-text)]">
-          Location is requested immediately when this ODL attendance page loads.
-          Latitude and longitude are read-only, and full address is generated
-          automatically.
+          Location is requested immediately when this page loads. Latitude and
+          longitude are read-only, and full address is generated automatically.
         </p>
       </div>
 
@@ -40,8 +39,8 @@ export function LocationCapture({
         </div>
       ) : (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-700">
-          Location is required before submitting ODL attendance. Please allow
-          browser location permission.
+          Location is required before submitting. Please allow browser location
+          permission and reload the page.
         </div>
       )}
 

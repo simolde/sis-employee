@@ -2,16 +2,16 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useActionState } from "react";
-import { Loader2, Save } from "lucide-react";
-import { recordManualAttendanceAction } from "../server/attendance-actions";
+import { Clock, Loader2, Save, UserCheck } from "lucide-react";
+import { recordOdlAttendanceAction } from "../server/attendance-actions";
 import { initialAttendanceActionState } from "../types/attendance-action-state";
-import type { AttendanceFormOptions } from "../server/attendance-form-queries";
+import type { OdlAttendancePageData } from "../server/attendance-form-queries";
 import { getBrowserLocationWithAddress } from "../utils/browser-location";
 import { LocationCapture } from "./location-capture";
 import { WebcamCapture } from "./webcam-capture";
 
 type TimeInOutFormProps = {
-  options: AttendanceFormOptions;
+  pageData: OdlAttendancePageData;
 };
 
 function FieldError({ messages }: { messages?: string[] }) {
@@ -26,7 +26,27 @@ function FieldError({ messages }: { messages?: string[] }) {
   );
 }
 
-export function TimeInOutForm({ options }: TimeInOutFormProps) {
+function getPunchLabel(punchState: OdlAttendancePageData["punchState"]): string {
+  if (punchState === "TIME_IN") {
+    return "TIME IN";
+  }
+
+  if (punchState === "TIME_OUT") {
+    return "TIME OUT";
+  }
+
+  if (punchState === "WAITING") {
+    return "WAITING";
+  }
+
+  if (punchState === "DONE") {
+    return "COMPLETED";
+  }
+
+  return "BLOCKED";
+}
+
+export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
   const [clientMessage, setClientMessage] = useState("");
   const [locationMessage, setLocationMessage] = useState("");
   const [photoPath, setPhotoPath] = useState("");
@@ -36,7 +56,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
   const [isLocating, setIsLocating] = useState(true);
 
   const [state, formAction, isPending] = useActionState(
-    recordManualAttendanceAction,
+    recordOdlAttendanceAction,
     initialAttendanceActionState,
   );
 
@@ -90,8 +110,13 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
     }
   }
 
+  const canPunch =
+    pageData.punchState === "TIME_IN" || pageData.punchState === "TIME_OUT";
+
   const isBusy = isPending || isLocating;
-  const isReadyToSubmit = Boolean(photoPath && latitude && longitude && address);
+  const isReadyToSubmit = Boolean(
+    canPunch && photoPath && latitude && longitude && address,
+  );
 
   return (
     <section className="starland-card overflow-hidden">
@@ -103,8 +128,8 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
           ODL Teacher Time-In / Time-Out
         </h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
-          This page is only for Online Distance Learning teachers. Face-to-face
-          teachers must use the lobby RFID/biometric attendance system.
+          No employee selection and no punch selection. The system automatically
+          decides if your next submit is TIME IN or TIME OUT.
         </p>
       </div>
 
@@ -132,86 +157,90 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
           </div>
         ) : null}
 
-        {options.employees.length === 0 ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-700">
-            No ODL teachers were found. Make sure the employee record has ODL or
-            Online Distance Learning in Department/Employee Type and Teacher,
-            Faculty, or Instructor in Designation/Employee Type.
-          </div>
-        ) : null}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <UserCheck
+                className="h-5 w-5 text-[var(--starland-main-green)]"
+                aria-hidden="true"
+              />
+              <h3 className="text-sm font-extrabold text-[var(--starland-dark-text)]">
+                Logged-in ODL Teacher
+              </h3>
+            </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div>
-            <label
-              htmlFor="empId"
-              className="text-sm font-bold text-[var(--starland-dark-text)]"
-            >
-              ODL Teacher
-            </label>
-            <select
-              id="empId"
-              name="empId"
-              className="starland-input mt-2"
-              defaultValue=""
-              disabled={isBusy}
-            >
-              <option value="">Select ODL teacher</option>
-              {options.employees.map((employee) => (
-                <option key={employee.empId} value={employee.empId}>
-                  {employee.empNumber} · {employee.fullName}
-                </option>
-              ))}
-            </select>
-            <FieldError messages={state.fieldErrors?.empId} />
+            {pageData.employee ? (
+              <div className="space-y-2 text-sm text-[var(--starland-muted-text)]">
+                <p className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+                  {pageData.employee.fullName}
+                </p>
+                <p>{pageData.employee.empNumber}</p>
+                <p>{pageData.employee.departmentName}</p>
+                <p>{pageData.employee.designationName}</p>
+                <p>{pageData.employee.branchName}</p>
+                <p>Schedule: {pageData.employee.scheduleName}</p>
+              </div>
+            ) : (
+              <p className="text-sm font-semibold text-[var(--starland-danger)]">
+                No employee profile found.
+              </p>
+            )}
           </div>
 
-          <div>
-            <label
-              htmlFor="branchId"
-              className="text-sm font-bold text-[var(--starland-dark-text)]"
-            >
-              Branch
-            </label>
-            <select
-              id="branchId"
-              name="branchId"
-              className="starland-input mt-2"
-              defaultValue=""
-              disabled={isBusy}
-            >
-              <option value="">Select branch</option>
-              {options.branches.map((branch) => (
-                <option key={branch.branchId} value={branch.branchId}>
-                  {branch.name}
-                </option>
-              ))}
-            </select>
-            <FieldError messages={state.fieldErrors?.branchId} />
-          </div>
+          <div className="rounded-2xl border border-[var(--starland-border)] bg-white p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <Clock
+                className="h-5 w-5 text-[var(--starland-main-green)]"
+                aria-hidden="true"
+              />
+              <h3 className="text-sm font-extrabold text-[var(--starland-dark-text)]">
+                Today’s Attendance Status
+              </h3>
+            </div>
 
-          <div>
-            <label
-              htmlFor="punchType"
-              className="text-sm font-bold text-[var(--starland-dark-text)]"
+            <span
+              className={[
+                "starland-badge",
+                canPunch ? "starland-badge-success" : "starland-badge-warning",
+              ].join(" ")}
             >
-              Punch Type
-            </label>
-            <select
-              id="punchType"
-              name="punchType"
-              className="starland-input mt-2"
-              defaultValue="TIME_IN"
-              disabled={isBusy}
-            >
-              <option value="TIME_IN">Time In</option>
-              <option value="TIME_OUT">Time Out</option>
-            </select>
-            <FieldError messages={state.fieldErrors?.punchType} />
+              NEXT ACTION: {getPunchLabel(pageData.punchState)}
+            </span>
+
+            <p className="mt-4 text-sm font-semibold text-[var(--starland-dark-text)]">
+              {pageData.message}
+            </p>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                  Time In
+                </p>
+                <p className="mt-1 font-bold text-[var(--starland-dark-text)]">
+                  {pageData.timeInAt}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                  Time Out
+                </p>
+                <p className="mt-1 font-bold text-[var(--starland-dark-text)]">
+                  {pageData.timeOutAt}
+                </p>
+              </div>
+            </div>
+
+            {pageData.punchState === "WAITING" ? (
+              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-700">
+                Time-out available in {pageData.minutesUntilTimeout} minute(s).
+              </div>
+            ) : null}
           </div>
         </div>
 
         <WebcamCapture
-          disabled={isBusy}
+          disabled={isBusy || !canPunch}
           photoPath={photoPath}
           onPhotoPathChange={setPhotoPath}
           errorMessages={state.fieldErrors?.photoPath}
@@ -242,7 +271,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
               name="remarks"
               className="starland-input mt-2 min-h-24 resize-y"
               placeholder="Optional remarks"
-              disabled={isBusy}
+              disabled={isBusy || !canPunch}
             />
             <FieldError messages={state.fieldErrors?.remarks} />
           </div>
@@ -258,8 +287,8 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
               id="reason"
               name="reason"
               className="starland-input mt-2 min-h-24 resize-y"
-              placeholder="Reason for ODL web punch"
-              disabled={isBusy}
+              placeholder="Optional reason"
+              disabled={isBusy || !canPunch}
             />
             <FieldError messages={state.fieldErrors?.reason} />
           </div>
@@ -267,19 +296,19 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
 
         {!isReadyToSubmit ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-700">
-            Required before submit: uniform selfie and automatic location/full
-            address.
+            Required before submit: valid ODL teacher status, available punch
+            action, uniform selfie, automatic location, and full address.
           </div>
         ) : (
           <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-semibold text-green-700">
-            Ready to submit. Selfie and location are complete.
+            Ready to submit {getPunchLabel(pageData.punchState)}.
           </div>
         )}
 
         <button
           type="submit"
           className="starland-btn starland-btn-primary w-full"
-          disabled={isBusy || !isReadyToSubmit || options.employees.length === 0}
+          disabled={isBusy || !isReadyToSubmit}
         >
           {isBusy ? (
             <>
@@ -289,7 +318,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
           ) : (
             <>
               <Save className="h-4 w-4" aria-hidden="true" />
-              Submit ODL Attendance
+              Submit {getPunchLabel(pageData.punchState)}
             </>
           )}
         </button>
