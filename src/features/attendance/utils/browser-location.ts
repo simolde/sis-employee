@@ -4,9 +4,10 @@ export type BrowserLocationResult = {
   address: string;
 };
 
-type ReverseGeocodeResponse = {
-  display_name?: string;
-  error?: string;
+type ReverseGeocodeResult = {
+  ok: boolean;
+  message: string;
+  address?: string;
 };
 
 function getCurrentPosition(): Promise<GeolocationPosition> {
@@ -29,34 +30,25 @@ async function reverseGeocode(
   longitude: number,
 ): Promise<string> {
   const params = new URLSearchParams({
-    format: "jsonv2",
     lat: String(latitude),
-    lon: String(longitude),
-    zoom: "18",
-    addressdetails: "1",
+    lng: String(longitude),
   });
 
   const response = await fetch(
-    `https://nominatim.openstreetmap.org/reverse?${params.toString()}`,
+    `/api/location/reverse-geocode?${params.toString()}`,
     {
       method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
+      cache: "no-store",
     },
   );
 
-  if (!response.ok) {
-    throw new Error("Unable to convert GPS coordinates to a full address.");
+  const result = (await response.json()) as ReverseGeocodeResult;
+
+  if (!response.ok || !result.ok || !result.address) {
+    throw new Error(result.message || "Unable to convert GPS to full address.");
   }
 
-  const data = (await response.json()) as ReverseGeocodeResponse;
-
-  if (!data.display_name) {
-    throw new Error("Full address was not found for this location.");
-  }
-
-  return data.display_name;
+  return result.address;
 }
 
 export async function getBrowserLocationWithAddress(): Promise<BrowserLocationResult> {

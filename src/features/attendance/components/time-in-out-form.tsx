@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useActionState } from "react";
 import { Loader2, Save } from "lucide-react";
 import { recordManualAttendanceAction } from "../server/attendance-actions";
@@ -28,20 +28,21 @@ function FieldError({ messages }: { messages?: string[] }) {
 
 export function TimeInOutForm({ options }: TimeInOutFormProps) {
   const [clientMessage, setClientMessage] = useState("");
+  const [locationMessage, setLocationMessage] = useState("");
   const [photoPath, setPhotoPath] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [address, setAddress] = useState("");
-  const [isLocating, setIsLocating] = useState(false);
+  const [isLocating, setIsLocating] = useState(true);
 
   const [state, formAction, isPending] = useActionState(
     recordManualAttendanceAction,
     initialAttendanceActionState,
   );
 
-  async function handleGetLocation() {
-    setClientMessage("");
+  const captureLocationOnLoad = useCallback(async () => {
     setIsLocating(true);
+    setLocationMessage("Requesting location permission...");
 
     try {
       const location = await getBrowserLocationWithAddress();
@@ -49,12 +50,12 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
       setLatitude(location.latitude);
       setLongitude(location.longitude);
       setAddress(location.address);
-      setClientMessage("GPS and full address captured successfully.");
+      setLocationMessage("GPS and full address captured successfully.");
     } catch (error) {
       setLatitude("");
       setLongitude("");
       setAddress("");
-      setClientMessage(
+      setLocationMessage(
         error instanceof Error
           ? error.message
           : "Unable to capture GPS and full address.",
@@ -62,7 +63,17 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
     } finally {
       setIsLocating(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void captureLocationOnLoad();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [captureLocationOnLoad]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     if (!photoPath) {
@@ -73,7 +84,9 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
 
     if (!latitude || !longitude || !address) {
       event.preventDefault();
-      setClientMessage("Please click Get Location before submitting.");
+      setClientMessage(
+        "Location and full address are required. Please allow browser location permission and reload the page.",
+      );
     }
   }
 
@@ -84,14 +97,14 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
     <section className="starland-card overflow-hidden">
       <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
         <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-          Manual Web Punch
+          ODL Web Attendance
         </span>
         <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-          Time-In / Time-Out
+          ODL Teacher Time-In / Time-Out
         </h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
-          Attendance submission is locked until the employee captures a uniform
-          selfie and gets GPS location with full address.
+          This page is only for Online Distance Learning teachers. Face-to-face
+          teachers must use the lobby RFID/biometric attendance system.
         </p>
       </div>
 
@@ -119,13 +132,21 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
           </div>
         ) : null}
 
+        {options.employees.length === 0 ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-700">
+            No ODL teachers were found. Make sure the employee record has ODL or
+            Online Distance Learning in Department/Employee Type and Teacher,
+            Faculty, or Instructor in Designation/Employee Type.
+          </div>
+        ) : null}
+
         <div className="grid gap-4 lg:grid-cols-3">
           <div>
             <label
               htmlFor="empId"
               className="text-sm font-bold text-[var(--starland-dark-text)]"
             >
-              Employee
+              ODL Teacher
             </label>
             <select
               id="empId"
@@ -134,7 +155,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
               defaultValue=""
               disabled={isBusy}
             >
-              <option value="">Select employee</option>
+              <option value="">Select ODL teacher</option>
               {options.employees.map((employee) => (
                 <option key={employee.empId} value={employee.empId}>
                   {employee.empNumber} · {employee.fullName}
@@ -200,9 +221,8 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
           latitude={latitude}
           longitude={longitude}
           address={address}
-          disabled={isBusy}
           isLocating={isLocating}
-          onGetLocation={handleGetLocation}
+          locationMessage={locationMessage}
         />
 
         <FieldError messages={state.fieldErrors?.latitude} />
@@ -238,7 +258,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
               id="reason"
               name="reason"
               className="starland-input mt-2 min-h-24 resize-y"
-              placeholder="Reason for manual/web punch"
+              placeholder="Reason for ODL web punch"
               disabled={isBusy}
             />
             <FieldError messages={state.fieldErrors?.reason} />
@@ -247,19 +267,19 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
 
         {!isReadyToSubmit ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-700">
-            Required before submit: capture uniform selfie and click Get
-            Location.
+            Required before submit: uniform selfie and automatic location/full
+            address.
           </div>
         ) : (
           <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-semibold text-green-700">
-            Ready to submit. Selfie and full address are complete.
+            Ready to submit. Selfie and location are complete.
           </div>
         )}
 
         <button
           type="submit"
           className="starland-btn starland-btn-primary w-full"
-          disabled={isBusy || !isReadyToSubmit}
+          disabled={isBusy || !isReadyToSubmit || options.employees.length === 0}
         >
           {isBusy ? (
             <>
@@ -269,7 +289,7 @@ export function TimeInOutForm({ options }: TimeInOutFormProps) {
           ) : (
             <>
               <Save className="h-4 w-4" aria-hidden="true" />
-              Submit Attendance
+              Submit ODL Attendance
             </>
           )}
         </button>

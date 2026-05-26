@@ -19,6 +19,35 @@ export type AttendanceFormOptions = {
   branches: AttendanceBranchOption[];
 };
 
+function normalize(value: string | null | undefined): string {
+  return value?.toUpperCase().trim() ?? "";
+}
+
+function isOdlTeacherRecord(input: {
+  departmentName: string | null | undefined;
+  empTypeName: string | null | undefined;
+  designationName: string | null | undefined;
+}): boolean {
+  const combinedText = [
+    input.departmentName,
+    input.empTypeName,
+    input.designationName,
+  ]
+    .map(normalize)
+    .join(" ");
+
+  const hasOdl =
+    combinedText.includes("ODL") ||
+    combinedText.includes("ONLINE DISTANCE LEARNING");
+
+  const hasTeacherRole =
+    combinedText.includes("TEACHER") ||
+    combinedText.includes("FACULTY") ||
+    combinedText.includes("INSTRUCTOR");
+
+  return hasOdl && hasTeacherRole;
+}
+
 export async function getAttendanceFormOptions(): Promise<AttendanceFormOptions> {
   const [employees, branches] = await Promise.all([
     prisma.employee.findMany({
@@ -32,6 +61,16 @@ export async function getAttendanceFormOptions(): Promise<AttendanceFormOptions>
         middleName: true,
         lastName: true,
         department: {
+          select: {
+            name: true,
+          },
+        },
+        empType: {
+          select: {
+            name: true,
+          },
+        },
+        designation: {
           select: {
             name: true,
           },
@@ -67,8 +106,16 @@ export async function getAttendanceFormOptions(): Promise<AttendanceFormOptions>
     }),
   ]);
 
+  const odlTeachers = employees.filter((employee) =>
+    isOdlTeacherRecord({
+      departmentName: employee.department?.name,
+      empTypeName: employee.empType?.name,
+      designationName: employee.designation?.name,
+    }),
+  );
+
   return {
-    employees: employees.map((employee) => ({
+    employees: odlTeachers.map((employee) => ({
       empId: employee.empId,
       empNumber: employee.empNumber,
       fullName: formatFullName({

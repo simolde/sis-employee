@@ -17,6 +17,35 @@ function formDataToObject(formData: FormData): Record<string, FormDataEntryValue
   return Object.fromEntries(formData.entries());
 }
 
+function normalize(value: string | null | undefined): string {
+  return value?.toUpperCase().trim() ?? "";
+}
+
+function isOdlTeacherRecord(input: {
+  departmentName: string | null | undefined;
+  empTypeName: string | null | undefined;
+  designationName: string | null | undefined;
+}): boolean {
+  const combinedText = [
+    input.departmentName,
+    input.empTypeName,
+    input.designationName,
+  ]
+    .map(normalize)
+    .join(" ");
+
+  const hasOdl =
+    combinedText.includes("ODL") ||
+    combinedText.includes("ONLINE DISTANCE LEARNING");
+
+  const hasTeacherRole =
+    combinedText.includes("TEACHER") ||
+    combinedText.includes("FACULTY") ||
+    combinedText.includes("INSTRUCTOR");
+
+  return hasOdl && hasTeacherRole;
+}
+
 export async function recordManualAttendanceAction(
   _previousState: AttendanceActionState,
   formData: FormData,
@@ -30,7 +59,7 @@ export async function recordManualAttendanceAction(
   if (!canManageAttendance(session.role)) {
     return {
       ok: false,
-      message: "You do not have permission to record manual attendance.",
+      message: "You do not have permission to record ODL web attendance.",
     };
   }
 
@@ -41,7 +70,8 @@ export async function recordManualAttendanceAction(
   if (!parsed.success) {
     return {
       ok: false,
-      message: "Please review the highlighted fields.",
+      message:
+        "Selfie, GPS coordinates, and full address are required before submitting.",
       fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
@@ -58,6 +88,21 @@ export async function recordManualAttendanceAction(
       empId: true,
       status: true,
       scheduleId: true,
+      department: {
+        select: {
+          name: true,
+        },
+      },
+      empType: {
+        select: {
+          name: true,
+        },
+      },
+      designation: {
+        select: {
+          name: true,
+        },
+      },
       schedule: {
         select: {
           shift: {
@@ -77,6 +122,23 @@ export async function recordManualAttendanceAction(
       message: "Selected employee is not active or does not exist.",
       fieldErrors: {
         empId: ["Selected employee is not active or does not exist."],
+      },
+    };
+  }
+
+  const isOdlTeacher = isOdlTeacherRecord({
+    departmentName: employee.department?.name,
+    empTypeName: employee.empType?.name,
+    designationName: employee.designation?.name,
+  });
+
+  if (!isOdlTeacher) {
+    return {
+      ok: false,
+      message:
+        "Web time-in/time-out is only allowed for ODL teachers. Face-to-face teachers must use the lobby RFID/biometric attendance system.",
+      fieldErrors: {
+        empId: ["This employee is not marked as an ODL teacher."],
       },
     };
   }
@@ -129,8 +191,8 @@ export async function recordManualAttendanceAction(
           source: "WEB",
           branchId: data.branchId,
           remarks: data.remarks
-            ? `Repeated time-in. ${data.remarks}`
-            : "Repeated time-in.",
+            ? `Repeated ODL web time-in. ${data.remarks}`
+            : "Repeated ODL web time-in.",
           reason: data.reason,
         },
       });
@@ -140,7 +202,7 @@ export async function recordManualAttendanceAction(
       return {
         ok: false,
         message:
-          "This employee already has a time-in today. Repeated scan was logged for review.",
+          "This ODL teacher already has a time-in today. Repeated attempt was logged for review.",
       };
     }
 
@@ -217,7 +279,7 @@ export async function recordManualAttendanceAction(
 
     return {
       ok: true,
-      message: `Time-in recorded successfully. Status: ${status.replaceAll("_", " ")}.`,
+      message: `ODL web time-in recorded successfully. Status: ${status.replaceAll("_", " ")}.`,
     };
   }
 
@@ -240,7 +302,7 @@ export async function recordManualAttendanceAction(
     return {
       ok: false,
       message:
-        "Cannot record time-out because this employee has no time-in today.",
+        "Cannot record ODL web time-out because this teacher has no time-in today.",
     };
   }
 
@@ -258,8 +320,8 @@ export async function recordManualAttendanceAction(
         source: "WEB",
         branchId: data.branchId,
         remarks: data.remarks
-          ? `Repeated time-out. ${data.remarks}`
-          : "Repeated time-out.",
+          ? `Repeated ODL web time-out. ${data.remarks}`
+          : "Repeated ODL web time-out.",
         reason: data.reason,
       },
     });
@@ -269,7 +331,7 @@ export async function recordManualAttendanceAction(
     return {
       ok: false,
       message:
-        "This employee already has a time-out today. Repeated scan was logged for review.",
+        "This ODL teacher already has a time-out today. Repeated attempt was logged for review.",
     };
   }
 
@@ -322,6 +384,6 @@ export async function recordManualAttendanceAction(
 
   return {
     ok: true,
-    message: "Time-out recorded successfully.",
+    message: "ODL web time-out recorded successfully.",
   };
 }
