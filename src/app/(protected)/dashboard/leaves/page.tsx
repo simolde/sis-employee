@@ -1,4 +1,5 @@
 import { CalendarCheck, CheckCircle2, Clock3, XCircle } from "lucide-react";
+import { LeaveBalanceCard } from "@/features/leaves/components/leave-balance-card";
 import { LeaveRequestForm } from "@/features/leaves/components/leave-request-form";
 import { LeaveTable } from "@/features/leaves/components/leave-table";
 import {
@@ -10,9 +11,33 @@ type LeavesPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+function getSearchParamValue(
+  value: string | string[] | undefined,
+): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
+}
+
+function getNoticeMessage(notice: string): string {
+  const noticeMap: Record<string, string> = {
+    "leave-approved": "Leave request approved successfully.",
+    "leave-rejected": "Leave request rejected successfully.",
+    "leave-cancelled": "Leave request cancelled successfully.",
+    "insufficient-leave-balance":
+      "Cannot approve this paid leave request because the employee has insufficient leave balance.",
+  };
+
+  return noticeMap[notice] ?? "";
+}
+
 export default async function LeavesPage({ searchParams }: LeavesPageProps) {
   const resolvedSearchParams = await searchParams;
   const filters = parseLeaveListSearchParams(resolvedSearchParams);
+  const notice = getSearchParamValue(resolvedSearchParams.notice) ?? "";
+  const noticeMessage = getNoticeMessage(notice);
   const data = await getLeavePageData(filters);
 
   return (
@@ -29,6 +54,12 @@ export default async function LeavesPage({ searchParams }: LeavesPageProps) {
           HR/Admin/Heads to approve or reject pending requests.
         </p>
       </div>
+
+      {noticeMessage ? (
+        <div className="rounded-2xl border border-[var(--starland-border)] bg-white p-4 text-sm font-bold text-[var(--starland-dark-text)]">
+          {noticeMessage}
+        </div>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article className="starland-card p-5">
@@ -71,6 +102,8 @@ export default async function LeavesPage({ searchParams }: LeavesPageProps) {
           </p>
         </article>
       </div>
+
+      <LeaveBalanceCard balance={data.balanceSummary} />
 
       <LeaveRequestForm leaveTypes={data.leaveTypes} />
 

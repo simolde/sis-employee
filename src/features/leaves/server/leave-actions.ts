@@ -86,6 +86,10 @@ async function getCurrentEmployeeId(userId: number): Promise<number | null> {
   return user?.empId ?? null;
 }
 
+function toNumber(value: { toString(): string } | number): number {
+  return Number(value.toString());
+}
+
 const leaveAuditSelect = {
   leaveId: true,
   empId: true,
@@ -248,6 +252,7 @@ export async function cancelLeaveRequestAction(
   });
 
   revalidatePath("/dashboard/leaves");
+  redirect("/dashboard/leaves?notice=leave-cancelled");
 }
 
 export async function approveLeaveRequestAction(
@@ -277,14 +282,47 @@ export async function approveLeaveRequestAction(
       leaveId: parsedLeaveId,
       status: "PENDING",
     },
-    select: leaveAuditSelect,
+    select: {
+      ...leaveAuditSelect,
+      leaveType: {
+        select: {
+          isPaid: true,
+          name: true,
+        },
+      },
+      employee: {
+        select: {
+          avLeave: true,
+        },
+      },
+    },
   });
 
   if (!existingLeave) {
     return;
   }
 
+  const leaveDays = toNumber(existingLeave.totalDays);
+  const availableLeave = toNumber(existingLeave.employee.avLeave);
+
+  if (existingLeave.leaveType.isPaid && availableLeave < leaveDays) {
+    redirect("/dashboard/leaves?notice=insufficient-leave-balance");
+  }
+
   await prisma.$transaction(async (tx) => {
+    if (existingLeave.leaveType.isPaid) {
+      await tx.employee.update({
+        where: {
+          empId: existingLeave.empId,
+        },
+        data: {
+          avLeave: {
+            decrement: leaveDays,
+          },
+        },
+      });
+    }
+
     const updatedLeave = await tx.leave.update({
       where: {
         leaveId: existingLeave.leaveId,
@@ -301,16 +339,23 @@ export async function approveLeaveRequestAction(
     await tx.activityLog.create({
       data: {
         actorUserId: session.userId,
-        action: "LEAVE_REQUEST_APPROVED",
+        action: existingLeave.leaveType.isPaid
+          ? "LEAVE_REQUEST_APPROVED_BALANCE_DEDUCTED"
+          : "LEAVE_REQUEST_APPROVED_UNPAID",
         entityType: "leave",
         entityId: String(updatedLeave.leaveId),
         oldValue: buildLeaveAuditValue(existingLeave),
-        newValue: buildLeaveAuditValue(updatedLeave),
+        newValue: {
+          ...buildLeaveAuditValue(updatedLeave),
+          deductedLeaveDays: existingLeave.leaveType.isPaid ? leaveDays : 0,
+          leaveTypeName: existingLeave.leaveType.name,
+        },
       },
     });
   });
 
   revalidatePath("/dashboard/leaves");
+  redirect("/dashboard/leaves?notice=leave-approved");
 }
 
 export async function rejectLeaveRequestAction(
@@ -373,4 +418,5 @@ export async function rejectLeaveRequestAction(
   });
 
   revalidatePath("/dashboard/leaves");
+  redirect("/dashboard/leaves?notice=leave-rejected");
 }

@@ -70,7 +70,7 @@ function dash(value: string | null | undefined): string {
   return value?.trim() ? value : "—";
 }
 
-function decimalText(value: { toString(): string }): string {
+function decimalText(value: { toString(): string } | number): string {
   return value.toString();
 }
 
@@ -135,6 +135,18 @@ async function getCurrentEmployeeId(userId: number): Promise<number | null> {
   return user?.empId ?? null;
 }
 
+function getCurrentYearRange(): {
+  start: Date;
+  end: Date;
+} {
+  const year = new Date().getFullYear();
+
+  return {
+    start: new Date(Date.UTC(year, 0, 1)),
+    end: new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)),
+  };
+}
+
 export async function getLeavePageData(
   filters: LeaveListSearchParams,
 ): Promise<LeavePageData> {
@@ -152,6 +164,7 @@ export async function getLeavePageData(
         rejected: 0,
         cancelled: 0,
       },
+      balanceSummary: null,
       filters,
       pagination: {
         page: 1,
@@ -183,6 +196,7 @@ export async function getLeavePageData(
         empId: currentEmpId ?? -1,
       };
 
+  const currentYear = getCurrentYearRange();
   const skip = (filters.page - 1) * filters.pageSize;
 
   const [
@@ -194,6 +208,9 @@ export async function getLeavePageData(
     approved,
     rejected,
     cancelled,
+    currentEmployee,
+    pendingDaysAggregate,
+    approvedDaysThisYearAggregate,
   ] = await Promise.all([
     prisma.leaveType.findMany({
       where: {
@@ -288,6 +305,45 @@ export async function getLeavePageData(
         status: "CANCELLED",
       },
     }),
+
+    currentEmpId
+      ? prisma.employee.findUnique({
+          where: {
+            empId: currentEmpId,
+          },
+          select: {
+            avLeave: true,
+          },
+        })
+      : null,
+
+    currentEmpId
+      ? prisma.leave.aggregate({
+          where: {
+            empId: currentEmpId,
+            status: "PENDING",
+          },
+          _sum: {
+            totalDays: true,
+          },
+        })
+      : null,
+
+    currentEmpId
+      ? prisma.leave.aggregate({
+          where: {
+            empId: currentEmpId,
+            status: "APPROVED",
+            dateFrom: {
+              gte: currentYear.start,
+              lte: currentYear.end,
+            },
+          },
+          _sum: {
+            totalDays: true,
+          },
+        })
+      : null,
   ]);
 
   const totalPages = Math.max(1, Math.ceil(totalItems / filters.pageSize));
@@ -303,6 +359,15 @@ export async function getLeavePageData(
       rejected,
       cancelled,
     },
+    balanceSummary: currentEmployee
+      ? {
+          availableLeave: decimalText(currentEmployee.avLeave),
+          pendingDays: decimalText(pendingDaysAggregate?._sum.totalDays ?? 0),
+          approvedDaysThisYear: decimalText(
+            approvedDaysThisYearAggregate?._sum.totalDays ?? 0,
+          ),
+        }
+      : null,
     filters,
     pagination: {
       page: filters.page,

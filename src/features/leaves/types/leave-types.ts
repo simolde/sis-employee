@@ -46,11 +46,18 @@ export type LeaveSummary = {
   cancelled: number;
 };
 
+export type LeaveBalanceSummary = {
+  availableLeave: string;
+  pendingDays: string;
+  approvedDaysThisYear: string;
+};
+
 export type LeavePageData = {
   canManage: boolean;
   leaveTypes: LeaveTypeOption[];
   leaves: LeaveListItem[];
   summary: LeaveSummary;
+  balanceSummary: LeaveBalanceSummary | null;
   filters: LeaveListSearchParams;
   pagination: {
     page: number;
