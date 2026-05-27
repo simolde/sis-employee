@@ -587,6 +587,7 @@ model Leave {
   dateTo          DateTime    @map("date_to") @db.Date
   totalDays       Float       @map("total_days")
   reason          String      @db.Text
+  attachment      String?     @db.VarChar(255)
   status          LeaveStatus @default(PENDING)
   approvedById    Int?        @map("approved_by")
   approvedAt      DateTime?   @map("approved_at")

@@ -80,6 +80,7 @@ function mapLeaveListItem(leave: {
   dateTo: Date;
   totalDays: { toString(): string };
   reason: string;
+  attachment: string | null;
   status: LeaveStatusValue;
   rejectionReason: string | null;
   approvedAt: Date | null;
@@ -114,6 +115,7 @@ function mapLeaveListItem(leave: {
     dateTo: formatDate(leave.dateTo),
     totalDays: decimalText(leave.totalDays),
     reason: leave.reason,
+    attachment: dash(leave.attachment),
     status: leave.status,
     rejectionReason: dash(leave.rejectionReason),
     approvedBy: leave.approvedBy?.username ?? "—",
@@ -235,6 +237,7 @@ export async function getLeavePageData(
         dateTo: true,
         totalDays: true,
         reason: true,
+        attachment: true,
         status: true,
         rejectionReason: true,
         approvedAt: true,

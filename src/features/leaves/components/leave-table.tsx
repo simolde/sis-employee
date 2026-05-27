@@ -210,6 +210,19 @@ export function LeaveTable({ data }: LeaveTableProps) {
                       </span>
                     ) : null}
                   </td>
+                  <td>
+                    {leave.attachment === "—" ? (
+                      "—"
+                    ) : (
+                      <Link
+                        href={`/${leave.attachment}`}
+                        className="font-bold text-[var(--starland-main-green)] hover:underline"
+                        target="_blank"
+                      >
+                        View Attachment
+                      </Link>
+                    )}
+                  </td>
                 </tr>
               ))
             ) : (

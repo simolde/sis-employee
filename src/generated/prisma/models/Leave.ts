@@ -52,6 +52,7 @@ export type LeaveMinAggregateOutputType = {
   dateTo: Date | null
   totalDays: number | null
   reason: string | null
+  attachment: string | null
   status: $Enums.LeaveStatus | null
   approvedById: number | null
   approvedAt: Date | null
@@ -69,6 +70,7 @@ export type LeaveMaxAggregateOutputType = {
   dateTo: Date | null
   totalDays: number | null
   reason: string | null
+  attachment: string | null
   status: $Enums.LeaveStatus | null
   approvedById: number | null
   approvedAt: Date | null
@@ -86,6 +88,7 @@ export type LeaveCountAggregateOutputType = {
   dateTo: number
   totalDays: number
   reason: number
+  attachment: number
   status: number
   approvedById: number
   approvedAt: number
@@ -123,6 +126,7 @@ export type LeaveMinAggregateInputType = {
   dateTo?: true
   totalDays?: true
   reason?: true
+  attachment?: true
   status?: true
   approvedById?: true
   approvedAt?: true
@@ -140,6 +144,7 @@ export type LeaveMaxAggregateInputType = {
   dateTo?: true
   totalDays?: true
   reason?: true
+  attachment?: true
   status?: true
   approvedById?: true
   approvedAt?: true
@@ -157,6 +162,7 @@ export type LeaveCountAggregateInputType = {
   dateTo?: true
   totalDays?: true
   reason?: true
+  attachment?: true
   status?: true
   approvedById?: true
   approvedAt?: true
@@ -261,6 +267,7 @@ export type LeaveGroupByOutputType = {
   dateTo: Date
   totalDays: number
   reason: string
+  attachment: string | null
   status: $Enums.LeaveStatus
   approvedById: number | null
   approvedAt: Date | null
@@ -301,6 +308,7 @@ export type LeaveWhereInput = {
   dateTo?: Prisma.DateTimeFilter<"Leave"> | Date | string
   totalDays?: Prisma.FloatFilter<"Leave"> | number
   reason?: Prisma.StringFilter<"Leave"> | string
+  attachment?: Prisma.StringNullableFilter<"Leave"> | string | null
   status?: Prisma.EnumLeaveStatusFilter<"Leave"> | $Enums.LeaveStatus
   approvedById?: Prisma.IntNullableFilter<"Leave"> | number | null
   approvedAt?: Prisma.DateTimeNullableFilter<"Leave"> | Date | string | null
@@ -322,6 +330,7 @@ export type LeaveOrderByWithRelationInput = {
   dateTo?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   reason?: Prisma.SortOrder
+  attachment?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   approvedById?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -347,6 +356,7 @@ export type LeaveWhereUniqueInput = Prisma.AtLeast<{
   dateTo?: Prisma.DateTimeFilter<"Leave"> | Date | string
   totalDays?: Prisma.FloatFilter<"Leave"> | number
   reason?: Prisma.StringFilter<"Leave"> | string
+  attachment?: Prisma.StringNullableFilter<"Leave"> | string | null
   status?: Prisma.EnumLeaveStatusFilter<"Leave"> | $Enums.LeaveStatus
   approvedById?: Prisma.IntNullableFilter<"Leave"> | number | null
   approvedAt?: Prisma.DateTimeNullableFilter<"Leave"> | Date | string | null
@@ -368,6 +378,7 @@ export type LeaveOrderByWithAggregationInput = {
   dateTo?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   reason?: Prisma.SortOrder
+  attachment?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   approvedById?: Prisma.SortOrderInput | Prisma.SortOrder
   approvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -393,6 +404,7 @@ export type LeaveScalarWhereWithAggregatesInput = {
   dateTo?: Prisma.DateTimeWithAggregatesFilter<"Leave"> | Date | string
   totalDays?: Prisma.FloatWithAggregatesFilter<"Leave"> | number
   reason?: Prisma.StringWithAggregatesFilter<"Leave"> | string
+  attachment?: Prisma.StringNullableWithAggregatesFilter<"Leave"> | string | null
   status?: Prisma.EnumLeaveStatusWithAggregatesFilter<"Leave"> | $Enums.LeaveStatus
   approvedById?: Prisma.IntNullableWithAggregatesFilter<"Leave"> | number | null
   approvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Leave"> | Date | string | null
@@ -407,6 +419,7 @@ export type LeaveCreateInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedAt?: Date | string | null
   rejectionReason?: string | null
@@ -426,6 +439,7 @@ export type LeaveUncheckedCreateInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedById?: number | null
   approvedAt?: Date | string | null
@@ -440,6 +454,7 @@ export type LeaveUpdateInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -459,6 +474,7 @@ export type LeaveUncheckedUpdateInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -476,6 +492,7 @@ export type LeaveCreateManyInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedById?: number | null
   approvedAt?: Date | string | null
@@ -490,6 +507,7 @@ export type LeaveUpdateManyMutationInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -505,6 +523,7 @@ export type LeaveUncheckedUpdateManyInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -538,6 +557,7 @@ export type LeaveCountOrderByAggregateInput = {
   dateTo?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   reason?: Prisma.SortOrder
+  attachment?: Prisma.SortOrder
   status?: Prisma.SortOrder
   approvedById?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
@@ -564,6 +584,7 @@ export type LeaveMaxOrderByAggregateInput = {
   dateTo?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   reason?: Prisma.SortOrder
+  attachment?: Prisma.SortOrder
   status?: Prisma.SortOrder
   approvedById?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
@@ -581,6 +602,7 @@ export type LeaveMinOrderByAggregateInput = {
   dateTo?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   reason?: Prisma.SortOrder
+  attachment?: Prisma.SortOrder
   status?: Prisma.SortOrder
   approvedById?: Prisma.SortOrder
   approvedAt?: Prisma.SortOrder
@@ -776,6 +798,7 @@ export type LeaveCreateWithoutEmployeeInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedAt?: Date | string | null
   rejectionReason?: string | null
@@ -793,6 +816,7 @@ export type LeaveUncheckedCreateWithoutEmployeeInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedById?: number | null
   approvedAt?: Date | string | null
@@ -839,6 +863,7 @@ export type LeaveScalarWhereInput = {
   dateTo?: Prisma.DateTimeFilter<"Leave"> | Date | string
   totalDays?: Prisma.FloatFilter<"Leave"> | number
   reason?: Prisma.StringFilter<"Leave"> | string
+  attachment?: Prisma.StringNullableFilter<"Leave"> | string | null
   status?: Prisma.EnumLeaveStatusFilter<"Leave"> | $Enums.LeaveStatus
   approvedById?: Prisma.IntNullableFilter<"Leave"> | number | null
   approvedAt?: Prisma.DateTimeNullableFilter<"Leave"> | Date | string | null
@@ -853,6 +878,7 @@ export type LeaveCreateWithoutApprovedByInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedAt?: Date | string | null
   rejectionReason?: string | null
@@ -871,6 +897,7 @@ export type LeaveUncheckedCreateWithoutApprovedByInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedAt?: Date | string | null
   rejectionReason?: string | null
@@ -894,6 +921,7 @@ export type LeaveCreateWithoutCreatedByInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedAt?: Date | string | null
   rejectionReason?: string | null
@@ -912,6 +940,7 @@ export type LeaveUncheckedCreateWithoutCreatedByInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedById?: number | null
   approvedAt?: Date | string | null
@@ -967,6 +996,7 @@ export type LeaveCreateWithoutLeaveTypeInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedAt?: Date | string | null
   rejectionReason?: string | null
@@ -984,6 +1014,7 @@ export type LeaveUncheckedCreateWithoutLeaveTypeInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedById?: number | null
   approvedAt?: Date | string | null
@@ -1026,6 +1057,7 @@ export type LeaveCreateManyEmployeeInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedById?: number | null
   approvedAt?: Date | string | null
@@ -1040,6 +1072,7 @@ export type LeaveUpdateWithoutEmployeeInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1057,6 +1090,7 @@ export type LeaveUncheckedUpdateWithoutEmployeeInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1073,6 +1107,7 @@ export type LeaveUncheckedUpdateManyWithoutEmployeeInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1090,6 +1125,7 @@ export type LeaveCreateManyApprovedByInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedAt?: Date | string | null
   rejectionReason?: string | null
@@ -1106,6 +1142,7 @@ export type LeaveCreateManyCreatedByInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedById?: number | null
   approvedAt?: Date | string | null
@@ -1119,6 +1156,7 @@ export type LeaveUpdateWithoutApprovedByInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1137,6 +1175,7 @@ export type LeaveUncheckedUpdateWithoutApprovedByInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1153,6 +1192,7 @@ export type LeaveUncheckedUpdateManyWithoutApprovedByInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1166,6 +1206,7 @@ export type LeaveUpdateWithoutCreatedByInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1184,6 +1225,7 @@ export type LeaveUncheckedUpdateWithoutCreatedByInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1200,6 +1242,7 @@ export type LeaveUncheckedUpdateManyWithoutCreatedByInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1215,6 +1258,7 @@ export type LeaveCreateManyLeaveTypeInput = {
   dateTo: Date | string
   totalDays: number
   reason: string
+  attachment?: string | null
   status?: $Enums.LeaveStatus
   approvedById?: number | null
   approvedAt?: Date | string | null
@@ -1229,6 +1273,7 @@ export type LeaveUpdateWithoutLeaveTypeInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1246,6 +1291,7 @@ export type LeaveUncheckedUpdateWithoutLeaveTypeInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1262,6 +1308,7 @@ export type LeaveUncheckedUpdateManyWithoutLeaveTypeInput = {
   dateTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.StringFieldUpdateOperationsInput | string
+  attachment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   approvedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1281,6 +1328,7 @@ export type LeaveSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   dateTo?: boolean
   totalDays?: boolean
   reason?: boolean
+  attachment?: boolean
   status?: boolean
   approvedById?: boolean
   approvedAt?: boolean
@@ -1304,6 +1352,7 @@ export type LeaveSelectScalar = {
   dateTo?: boolean
   totalDays?: boolean
   reason?: boolean
+  attachment?: boolean
   status?: boolean
   approvedById?: boolean
   approvedAt?: boolean
@@ -1313,7 +1362,7 @@ export type LeaveSelectScalar = {
   updatedAt?: boolean
 }
 
-export type LeaveOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"leaveId" | "empId" | "leaveTypeId" | "dateFrom" | "dateTo" | "totalDays" | "reason" | "status" | "approvedById" | "approvedAt" | "rejectionReason" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["leave"]>
+export type LeaveOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"leaveId" | "empId" | "leaveTypeId" | "dateFrom" | "dateTo" | "totalDays" | "reason" | "attachment" | "status" | "approvedById" | "approvedAt" | "rejectionReason" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["leave"]>
 export type LeaveInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   leaveType?: boolean | Prisma.LeaveTypeDefaultArgs<ExtArgs>
@@ -1337,6 +1386,7 @@ export type $LeavePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     dateTo: Date
     totalDays: number
     reason: string
+    attachment: string | null
     status: $Enums.LeaveStatus
     approvedById: number | null
     approvedAt: Date | null
@@ -1724,6 +1774,7 @@ export interface LeaveFieldRefs {
   readonly dateTo: Prisma.FieldRef<"Leave", 'DateTime'>
   readonly totalDays: Prisma.FieldRef<"Leave", 'Float'>
   readonly reason: Prisma.FieldRef<"Leave", 'String'>
+  readonly attachment: Prisma.FieldRef<"Leave", 'String'>
   readonly status: Prisma.FieldRef<"Leave", 'LeaveStatus'>
   readonly approvedById: Prisma.FieldRef<"Leave", 'Int'>
   readonly approvedAt: Prisma.FieldRef<"Leave", 'DateTime'>

@@ -5,6 +5,7 @@ import { Loader2, Send } from "lucide-react";
 import { createLeaveRequestAction } from "../server/leave-actions";
 import { initialLeaveActionState } from "../types/leave-action-state";
 import type { LeaveTypeOption } from "../types/leave-types";
+import { LeaveAttachmentUpload } from "./leave-attachment-upload";
 
 type LeaveRequestFormProps = {
   leaveTypes: LeaveTypeOption[];
@@ -38,7 +39,7 @@ export function LeaveRequestForm({ leaveTypes }: LeaveRequestFormProps) {
           Submit Leave Request
         </h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
-          Submit your leave request for HR/Admin review.
+          Submit your leave request with optional supporting attachment.
         </p>
       </div>
 
@@ -133,6 +134,11 @@ export function LeaveRequestForm({ leaveTypes }: LeaveRequestFormProps) {
           />
           <FieldError messages={state.fieldErrors?.reason} />
         </div>
+
+        <LeaveAttachmentUpload
+          disabled={isPending}
+          errorMessages={state.fieldErrors?.attachment}
+        />
 
         <button
           type="submit"

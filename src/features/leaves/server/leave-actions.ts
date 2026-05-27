@@ -20,6 +20,7 @@ type LeaveAuditValueInput = {
   dateTo: Date;
   totalDays: { toString(): string };
   reason: string;
+  attachment: string | null;
   status: string;
   approvedById: number | null;
   approvedAt: Date | null;
@@ -69,6 +70,7 @@ function buildLeaveAuditValue(input: LeaveAuditValueInput): Prisma.InputJsonObje
     dateTo: input.dateTo.toISOString(),
     totalDays: input.totalDays.toString(),
     reason: input.reason,
+    attachment: input.attachment,
     status: input.status,
     approvedById: input.approvedById,
     approvedAt: input.approvedAt?.toISOString() ?? null,
@@ -98,6 +100,7 @@ const leaveAuditSelect = {
   dateTo: true,
   totalDays: true,
   reason: true,
+  attachment: true,
   status: true,
   approvedById: true,
   approvedAt: true,
@@ -169,6 +172,7 @@ export async function createLeaveRequestAction(
         dateTo: data.dateTo,
         totalDays,
         reason: data.reason,
+        attachment: data.attachment,
         status: "PENDING",
         createdById: session.userId,
       },

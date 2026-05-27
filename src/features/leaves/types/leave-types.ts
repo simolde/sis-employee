@@ -31,6 +31,7 @@ export type LeaveListItem = {
   dateTo: string;
   totalDays: string;
   reason: string;
+  attachment: string;
   status: LeaveStatusValue;
   rejectionReason: string;
   approvedBy: string;

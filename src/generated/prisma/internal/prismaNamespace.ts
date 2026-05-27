@@ -2502,6 +2502,7 @@ export const LeaveScalarFieldEnum = {
   dateTo: 'dateTo',
   totalDays: 'totalDays',
   reason: 'reason',
+  attachment: 'attachment',
   status: 'status',
   approvedById: 'approvedById',
   approvedAt: 'approvedAt',
@@ -2783,6 +2784,7 @@ export type LeaveTypeOrderByRelevanceFieldEnum = (typeof LeaveTypeOrderByRelevan
 
 export const LeaveOrderByRelevanceFieldEnum = {
   reason: 'reason',
+  attachment: 'attachment',
   rejectionReason: 'rejectionReason'
 } as const
 
