@@ -6,6 +6,7 @@ import {
   getLeavePageData,
   parseLeaveListSearchParams,
 } from "@/features/leaves/server/leave-queries";
+import { getLeaveNoticeMessage } from "@/features/leaves/utils/leave-notices";
 
 type LeavesPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -21,23 +22,11 @@ function getSearchParamValue(
   return value;
 }
 
-function getNoticeMessage(notice: string): string {
-  const noticeMap: Record<string, string> = {
-    "leave-approved": "Leave request approved successfully.",
-    "leave-rejected": "Leave request rejected successfully.",
-    "leave-cancelled": "Leave request cancelled successfully.",
-    "insufficient-leave-balance":
-      "Cannot approve this paid leave request because the employee has insufficient leave balance.",
-  };
-
-  return noticeMap[notice] ?? "";
-}
-
 export default async function LeavesPage({ searchParams }: LeavesPageProps) {
   const resolvedSearchParams = await searchParams;
   const filters = parseLeaveListSearchParams(resolvedSearchParams);
   const notice = getSearchParamValue(resolvedSearchParams.notice) ?? "";
-  const noticeMessage = getNoticeMessage(notice);
+  const noticeMessage = getLeaveNoticeMessage(notice);
   const data = await getLeavePageData(filters);
 
   return (
@@ -51,7 +40,7 @@ export default async function LeavesPage({ searchParams }: LeavesPageProps) {
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
           Submit leave requests, track request status, and allow authorized
-          HR/Admin/Heads to approve or reject pending requests.
+          HR/Admin/Heads to approve, reject, or reverse approved requests.
         </p>
       </div>
 

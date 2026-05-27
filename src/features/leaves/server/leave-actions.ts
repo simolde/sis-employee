@@ -56,6 +56,10 @@ function calculateInclusiveDays(dateFrom: Date, dateTo: Date): number {
   return Math.floor((end - start) / 86400000) + 1;
 }
 
+function toNumber(value: { toString(): string } | number): number {
+  return Number(value.toString());
+}
+
 function buildLeaveAuditValue(input: LeaveAuditValueInput): Prisma.InputJsonObject {
   return {
     leaveId: input.leaveId,
@@ -84,10 +88,6 @@ async function getCurrentEmployeeId(userId: number): Promise<number | null> {
   });
 
   return user?.empId ?? null;
-}
-
-function toNumber(value: { toString(): string } | number): number {
-  return Number(value.toString());
 }
 
 const leaveAuditSelect = {
@@ -419,4 +419,97 @@ export async function rejectLeaveRequestAction(
 
   revalidatePath("/dashboard/leaves");
   redirect("/dashboard/leaves?notice=leave-rejected");
+}
+
+export async function reverseApprovedLeaveRequestAction(
+  leaveId: string,
+  formData: FormData,
+): Promise<void> {
+  void formData;
+
+  const session = await getCurrentSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  if (!canManageLeaves(session.role)) {
+    return;
+  }
+
+  const parsedLeaveId = parsePositiveId(leaveId);
+
+  if (!parsedLeaveId) {
+    return;
+  }
+
+  const existingLeave = await prisma.leave.findFirst({
+    where: {
+      leaveId: parsedLeaveId,
+      status: "APPROVED",
+    },
+    select: {
+      ...leaveAuditSelect,
+      leaveType: {
+        select: {
+          isPaid: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (!existingLeave) {
+    return;
+  }
+
+  const leaveDays = toNumber(existingLeave.totalDays);
+
+  await prisma.$transaction(async (tx) => {
+    if (existingLeave.leaveType.isPaid) {
+      await tx.employee.update({
+        where: {
+          empId: existingLeave.empId,
+        },
+        data: {
+          avLeave: {
+            increment: leaveDays,
+          },
+        },
+      });
+    }
+
+    const updatedLeave = await tx.leave.update({
+      where: {
+        leaveId: existingLeave.leaveId,
+      },
+      data: {
+        status: "CANCELLED",
+        approvedById: session.userId,
+        approvedAt: new Date(),
+        rejectionReason: "Approved leave reversed by HR/Admin.",
+      },
+      select: leaveAuditSelect,
+    });
+
+    await tx.activityLog.create({
+      data: {
+        actorUserId: session.userId,
+        action: existingLeave.leaveType.isPaid
+          ? "APPROVED_LEAVE_REVERSED_BALANCE_RESTORED"
+          : "APPROVED_LEAVE_REVERSED_UNPAID",
+        entityType: "leave",
+        entityId: String(updatedLeave.leaveId),
+        oldValue: buildLeaveAuditValue(existingLeave),
+        newValue: {
+          ...buildLeaveAuditValue(updatedLeave),
+          restoredLeaveDays: existingLeave.leaveType.isPaid ? leaveDays : 0,
+          leaveTypeName: existingLeave.leaveType.name,
+        },
+      },
+    });
+  });
+
+  revalidatePath("/dashboard/leaves");
+  redirect("/dashboard/leaves?notice=leave-reversed");
 }

@@ -3,6 +3,7 @@ import {
   approveLeaveRequestAction,
   cancelLeaveRequestAction,
   rejectLeaveRequestAction,
+  reverseApprovedLeaveRequestAction,
 } from "../server/leave-actions";
 import type { LeavePageData } from "../types/leave-types";
 import { LeaveStatusBadge } from "./leave-status-badge";
@@ -71,6 +72,24 @@ function CancelAction({ leaveId }: { leaveId: number }) {
   );
 }
 
+function ReverseApprovedAction({ leaveId }: { leaveId: number }) {
+  const reverseAction = reverseApprovedLeaveRequestAction.bind(
+    null,
+    String(leaveId),
+  );
+
+  return (
+    <form action={reverseAction}>
+      <button
+        type="submit"
+        className="starland-btn starland-btn-danger starland-btn-sm"
+      >
+        Reverse Approved
+      </button>
+    </form>
+  );
+}
+
 export function LeaveTable({ data }: LeaveTableProps) {
   return (
     <section className="starland-card overflow-hidden">
@@ -80,7 +99,7 @@ export function LeaveTable({ data }: LeaveTableProps) {
         </h2>
         <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
           {data.canManage
-            ? "Review, approve, or reject employee leave requests."
+            ? "Review, approve, reject, or reverse approved employee leave requests."
             : "Track your submitted leave requests and cancel pending requests."}
         </p>
       </div>
@@ -180,7 +199,12 @@ export function LeaveTable({ data }: LeaveTableProps) {
                       <CancelAction leaveId={leave.leaveId} />
                     ) : null}
 
-                    {leave.status !== "PENDING" ? (
+                    {leave.status === "APPROVED" && data.canManage ? (
+                      <ReverseApprovedAction leaveId={leave.leaveId} />
+                    ) : null}
+
+                    {leave.status !== "PENDING" &&
+                    !(leave.status === "APPROVED" && data.canManage) ? (
                       <span className="text-sm text-[var(--starland-muted-text)]">
                         —
                       </span>
