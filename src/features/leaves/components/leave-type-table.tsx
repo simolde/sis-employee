@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Loader2, Save } from "lucide-react";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import {
   activateLeaveTypeAction,
   deactivateLeaveTypeAction,
@@ -140,8 +141,9 @@ function LeaveTypeRow({ leaveType }: { leaveType: LeaveTypeListItem }) {
               Requires attachment
             </label>
 
-            <button
+            <ConfirmSubmitButton
               type="submit"
+              confirmMessage="Save changes to this leave type?"
               className="starland-btn starland-btn-primary starland-btn-sm"
               disabled={isPending}
             >
@@ -156,7 +158,7 @@ function LeaveTypeRow({ leaveType }: { leaveType: LeaveTypeListItem }) {
                   Save
                 </>
               )}
-            </button>
+            </ConfirmSubmitButton>
           </div>
         </form>
       </td>
@@ -194,21 +196,23 @@ function LeaveTypeRow({ leaveType }: { leaveType: LeaveTypeListItem }) {
       <td>
         {leaveType.status === "ACTIVE" ? (
           <form action={deactivateAction}>
-            <button
+            <ConfirmSubmitButton
               type="submit"
+              confirmMessage="Deactivate this leave type? It will no longer appear in the leave request dropdown."
               className="starland-btn starland-btn-danger starland-btn-sm"
             >
               Deactivate
-            </button>
+            </ConfirmSubmitButton>
           </form>
         ) : (
           <form action={activateAction}>
-            <button
+            <ConfirmSubmitButton
               type="submit"
+              confirmMessage="Activate this leave type?"
               className="starland-btn starland-btn-primary starland-btn-sm"
             >
               Activate
-            </button>
+            </ConfirmSubmitButton>
           </form>
         )}
       </td>

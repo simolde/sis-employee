@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Loader2, Send } from "lucide-react";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { createLeaveRequestAction } from "../server/leave-actions";
 import { initialLeaveActionState } from "../types/leave-action-state";
 import type { LeaveTypeOption } from "../types/leave-types";
@@ -141,8 +142,9 @@ export function LeaveRequestForm({ leaveTypes }: LeaveRequestFormProps) {
           errorMessages={state.fieldErrors?.attachment}
         />
 
-        <button
+        <ConfirmSubmitButton
           type="submit"
+          confirmMessage="Submit this leave request for review?"
           className="starland-btn starland-btn-primary w-full"
           disabled={isPending || leaveTypes.length === 0}
         >
@@ -157,7 +159,7 @@ export function LeaveRequestForm({ leaveTypes }: LeaveRequestFormProps) {
               Submit Leave Request
             </>
           )}
-        </button>
+        </ConfirmSubmitButton>
       </form>
     </section>
   );

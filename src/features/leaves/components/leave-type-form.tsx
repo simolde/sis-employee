@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Loader2, Plus } from "lucide-react";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { createLeaveTypeAction } from "../server/leave-type-actions";
 import { initialLeaveTypeActionState } from "../types/leave-type-types";
 
@@ -111,8 +112,9 @@ export function LeaveTypeForm() {
           </label>
         </div>
 
-        <button
+        <ConfirmSubmitButton
           type="submit"
+          confirmMessage="Create this leave type?"
           className="starland-btn starland-btn-primary w-full"
           disabled={isPending}
         >
@@ -127,7 +129,7 @@ export function LeaveTypeForm() {
               Create Leave Type
             </>
           )}
-        </button>
+        </ConfirmSubmitButton>
       </form>
     </section>
   );

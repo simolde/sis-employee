@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import {
   approveLeaveRequestAction,
   cancelLeaveRequestAction,
@@ -32,12 +33,13 @@ function ReviewActions({ leaveId }: { leaveId: number }) {
   return (
     <div className="space-y-2">
       <form action={approveAction}>
-        <button
+        <ConfirmSubmitButton
           type="submit"
+          confirmMessage="Approve this leave request? Paid leave will deduct the employee leave balance."
           className="starland-btn starland-btn-primary starland-btn-sm w-full"
         >
           Approve
-        </button>
+        </ConfirmSubmitButton>
       </form>
 
       <form action={rejectAction} className="space-y-2">
@@ -46,12 +48,13 @@ function ReviewActions({ leaveId }: { leaveId: number }) {
           className="starland-input min-h-16 resize-y text-xs"
           placeholder="Required rejection reason"
         />
-        <button
+        <ConfirmSubmitButton
           type="submit"
+          confirmMessage="Reject this leave request?"
           className="starland-btn starland-btn-danger starland-btn-sm w-full"
         >
           Reject
-        </button>
+        </ConfirmSubmitButton>
       </form>
     </div>
   );
@@ -62,12 +65,13 @@ function CancelAction({ leaveId }: { leaveId: number }) {
 
   return (
     <form action={cancelAction}>
-      <button
+      <ConfirmSubmitButton
         type="submit"
+        confirmMessage="Cancel this pending leave request?"
         className="starland-btn starland-btn-danger starland-btn-sm"
       >
         Cancel
-      </button>
+      </ConfirmSubmitButton>
     </form>
   );
 }
@@ -80,12 +84,13 @@ function ReverseApprovedAction({ leaveId }: { leaveId: number }) {
 
   return (
     <form action={reverseAction}>
-      <button
+      <ConfirmSubmitButton
         type="submit"
+        confirmMessage="Reverse this approved leave? Paid leave balance will be restored when applicable."
         className="starland-btn starland-btn-danger starland-btn-sm"
       >
         Reverse Approved
-      </button>
+      </ConfirmSubmitButton>
     </form>
   );
 }
@@ -149,6 +154,7 @@ export function LeaveTable({ data }: LeaveTableProps) {
               <th>Dates</th>
               <th>Total Days</th>
               <th>Reason</th>
+              <th>Attachment</th>
               <th>Status</th>
               <th>Review</th>
               <th>Created</th>
@@ -177,6 +183,19 @@ export function LeaveTable({ data }: LeaveTableProps) {
                   </td>
                   <td>{leave.totalDays}</td>
                   <td className="max-w-sm">{leave.reason}</td>
+                  <td>
+                    {leave.attachment === "—" ? (
+                      "—"
+                    ) : (
+                      <Link
+                        href={`/${leave.attachment}`}
+                        className="font-bold text-[var(--starland-main-green)] hover:underline"
+                        target="_blank"
+                      >
+                        View Attachment
+                      </Link>
+                    )}
+                  </td>
                   <td>
                     <LeaveStatusBadge status={leave.status} />
                   </td>
@@ -210,24 +229,11 @@ export function LeaveTable({ data }: LeaveTableProps) {
                       </span>
                     ) : null}
                   </td>
-                  <td>
-                    {leave.attachment === "—" ? (
-                      "—"
-                    ) : (
-                      <Link
-                        href={`/${leave.attachment}`}
-                        className="font-bold text-[var(--starland-main-green)] hover:underline"
-                        target="_blank"
-                      >
-                        View Attachment
-                      </Link>
-                    )}
-                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={9}>
+                <td colSpan={10}>
                   <div className="rounded-2xl border border-dashed border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-6 text-center">
                     <p className="font-bold text-[var(--starland-dark-text)]">
                       No leave requests found
