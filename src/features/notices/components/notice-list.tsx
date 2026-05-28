@@ -6,13 +6,33 @@ import {
   publishNoticeAction,
   unpublishNoticeAction,
 } from "../server/notice-actions";
-import type { NoticeListItem } from "../types/notice-types";
+import type { NoticeListItem, NoticePageData } from "../types/notice-types";
 import { NoticeStatusBadge } from "./notice-status-badge";
 
 type NoticeListProps = {
-  notices: NoticeListItem[];
-  canManage: boolean;
+  data: NoticePageData;
 };
+
+function createPageHref(data: NoticePageData, page: number): string {
+  const params = new URLSearchParams();
+
+  if (data.filters.q) {
+    params.set("q", data.filters.q);
+  }
+
+  if (data.filters.status !== "ANY") {
+    params.set("status", data.filters.status);
+  }
+
+  if (data.filters.audience !== "ANY") {
+    params.set("audience", data.filters.audience);
+  }
+
+  params.set("page", String(page));
+  params.set("pageSize", String(data.filters.pageSize));
+
+  return `/dashboard/notices?${params.toString()}`;
+}
 
 function NoticeActions({ notice }: { notice: NoticeListItem }) {
   const publishAction = publishNoticeAction.bind(null, String(notice.noticeId));
@@ -71,23 +91,23 @@ function NoticeActions({ notice }: { notice: NoticeListItem }) {
   );
 }
 
-export function NoticeList({ notices, canManage }: NoticeListProps) {
+export function NoticeList({ data }: NoticeListProps) {
   return (
     <section className="starland-card overflow-hidden">
       <div className="border-b border-[var(--starland-border)] px-5 py-4">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
-          {canManage ? "All Notices" : "Published Notices"}
+          {data.canManage ? "All Notices" : "Published Notices"}
         </h2>
         <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
-          {canManage
+          {data.canManage
             ? "Manage draft, published, and archived announcements."
             : "Announcements visible to your role, branch, and department will appear here."}
         </p>
       </div>
 
       <div className="divide-y divide-[var(--starland-border)]">
-        {notices.length > 0 ? (
-          notices.map((notice) => (
+        {data.notices.length > 0 ? (
+          data.notices.map((notice) => (
             <article key={notice.noticeId} className="p-5">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div>
@@ -121,7 +141,7 @@ export function NoticeList({ notices, canManage }: NoticeListProps) {
                   </div>
                 </div>
 
-                {canManage ? <NoticeActions notice={notice} /> : null}
+                {data.canManage ? <NoticeActions notice={notice} /> : null}
               </div>
             </article>
           ))
@@ -132,11 +152,62 @@ export function NoticeList({ notices, canManage }: NoticeListProps) {
                 No notices found
               </p>
               <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
-                Notices and announcements will appear here.
+                Try changing your filters or create a new notice.
               </p>
             </div>
           </div>
         )}
+      </div>
+
+      <div className="border-t border-[var(--starland-border)] p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-[var(--starland-muted-text)]">
+            Page{" "}
+            <span className="font-bold text-[var(--starland-dark-text)]">
+              {data.pagination.page}
+            </span>{" "}
+            of{" "}
+            <span className="font-bold text-[var(--starland-dark-text)]">
+              {data.pagination.totalPages}
+            </span>{" "}
+            · {data.pagination.totalItems} result
+            {data.pagination.totalItems === 1 ? "" : "s"}
+          </p>
+
+          <div className="flex gap-2">
+            {data.pagination.hasPreviousPage ? (
+              <Link
+                href={createPageHref(data, data.pagination.page - 1)}
+                className="starland-btn starland-btn-secondary starland-btn-sm"
+              >
+                Previous
+              </Link>
+            ) : (
+              <span
+                aria-disabled="true"
+                className="starland-btn starland-btn-secondary starland-btn-sm"
+              >
+                Previous
+              </span>
+            )}
+
+            {data.pagination.hasNextPage ? (
+              <Link
+                href={createPageHref(data, data.pagination.page + 1)}
+                className="starland-btn starland-btn-secondary starland-btn-sm"
+              >
+                Next
+              </Link>
+            ) : (
+              <span
+                aria-disabled="true"
+                className="starland-btn starland-btn-secondary starland-btn-sm"
+              >
+                Next
+              </span>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );

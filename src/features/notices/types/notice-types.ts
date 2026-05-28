@@ -10,6 +10,17 @@ export const noticeAudienceValues = [
 export type NoticeStatusValue = (typeof noticeStatusValues)[number];
 export type NoticeAudienceValue = (typeof noticeAudienceValues)[number];
 
+export type NoticeStatusFilterValue = "ANY" | NoticeStatusValue;
+export type NoticeAudienceFilterValue = "ANY" | NoticeAudienceValue;
+
+export type NoticeListSearchParams = {
+  q: string;
+  status: NoticeStatusFilterValue;
+  audience: NoticeAudienceFilterValue;
+  page: number;
+  pageSize: number;
+};
+
 export type NoticeActionState = {
   ok: boolean;
   message: string;
@@ -60,6 +71,15 @@ export type NoticePageData = {
   branchOptions: NoticeTargetOption[];
   departmentOptions: NoticeTargetOption[];
   notices: NoticeListItem[];
+  filters: NoticeListSearchParams;
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+  };
   summary: {
     total: number;
     draft: number;

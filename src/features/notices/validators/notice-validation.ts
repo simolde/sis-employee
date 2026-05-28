@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { noticeAudienceValues } from "../types/notice-types";
+import {
+  noticeAudienceValues,
+  noticeStatusValues,
+} from "../types/notice-types";
 
 function checkboxToBoolean(value: unknown): boolean {
   return value === "on" || value === "true" || value === true;
@@ -78,4 +81,12 @@ export const updateNoticeValidationSchema = z.object({
   departmentId: optionalPositiveIdSchema,
 
   expiresAt: optionalDateSchema,
+});
+
+export const noticeListSearchParamsSchema = z.object({
+  q: z.string().trim().max(100).catch(""),
+  status: z.enum(["ANY", ...noticeStatusValues]).catch("ANY"),
+  audience: z.enum(["ANY", ...noticeAudienceValues]).catch("ANY"),
+  page: z.coerce.number().int().min(1).catch(1),
+  pageSize: z.coerce.number().int().min(5).max(50).catch(10),
 });

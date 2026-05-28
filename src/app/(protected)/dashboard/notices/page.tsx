@@ -1,10 +1,20 @@
 import { Archive, FileText, Megaphone, Send } from "lucide-react";
+import { NoticeFilters } from "@/features/notices/components/notice-filters";
 import { NoticeForm } from "@/features/notices/components/notice-form";
 import { NoticeList } from "@/features/notices/components/notice-list";
-import { getNoticePageData } from "@/features/notices/server/notice-queries";
+import {
+  getNoticePageData,
+  parseNoticeListSearchParams,
+} from "@/features/notices/server/notice-queries";
 
-export default async function NoticesPage() {
-  const data = await getNoticePageData();
+type NoticesPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function NoticesPage({ searchParams }: NoticesPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const filters = parseNoticeListSearchParams(resolvedSearchParams);
+  const data = await getNoticePageData(filters);
 
   return (
     <section className="starland-page space-y-5">
@@ -63,6 +73,8 @@ export default async function NoticesPage() {
         </article>
       </div>
 
+      <NoticeFilters filters={data.filters} canManage={data.canManage} />
+
       {data.canManage ? (
         <NoticeForm
           branchOptions={data.branchOptions}
@@ -70,7 +82,7 @@ export default async function NoticesPage() {
         />
       ) : null}
 
-      <NoticeList notices={data.notices} canManage={data.canManage} />
+      <NoticeList data={data} />
     </section>
   );
 }
