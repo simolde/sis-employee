@@ -1,8 +1,12 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
-import { canManageNotices } from "@/lib/security/roles";
+import {
+  canManageNotices,
+  type SystemRole,
+} from "@/lib/security/roles";
 import { getCurrentSession } from "@/features/auth/server/session";
 import type {
+  NoticeAudienceValue,
   NoticeListItem,
   NoticePageData,
   NoticeStatusValue,
@@ -27,10 +31,23 @@ function dash(value: string | null | undefined): string {
   return value?.trim() ? value : "All";
 }
 
+function getAllowedAudiences(role: SystemRole): NoticeAudienceValue[] {
+  if (["SUPER_ADMIN", "HR", "ADMIN"].includes(role)) {
+    return ["ALL", "HR_ADMIN"];
+  }
+
+  if (role === "HEAD") {
+    return ["ALL", "HEADS"];
+  }
+
+  return ["ALL", "STAFF_FACULTY_MAINTENANCE"];
+}
+
 function mapNotice(notice: {
   noticeId: number;
   title: string;
   body: string;
+  audience: NoticeAudienceValue;
   status: NoticeStatusValue;
   publishedAt: Date | null;
   expiresAt: Date | null;
@@ -45,17 +62,22 @@ function mapNotice(notice: {
   createdBy: {
     username: string;
   } | null;
+  updatedBy: {
+    username: string;
+  } | null;
 }): NoticeListItem {
   return {
     noticeId: notice.noticeId,
     title: notice.title,
     body: notice.body,
+    audience: notice.audience,
     branchName: dash(notice.branch?.name),
     departmentName: dash(notice.department?.name),
     status: notice.status,
     publishedAt: formatDateTime(notice.publishedAt),
     expiresAt: formatDateTime(notice.expiresAt),
     createdBy: notice.createdBy?.username ?? "—",
+    updatedBy: notice.updatedBy?.username ?? "—",
     createdAt: formatDateTime(notice.createdAt),
     updatedAt: formatDateTime(notice.updatedAt),
   };
@@ -86,6 +108,7 @@ async function getCurrentEmployeeTarget(userId: number): Promise<{
 }
 
 function buildVisibleNoticeWhere(input: {
+  role: SystemRole;
   branchId: number | null;
   departmentId: number | null;
 }): Prisma.NoticeWhereInput {
@@ -115,6 +138,9 @@ function buildVisibleNoticeWhere(input: {
 
   return {
     status: "PUBLISHED",
+    audience: {
+      in: getAllowedAudiences(input.role),
+    },
     AND: [
       {
         OR: [
@@ -161,7 +187,11 @@ export async function getNoticePageData(): Promise<NoticePageData> {
 
   const where: Prisma.NoticeWhereInput = canManage
     ? {}
-    : buildVisibleNoticeWhere(employeeTarget);
+    : buildVisibleNoticeWhere({
+        role: session.role,
+        branchId: employeeTarget.branchId,
+        departmentId: employeeTarget.departmentId,
+      });
 
   const [
     branchOptions,
@@ -202,6 +232,7 @@ export async function getNoticePageData(): Promise<NoticePageData> {
         noticeId: true,
         title: true,
         body: true,
+        audience: true,
         status: true,
         publishedAt: true,
         expiresAt: true,
@@ -218,6 +249,11 @@ export async function getNoticePageData(): Promise<NoticePageData> {
           },
         },
         createdBy: {
+          select: {
+            username: true,
+          },
+        },
+        updatedBy: {
           select: {
             username: true,
           },

@@ -45,8 +45,8 @@ export function NoticeForm({
           Create Notice
         </h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
-          Publish announcements to everyone, a selected branch, a selected
-          department, or both.
+          Publish announcements by role audience, branch, department, or a
+          combination of all three.
         </p>
       </div>
 
@@ -98,7 +98,31 @@ export function NoticeForm({
           <FieldError messages={state.fieldErrors?.body} />
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-4">
+          <div>
+            <label
+              htmlFor="audience"
+              className="text-sm font-bold text-[var(--starland-dark-text)]"
+            >
+              Audience
+            </label>
+            <select
+              id="audience"
+              name="audience"
+              className="starland-input mt-2"
+              defaultValue="ALL"
+              disabled={isPending}
+            >
+              <option value="ALL">All Roles</option>
+              <option value="HR_ADMIN">HR / Admin</option>
+              <option value="HEADS">Heads</option>
+              <option value="STAFF_FACULTY_MAINTENANCE">
+                Staff / Faculty / Maintenance
+              </option>
+            </select>
+            <FieldError messages={state.fieldErrors?.audience} />
+          </div>
+
           <div>
             <label
               htmlFor="branchId"

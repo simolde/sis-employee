@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { noticeAudienceValues } from "../types/notice-types";
 
 function checkboxToBoolean(value: unknown): boolean {
   return value === "on" || value === "true" || value === true;
@@ -34,6 +35,10 @@ export const createNoticeValidationSchema = z.object({
     .trim()
     .min(1, "Notice body is required.")
     .max(5000, "Notice body is too long."),
+
+  audience: z.enum(noticeAudienceValues, {
+    error: "Audience is required.",
+  }),
 
   branchId: optionalPositiveIdSchema,
 

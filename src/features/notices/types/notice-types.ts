@@ -1,6 +1,14 @@
 export const noticeStatusValues = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
 
+export const noticeAudienceValues = [
+  "ALL",
+  "HR_ADMIN",
+  "HEADS",
+  "STAFF_FACULTY_MAINTENANCE",
+] as const;
+
 export type NoticeStatusValue = (typeof noticeStatusValues)[number];
+export type NoticeAudienceValue = (typeof noticeAudienceValues)[number];
 
 export type NoticeActionState = {
   ok: boolean;
@@ -22,12 +30,14 @@ export type NoticeListItem = {
   noticeId: number;
   title: string;
   body: string;
+  audience: NoticeAudienceValue;
   branchName: string;
   departmentName: string;
   status: NoticeStatusValue;
   publishedAt: string;
   expiresAt: string;
   createdBy: string;
+  updatedBy: string;
   createdAt: string;
   updatedAt: string;
 };

@@ -71,7 +71,7 @@ export function NoticeList({ notices, canManage }: NoticeListProps) {
         <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
           {canManage
             ? "Manage draft, published, and archived announcements."
-            : "Announcements visible to your branch and department will appear here."}
+            : "Announcements visible to your role, branch, and department will appear here."}
         </p>
       </div>
 
@@ -83,6 +83,9 @@ export function NoticeList({ notices, canManage }: NoticeListProps) {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <NoticeStatusBadge status={notice.status} />
+                    <span className="starland-badge starland-badge-info">
+                      Audience: {notice.audience.replaceAll("_", " ")}
+                    </span>
                     <span className="starland-badge starland-badge-info">
                       Branch: {notice.branchName}
                     </span>
@@ -99,10 +102,11 @@ export function NoticeList({ notices, canManage }: NoticeListProps) {
                     {notice.body}
                   </p>
 
-                  <div className="mt-4 grid gap-2 text-xs font-semibold text-[var(--starland-muted-text)] sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="mt-4 grid gap-2 text-xs font-semibold text-[var(--starland-muted-text)] sm:grid-cols-2 xl:grid-cols-5">
                     <p>Published: {notice.publishedAt}</p>
                     <p>Expires: {notice.expiresAt}</p>
                     <p>Created by: {notice.createdBy}</p>
+                    <p>Updated by: {notice.updatedBy}</p>
                     <p>Updated: {notice.updatedAt}</p>
                   </div>
                 </div>

@@ -16,8 +16,8 @@ export default async function NoticesPage() {
           Notices
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-          View school announcements and manage notices for employees when
-          authorized.
+          View school announcements and manage notices by role audience, branch,
+          and department when authorized.
         </p>
       </div>
 

@@ -13,12 +13,14 @@ type NoticeAuditValueInput = {
   noticeId: number;
   title: string;
   body: string;
+  audience: string;
   branchId: number | null;
   departmentId: number | null;
   status: string;
   publishedAt: Date | null;
   expiresAt: Date | null;
   createdById: number | null;
+  updatedById: number | null;
 };
 
 function formDataToObject(formData: FormData): Record<string, FormDataEntryValue> {
@@ -40,12 +42,14 @@ function buildNoticeAuditValue(input: NoticeAuditValueInput): Prisma.InputJsonOb
     noticeId: input.noticeId,
     title: input.title,
     body: input.body,
+    audience: input.audience,
     branchId: input.branchId,
     departmentId: input.departmentId,
     status: input.status,
     publishedAt: input.publishedAt?.toISOString() ?? null,
     expiresAt: input.expiresAt?.toISOString() ?? null,
     createdById: input.createdById,
+    updatedById: input.updatedById,
   };
 }
 
@@ -53,12 +57,14 @@ const noticeAuditSelect = {
   noticeId: true,
   title: true,
   body: true,
+  audience: true,
   branchId: true,
   departmentId: true,
   status: true,
   publishedAt: true,
   expiresAt: true,
   createdById: true,
+  updatedById: true,
 } satisfies Prisma.NoticeSelect;
 
 async function requireNoticeManager() {
@@ -108,12 +114,14 @@ export async function createNoticeAction(
       data: {
         title: data.title,
         body: data.body,
+        audience: data.audience,
         branchId: data.branchId,
         departmentId: data.departmentId,
         status: data.publishNow ? "PUBLISHED" : "DRAFT",
         publishedAt: data.publishNow ? now : null,
         expiresAt: data.expiresAt,
         createdById: session.userId,
+        updatedById: session.userId,
       },
       select: noticeAuditSelect,
     });
@@ -176,6 +184,7 @@ export async function publishNoticeAction(
       data: {
         status: "PUBLISHED",
         publishedAt: existingNotice.publishedAt ?? new Date(),
+        updatedById: session.userId,
       },
       select: noticeAuditSelect,
     });
@@ -231,6 +240,7 @@ export async function unpublishNoticeAction(
       },
       data: {
         status: "DRAFT",
+        updatedById: session.userId,
       },
       select: noticeAuditSelect,
     });
@@ -286,6 +296,7 @@ export async function archiveNoticeAction(
       },
       data: {
         status: "ARCHIVED",
+        updatedById: session.userId,
       },
       select: noticeAuditSelect,
     });
