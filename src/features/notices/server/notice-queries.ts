@@ -1,15 +1,14 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
-import {
-  canManageNotices,
-  type SystemRole,
-} from "@/lib/security/roles";
+import { canManageNotices, type SystemRole } from "@/lib/security/roles";
 import { getCurrentSession } from "@/features/auth/server/session";
 import type {
   NoticeAudienceValue,
+  NoticeEditData,
   NoticeListItem,
   NoticePageData,
   NoticeStatusValue,
+  NoticeTargetOption,
 } from "../types/notice-types";
 
 function formatDateTime(date: Date | null | undefined): string {
@@ -25,6 +24,18 @@ function formatDateTime(date: Date | null | undefined): string {
     minute: "2-digit",
     timeZone: "Asia/Manila",
   }).format(date);
+}
+
+function formatDateTimeLocalInput(date: Date | null | undefined): string {
+  if (!date) {
+    return "";
+  }
+
+  const pad = (value: number) => String(value).padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function dash(value: string | null | undefined): string {
@@ -80,6 +91,44 @@ function mapNotice(notice: {
     updatedBy: notice.updatedBy?.username ?? "—",
     createdAt: formatDateTime(notice.createdAt),
     updatedAt: formatDateTime(notice.updatedAt),
+  };
+}
+
+async function getTargetOptions(): Promise<{
+  branchOptions: NoticeTargetOption[];
+  departmentOptions: NoticeTargetOption[];
+}> {
+  const [branches, departments] = await Promise.all([
+    prisma.branch.findMany({
+      select: {
+        branchId: true,
+        name: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    }),
+
+    prisma.department.findMany({
+      select: {
+        departmentId: true,
+        name: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    }),
+  ]);
+
+  return {
+    branchOptions: branches.map((branch) => ({
+      id: branch.branchId,
+      name: branch.name,
+    })),
+    departmentOptions: departments.map((department) => ({
+      id: department.departmentId,
+      name: department.name,
+    })),
   };
 }
 
@@ -194,8 +243,7 @@ export async function getNoticePageData(): Promise<NoticePageData> {
       });
 
   const [
-    branchOptions,
-    departmentOptions,
+    targetOptions,
     notices,
     total,
     draft,
@@ -203,28 +251,11 @@ export async function getNoticePageData(): Promise<NoticePageData> {
     archived,
   ] = await Promise.all([
     canManage
-      ? prisma.branch.findMany({
-          select: {
-            branchId: true,
-            name: true,
-          },
-          orderBy: {
-            name: "asc",
-          },
-        })
-      : [],
-
-    canManage
-      ? prisma.department.findMany({
-          select: {
-            departmentId: true,
-            name: true,
-          },
-          orderBy: {
-            name: "asc",
-          },
-        })
-      : [],
+      ? getTargetOptions()
+      : {
+          branchOptions: [],
+          departmentOptions: [],
+        },
 
     prisma.notice.findMany({
       where,
@@ -298,14 +329,8 @@ export async function getNoticePageData(): Promise<NoticePageData> {
 
   return {
     canManage,
-    branchOptions: branchOptions.map((branch) => ({
-      id: branch.branchId,
-      name: branch.name,
-    })),
-    departmentOptions: departmentOptions.map((department) => ({
-      id: department.departmentId,
-      name: department.name,
-    })),
+    branchOptions: targetOptions.branchOptions,
+    departmentOptions: targetOptions.departmentOptions,
     notices: notices.map(mapNotice),
     summary: {
       total,
@@ -313,5 +338,58 @@ export async function getNoticePageData(): Promise<NoticePageData> {
       published,
       archived,
     },
+  };
+}
+
+export async function getNoticeEditData(
+  noticeId: string,
+): Promise<NoticeEditData | null> {
+  const session = await getCurrentSession();
+
+  if (!session || !canManageNotices(session.role)) {
+    return null;
+  }
+
+  const parsedNoticeId = Number(noticeId);
+
+  if (!Number.isInteger(parsedNoticeId) || parsedNoticeId <= 0) {
+    return null;
+  }
+
+  const [notice, targetOptions] = await Promise.all([
+    prisma.notice.findUnique({
+      where: {
+        noticeId: parsedNoticeId,
+      },
+      select: {
+        noticeId: true,
+        title: true,
+        body: true,
+        audience: true,
+        branchId: true,
+        departmentId: true,
+        expiresAt: true,
+        status: true,
+      },
+    }),
+
+    getTargetOptions(),
+  ]);
+
+  if (!notice) {
+    return null;
+  }
+
+  return {
+    noticeId: notice.noticeId,
+    title: notice.title,
+    body: notice.body,
+    audience: notice.audience,
+    branchId: notice.branchId,
+    departmentId: notice.departmentId,
+    expiresAtInput: formatDateTimeLocalInput(notice.expiresAt),
+    status: notice.status,
+    branchOptions: targetOptions.branchOptions,
+    departmentOptions: targetOptions.departmentOptions,
   };
 }

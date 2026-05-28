@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Pencil } from "lucide-react";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import {
   archiveNoticeAction,
@@ -22,6 +24,14 @@ function NoticeActions({ notice }: { notice: NoticeListItem }) {
 
   return (
     <div className="flex flex-wrap gap-2">
+      <Link
+        href={`/dashboard/notices/${notice.noticeId}/edit`}
+        className="starland-btn starland-btn-secondary starland-btn-sm"
+      >
+        <Pencil className="h-4 w-4" aria-hidden="true" />
+        Edit
+      </Link>
+
       {notice.status !== "PUBLISHED" && notice.status !== "ARCHIVED" ? (
         <form action={publishAction}>
           <ConfirmSubmitButton

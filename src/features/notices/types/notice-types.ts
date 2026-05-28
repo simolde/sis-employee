@@ -42,6 +42,19 @@ export type NoticeListItem = {
   updatedAt: string;
 };
 
+export type NoticeEditData = {
+  noticeId: number;
+  title: string;
+  body: string;
+  audience: NoticeAudienceValue;
+  branchId: number | null;
+  departmentId: number | null;
+  expiresAtInput: string;
+  status: NoticeStatusValue;
+  branchOptions: NoticeTargetOption[];
+  departmentOptions: NoticeTargetOption[];
+};
+
 export type NoticePageData = {
   canManage: boolean;
   branchOptions: NoticeTargetOption[];

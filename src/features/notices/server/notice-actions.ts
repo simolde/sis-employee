@@ -6,7 +6,10 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db/prisma";
 import { canManageNotices } from "@/lib/security/roles";
 import { getCurrentSession } from "@/features/auth/server/session";
-import { createNoticeValidationSchema } from "../validators/notice-validation";
+import {
+  createNoticeValidationSchema,
+  updateNoticeValidationSchema,
+} from "../validators/notice-validation";
 import type { NoticeActionState } from "../types/notice-types";
 
 type NoticeAuditValueInput = {
@@ -144,6 +147,85 @@ export async function createNoticeAction(
   return {
     ok: true,
     message: `${createdNotice.title} created successfully.`,
+  };
+}
+
+export async function updateNoticeAction(
+  _previousState: NoticeActionState,
+  formData: FormData,
+): Promise<NoticeActionState> {
+  const session = await requireNoticeManager();
+
+  if (!session) {
+    return {
+      ok: false,
+      message: "You do not have permission to manage notices.",
+    };
+  }
+
+  const parsed = updateNoticeValidationSchema.safeParse(
+    formDataToObject(formData),
+  );
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: "Please review the highlighted fields.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const data = parsed.data;
+
+  const existingNotice = await prisma.notice.findUnique({
+    where: {
+      noticeId: data.noticeId,
+    },
+    select: noticeAuditSelect,
+  });
+
+  if (!existingNotice) {
+    return {
+      ok: false,
+      message: "Notice was not found.",
+    };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    const updatedNotice = await tx.notice.update({
+      where: {
+        noticeId: data.noticeId,
+      },
+      data: {
+        title: data.title,
+        body: data.body,
+        audience: data.audience,
+        branchId: data.branchId,
+        departmentId: data.departmentId,
+        expiresAt: data.expiresAt,
+        updatedById: session.userId,
+      },
+      select: noticeAuditSelect,
+    });
+
+    await tx.activityLog.create({
+      data: {
+        actorUserId: session.userId,
+        action: "NOTICE_UPDATED",
+        entityType: "notice",
+        entityId: String(updatedNotice.noticeId),
+        oldValue: buildNoticeAuditValue(existingNotice),
+        newValue: buildNoticeAuditValue(updatedNotice),
+      },
+    });
+  });
+
+  revalidatePath("/dashboard/notices");
+  revalidatePath(`/dashboard/notices/${data.noticeId}/edit`);
+
+  return {
+    ok: true,
+    message: "Notice updated successfully.",
   };
 }
 

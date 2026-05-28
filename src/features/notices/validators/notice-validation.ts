@@ -48,3 +48,34 @@ export const createNoticeValidationSchema = z.object({
 
   publishNow: z.preprocess(checkboxToBoolean, z.boolean()),
 });
+
+export const updateNoticeValidationSchema = z.object({
+  noticeId: z.coerce
+    .number({
+      error: "Notice ID is required.",
+    })
+    .int()
+    .positive("Notice ID is required."),
+
+  title: z
+    .string()
+    .trim()
+    .min(1, "Title is required.")
+    .max(191, "Title is too long."),
+
+  body: z
+    .string()
+    .trim()
+    .min(1, "Notice body is required.")
+    .max(5000, "Notice body is too long."),
+
+  audience: z.enum(noticeAudienceValues, {
+    error: "Audience is required.",
+  }),
+
+  branchId: optionalPositiveIdSchema,
+
+  departmentId: optionalPositiveIdSchema,
+
+  expiresAt: optionalDateSchema,
+});
