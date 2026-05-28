@@ -566,13 +566,14 @@ model AttendanceLog {
 }
 
 model LeaveType {
-  leaveTypeId Int          @id @default(autoincrement()) @map("leave_type_id")
-  code        String       @unique @db.VarChar(50)
-  name        String       @db.VarChar(120)
-  isPaid      Boolean      @default(true) @map("is_paid")
-  status      RecordStatus @default(ACTIVE)
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  leaveTypeId           Int                         @id @default(autoincrement()) @map("leave_type_id")
+  code                  String                      @unique @db.VarChar(50)
+  name                  String                      @db.VarChar(120)
+  isPaid                Boolean                     @default(true) @map("is_paid")
+  requiresAttachment    Boolean                     @default(false) @map("requires_attachment")
+  status                RecordStatus                @default(ACTIVE)
+  createdAt             DateTime                    @default(now()) @map("created_at")
+  updatedAt             DateTime                    @updatedAt @map("updated_at")
 
   leaves Leave[]
 

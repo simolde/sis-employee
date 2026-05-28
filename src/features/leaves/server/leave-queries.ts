@@ -78,7 +78,7 @@ function mapLeaveListItem(leave: {
   leaveId: number;
   dateFrom: Date;
   dateTo: Date;
-  totalDays: { toString(): string };
+  totalDays: { toString(): string } | number;
   reason: string;
   attachment: string | null;
   status: LeaveStatusValue;
@@ -223,6 +223,7 @@ export async function getLeavePageData(
         name: true,
         code: true,
         isPaid: true,
+        requiresAttachment: true,
       },
       orderBy: {
         name: "asc",

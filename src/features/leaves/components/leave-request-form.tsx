@@ -39,7 +39,7 @@ export function LeaveRequestForm({ leaveTypes }: LeaveRequestFormProps) {
           Submit Leave Request
         </h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
-          Submit your leave request with optional supporting attachment.
+          Submit your leave request with supporting attachment when required.
         </p>
       </div>
 
@@ -77,6 +77,7 @@ export function LeaveRequestForm({ leaveTypes }: LeaveRequestFormProps) {
                 <option key={leaveType.leaveTypeId} value={leaveType.leaveTypeId}>
                   {leaveType.name}
                   {leaveType.isPaid ? " · Paid" : " · Unpaid"}
+                  {leaveType.requiresAttachment ? " · Attachment required" : ""}
                 </option>
               ))}
             </select>

@@ -19,6 +19,7 @@ export type LeaveTypeOption = {
   name: string;
   code: string;
   isPaid: boolean;
+  requiresAttachment: boolean;
 };
 
 export type LeaveListItem = {

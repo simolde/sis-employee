@@ -463,6 +463,7 @@ export const LeaveTypeScalarFieldEnum = {
   code: 'code',
   name: 'name',
   isPaid: 'isPaid',
+  requiresAttachment: 'requiresAttachment',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

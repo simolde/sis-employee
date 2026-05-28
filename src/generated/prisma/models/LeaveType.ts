@@ -39,6 +39,7 @@ export type LeaveTypeMinAggregateOutputType = {
   code: string | null
   name: string | null
   isPaid: boolean | null
+  requiresAttachment: boolean | null
   status: $Enums.RecordStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -49,6 +50,7 @@ export type LeaveTypeMaxAggregateOutputType = {
   code: string | null
   name: string | null
   isPaid: boolean | null
+  requiresAttachment: boolean | null
   status: $Enums.RecordStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -59,6 +61,7 @@ export type LeaveTypeCountAggregateOutputType = {
   code: number
   name: number
   isPaid: number
+  requiresAttachment: number
   status: number
   createdAt: number
   updatedAt: number
@@ -79,6 +82,7 @@ export type LeaveTypeMinAggregateInputType = {
   code?: true
   name?: true
   isPaid?: true
+  requiresAttachment?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -89,6 +93,7 @@ export type LeaveTypeMaxAggregateInputType = {
   code?: true
   name?: true
   isPaid?: true
+  requiresAttachment?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -99,6 +104,7 @@ export type LeaveTypeCountAggregateInputType = {
   code?: true
   name?: true
   isPaid?: true
+  requiresAttachment?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -196,6 +202,7 @@ export type LeaveTypeGroupByOutputType = {
   code: string
   name: string
   isPaid: boolean
+  requiresAttachment: boolean
   status: $Enums.RecordStatus
   createdAt: Date
   updatedAt: Date
@@ -229,6 +236,7 @@ export type LeaveTypeWhereInput = {
   code?: Prisma.StringFilter<"LeaveType"> | string
   name?: Prisma.StringFilter<"LeaveType"> | string
   isPaid?: Prisma.BoolFilter<"LeaveType"> | boolean
+  requiresAttachment?: Prisma.BoolFilter<"LeaveType"> | boolean
   status?: Prisma.EnumRecordStatusFilter<"LeaveType"> | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFilter<"LeaveType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LeaveType"> | Date | string
@@ -240,6 +248,7 @@ export type LeaveTypeOrderByWithRelationInput = {
   code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isPaid?: Prisma.SortOrder
+  requiresAttachment?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -255,6 +264,7 @@ export type LeaveTypeWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.LeaveTypeWhereInput | Prisma.LeaveTypeWhereInput[]
   name?: Prisma.StringFilter<"LeaveType"> | string
   isPaid?: Prisma.BoolFilter<"LeaveType"> | boolean
+  requiresAttachment?: Prisma.BoolFilter<"LeaveType"> | boolean
   status?: Prisma.EnumRecordStatusFilter<"LeaveType"> | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFilter<"LeaveType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LeaveType"> | Date | string
@@ -266,6 +276,7 @@ export type LeaveTypeOrderByWithAggregationInput = {
   code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isPaid?: Prisma.SortOrder
+  requiresAttachment?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -284,6 +295,7 @@ export type LeaveTypeScalarWhereWithAggregatesInput = {
   code?: Prisma.StringWithAggregatesFilter<"LeaveType"> | string
   name?: Prisma.StringWithAggregatesFilter<"LeaveType"> | string
   isPaid?: Prisma.BoolWithAggregatesFilter<"LeaveType"> | boolean
+  requiresAttachment?: Prisma.BoolWithAggregatesFilter<"LeaveType"> | boolean
   status?: Prisma.EnumRecordStatusWithAggregatesFilter<"LeaveType"> | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"LeaveType"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"LeaveType"> | Date | string
@@ -293,6 +305,7 @@ export type LeaveTypeCreateInput = {
   code: string
   name: string
   isPaid?: boolean
+  requiresAttachment?: boolean
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -304,6 +317,7 @@ export type LeaveTypeUncheckedCreateInput = {
   code: string
   name: string
   isPaid?: boolean
+  requiresAttachment?: boolean
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -314,6 +328,7 @@ export type LeaveTypeUpdateInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresAttachment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -325,6 +340,7 @@ export type LeaveTypeUncheckedUpdateInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresAttachment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -336,6 +352,7 @@ export type LeaveTypeCreateManyInput = {
   code: string
   name: string
   isPaid?: boolean
+  requiresAttachment?: boolean
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -345,6 +362,7 @@ export type LeaveTypeUpdateManyMutationInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresAttachment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -355,6 +373,7 @@ export type LeaveTypeUncheckedUpdateManyInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresAttachment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -371,6 +390,7 @@ export type LeaveTypeCountOrderByAggregateInput = {
   code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isPaid?: Prisma.SortOrder
+  requiresAttachment?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -385,6 +405,7 @@ export type LeaveTypeMaxOrderByAggregateInput = {
   code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isPaid?: Prisma.SortOrder
+  requiresAttachment?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -395,6 +416,7 @@ export type LeaveTypeMinOrderByAggregateInput = {
   code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   isPaid?: Prisma.SortOrder
+  requiresAttachment?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -427,6 +449,7 @@ export type LeaveTypeCreateWithoutLeavesInput = {
   code: string
   name: string
   isPaid?: boolean
+  requiresAttachment?: boolean
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -437,6 +460,7 @@ export type LeaveTypeUncheckedCreateWithoutLeavesInput = {
   code: string
   name: string
   isPaid?: boolean
+  requiresAttachment?: boolean
   status?: $Enums.RecordStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -462,6 +486,7 @@ export type LeaveTypeUpdateWithoutLeavesInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresAttachment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -472,6 +497,7 @@ export type LeaveTypeUncheckedUpdateWithoutLeavesInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiresAttachment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumRecordStatusFieldUpdateOperationsInput | $Enums.RecordStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -513,6 +539,7 @@ export type LeaveTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   code?: boolean
   name?: boolean
   isPaid?: boolean
+  requiresAttachment?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -527,12 +554,13 @@ export type LeaveTypeSelectScalar = {
   code?: boolean
   name?: boolean
   isPaid?: boolean
+  requiresAttachment?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type LeaveTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"leaveTypeId" | "code" | "name" | "isPaid" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["leaveType"]>
+export type LeaveTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"leaveTypeId" | "code" | "name" | "isPaid" | "requiresAttachment" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["leaveType"]>
 export type LeaveTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   leaves?: boolean | Prisma.LeaveType$leavesArgs<ExtArgs>
   _count?: boolean | Prisma.LeaveTypeCountOutputTypeDefaultArgs<ExtArgs>
@@ -548,6 +576,7 @@ export type $LeaveTypePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     code: string
     name: string
     isPaid: boolean
+    requiresAttachment: boolean
     status: $Enums.RecordStatus
     createdAt: Date
     updatedAt: Date
@@ -925,6 +954,7 @@ export interface LeaveTypeFieldRefs {
   readonly code: Prisma.FieldRef<"LeaveType", 'String'>
   readonly name: Prisma.FieldRef<"LeaveType", 'String'>
   readonly isPaid: Prisma.FieldRef<"LeaveType", 'Boolean'>
+  readonly requiresAttachment: Prisma.FieldRef<"LeaveType", 'Boolean'>
   readonly status: Prisma.FieldRef<"LeaveType", 'RecordStatus'>
   readonly createdAt: Prisma.FieldRef<"LeaveType", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"LeaveType", 'DateTime'>

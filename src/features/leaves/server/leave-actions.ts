@@ -18,7 +18,7 @@ type LeaveAuditValueInput = {
   leaveTypeId: number;
   dateFrom: Date;
   dateTo: Date;
-  totalDays: { toString(): string };
+  totalDays: { toString(): string } | number;
   reason: string;
   attachment: string | null;
   status: string;
@@ -148,6 +148,7 @@ export async function createLeaveRequestAction(
     select: {
       leaveTypeId: true,
       status: true,
+      requiresAttachment: true,
     },
   });
 
@@ -157,6 +158,16 @@ export async function createLeaveRequestAction(
       message: "Selected leave type is not active.",
       fieldErrors: {
         leaveTypeId: ["Selected leave type is not active."],
+      },
+    };
+  }
+
+  if (leaveType.requiresAttachment && !data.attachment) {
+    return {
+      ok: false,
+      message: "This leave type requires an attachment.",
+      fieldErrors: {
+        attachment: ["Attachment is required for this leave type."],
       },
     };
   }
