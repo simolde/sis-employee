@@ -1,4 +1,11 @@
-import { CalendarCheck, CheckCircle2, Clock3, XCircle } from "lucide-react";
+import Link from "next/link";
+import {
+  CalendarCheck,
+  CheckCircle2,
+  Clock3,
+  Settings2,
+  XCircle,
+} from "lucide-react";
 import { LeaveBalanceCard } from "@/features/leaves/components/leave-balance-card";
 import { LeaveRequestForm } from "@/features/leaves/components/leave-request-form";
 import { LeaveTable } from "@/features/leaves/components/leave-table";
@@ -31,17 +38,29 @@ export default async function LeavesPage({ searchParams }: LeavesPageProps) {
 
   return (
     <section className="starland-page space-y-5">
-      <div>
-        <span className="starland-badge starland-badge-success">
-          Leave Management
-        </span>
-        <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
-          Leaves
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-          Submit leave requests, track request status, and allow authorized
-          HR/Admin/Heads to approve, reject, or reverse approved requests.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-success">
+            Leave Management
+          </span>
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Leaves
+          </h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Submit leave requests, track request status, and allow authorized
+            HR/Admin/Heads to approve, reject, or reverse approved requests.
+          </p>
+        </div>
+
+        {data.canManage ? (
+          <Link
+            href="/dashboard/leaves/types"
+            className="starland-btn starland-btn-primary"
+          >
+            <Settings2 className="h-4 w-4" aria-hidden="true" />
+            Manage Leave Types
+          </Link>
+        ) : null}
       </div>
 
       {noticeMessage ? (

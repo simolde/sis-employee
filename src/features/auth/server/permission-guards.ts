@@ -3,6 +3,7 @@ import "server-only";
 import { notFound, redirect } from "next/navigation";
 import {
   canManageEmployees,
+  canManageLeaves,
   canManageRfid,
   canManageSettings,
   canViewAllAttendance,
@@ -34,6 +35,16 @@ export async function requireCanManageRfid() {
   const session = await requireAuthenticatedUser();
 
   if (!canManageRfid(session.role)) {
+    notFound();
+  }
+
+  return session;
+}
+
+export async function requireCanManageLeaves() {
+  const session = await requireAuthenticatedUser();
+
+  if (!canManageLeaves(session.role)) {
     notFound();
   }
 
