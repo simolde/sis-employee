@@ -497,12 +497,14 @@ export const NoticeScalarFieldEnum = {
   noticeId: 'noticeId',
   title: 'title',
   body: 'body',
+  audience: 'audience',
   branchId: 'branchId',
   departmentId: 'departmentId',
   status: 'status',
   publishedAt: 'publishedAt',
   expiresAt: 'expiresAt',
   createdById: 'createdById',
+  updatedById: 'updatedById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

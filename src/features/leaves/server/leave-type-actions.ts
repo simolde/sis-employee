@@ -25,6 +25,16 @@ function formDataToObject(formData: FormData): Record<string, FormDataEntryValue
   return Object.fromEntries(formData.entries());
 }
 
+function parsePositiveId(value: string): number | null {
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return parsed;
+}
+
 function buildLeaveTypeAuditValue(
   input: LeaveTypeAuditValueInput,
 ): Prisma.InputJsonObject {
@@ -36,16 +46,6 @@ function buildLeaveTypeAuditValue(
     requiresAttachment: input.requiresAttachment,
     status: input.status,
   };
-}
-
-function parsePositiveId(value: string): number | null {
-  const parsed = Number(value);
-
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    return null;
-  }
-
-  return parsed;
 }
 
 const leaveTypeAuditSelect = {

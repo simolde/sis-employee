@@ -41,6 +41,7 @@ export function LeaveRequestForm({ leaveTypes }: LeaveRequestFormProps) {
         </h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
           Submit your leave request with supporting attachment when required.
+          Attachments are uploaded only after the leave form is submitted.
         </p>
       </div>
 
@@ -144,7 +145,7 @@ export function LeaveRequestForm({ leaveTypes }: LeaveRequestFormProps) {
 
         <ConfirmSubmitButton
           type="submit"
-          confirmMessage="Submit this leave request for review?"
+          confirmMessage="Submit this leave request? Attachment will be uploaded only after submission."
           className="starland-btn starland-btn-primary w-full"
           disabled={isPending || leaveTypes.length === 0}
         >

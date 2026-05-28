@@ -1,14 +1,6 @@
 import { z } from "zod";
 import { leaveStatusValues } from "../types/leave-types";
 
-function emptyToNull(value: unknown): unknown {
-  if (value === "" || value === undefined) {
-    return null;
-  }
-
-  return value;
-}
-
 const requiredDateSchema = z
   .string()
   .trim()
@@ -32,11 +24,6 @@ export const createLeaveRequestValidationSchema = z
       .trim()
       .min(1, "Reason is required.")
       .max(1000, "Reason is too long."),
-
-    attachment: z.preprocess(
-      emptyToNull,
-      z.string().trim().max(255, "Attachment path is too long.").nullable(),
-    ),
   })
   .superRefine((data, context) => {
     if (data.dateTo < data.dateFrom) {

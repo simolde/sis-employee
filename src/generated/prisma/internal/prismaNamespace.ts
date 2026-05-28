@@ -2520,12 +2520,14 @@ export const NoticeScalarFieldEnum = {
   noticeId: 'noticeId',
   title: 'title',
   body: 'body',
+  audience: 'audience',
   branchId: 'branchId',
   departmentId: 'departmentId',
   status: 'status',
   publishedAt: 'publishedAt',
   expiresAt: 'expiresAt',
   createdById: 'createdById',
+  updatedById: 'updatedById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -2936,6 +2938,13 @@ export type EnumPunchTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
  * Reference to a field of type 'LeaveStatus'
  */
 export type EnumLeaveStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeaveStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'NoticeAudience'
+ */
+export type EnumNoticeAudienceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NoticeAudience'>
     
 
 

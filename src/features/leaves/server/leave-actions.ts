@@ -1,8 +1,12 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
 import type { Prisma } from "@/generated/prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { env } from "@/lib/env";
 import { prisma } from "@/lib/db/prisma";
 import { canManageLeaves } from "@/lib/security/roles";
 import { getCurrentSession } from "@/features/auth/server/session";
@@ -27,6 +31,23 @@ type LeaveAuditValueInput = {
   rejectionReason: string | null;
   createdById: number | null;
 };
+
+type AttachmentValidationResult =
+  | {
+      ok: true;
+      file: File | null;
+    }
+  | {
+      ok: false;
+      message: string;
+    };
+
+const allowedAttachmentMimeTypes = new Map<string, string>([
+  ["application/pdf", "pdf"],
+  ["image/jpeg", "jpg"],
+  ["image/png", "png"],
+  ["image/webp", "webp"],
+]);
 
 function formDataToObject(formData: FormData): Record<string, FormDataEntryValue> {
   return Object.fromEntries(formData.entries());
@@ -92,6 +113,91 @@ async function getCurrentEmployeeId(userId: number): Promise<number | null> {
   return user?.empId ?? null;
 }
 
+function getAttachmentFile(formData: FormData): File | null {
+  const value = formData.get("attachment");
+
+  if (!(value instanceof File)) {
+    return null;
+  }
+
+  if (value.size <= 0 || value.name.trim() === "") {
+    return null;
+  }
+
+  return value;
+}
+
+function validateAttachmentFile(file: File | null): AttachmentValidationResult {
+  if (!file) {
+    return {
+      ok: true,
+      file: null,
+    };
+  }
+
+  const extension = allowedAttachmentMimeTypes.get(file.type);
+
+  if (!extension) {
+    return {
+      ok: false,
+      message: "Only PDF, JPG, PNG, and WEBP attachments are allowed.",
+    };
+  }
+
+  const maxBytes = env.MAX_UPLOAD_MB * 1024 * 1024;
+
+  if (file.size > maxBytes) {
+    return {
+      ok: false,
+      message: `Attachment is too large. Maximum size is ${env.MAX_UPLOAD_MB}MB.`,
+    };
+  }
+
+  return {
+    ok: true,
+    file,
+  };
+}
+
+async function saveLeaveAttachment(file: File | null): Promise<string | null> {
+  if (!file) {
+    return null;
+  }
+
+  const extension = allowedAttachmentMimeTypes.get(file.type);
+
+  if (!extension) {
+    throw new Error("Invalid attachment file type.");
+  }
+
+  const storageDirectory = "uploads/leaves";
+  const fileName = `${Date.now()}-${randomUUID()}.${extension}`;
+  const relativePath = `${storageDirectory}/${fileName}`;
+  const absoluteDirectory = path.join(process.cwd(), "public", storageDirectory);
+  const absolutePath = path.join(absoluteDirectory, fileName);
+
+  await mkdir(absoluteDirectory, {
+    recursive: true,
+  });
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  await writeFile(absolutePath, buffer);
+
+  return relativePath;
+}
+
+async function deleteUploadedFileIfExists(relativeFilePath: string | null) {
+  if (!relativeFilePath) {
+    return;
+  }
+
+  const absolutePath = path.join(process.cwd(), "public", relativeFilePath);
+
+  await unlink(absolutePath).catch(() => undefined);
+}
+
 const leaveAuditSelect = {
   leaveId: true,
   empId: true,
@@ -140,6 +246,18 @@ export async function createLeaveRequestAction(
   }
 
   const data = parsed.data;
+  const file = getAttachmentFile(formData);
+  const validatedAttachment = validateAttachmentFile(file);
+
+  if (!validatedAttachment.ok) {
+    return {
+      ok: false,
+      message: validatedAttachment.message,
+      fieldErrors: {
+        attachment: [validatedAttachment.message],
+      },
+    };
+  }
 
   const leaveType = await prisma.leaveType.findUnique({
     where: {
@@ -162,7 +280,7 @@ export async function createLeaveRequestAction(
     };
   }
 
-  if (leaveType.requiresAttachment && !data.attachment) {
+  if (leaveType.requiresAttachment && !validatedAttachment.file) {
     return {
       ok: false,
       message: "This leave type requires an attachment.",
@@ -173,42 +291,54 @@ export async function createLeaveRequestAction(
   }
 
   const totalDays = calculateInclusiveDays(data.dateFrom, data.dateTo);
+  let savedAttachmentPath: string | null = null;
 
-  const createdLeave = await prisma.$transaction(async (tx) => {
-    const leave = await tx.leave.create({
-      data: {
-        empId,
-        leaveTypeId: data.leaveTypeId,
-        dateFrom: data.dateFrom,
-        dateTo: data.dateTo,
-        totalDays,
-        reason: data.reason,
-        attachment: data.attachment,
-        status: "PENDING",
-        createdById: session.userId,
-      },
-      select: leaveAuditSelect,
+  try {
+    savedAttachmentPath = await saveLeaveAttachment(validatedAttachment.file);
+
+    const createdLeave = await prisma.$transaction(async (tx) => {
+      const leave = await tx.leave.create({
+        data: {
+          empId,
+          leaveTypeId: data.leaveTypeId,
+          dateFrom: data.dateFrom,
+          dateTo: data.dateTo,
+          totalDays,
+          reason: data.reason,
+          attachment: savedAttachmentPath,
+          status: "PENDING",
+          createdById: session.userId,
+        },
+        select: leaveAuditSelect,
+      });
+
+      await tx.activityLog.create({
+        data: {
+          actorUserId: session.userId,
+          action: "LEAVE_REQUEST_CREATED",
+          entityType: "leave",
+          entityId: String(leave.leaveId),
+          newValue: buildLeaveAuditValue(leave),
+        },
+      });
+
+      return leave;
     });
 
-    await tx.activityLog.create({
-      data: {
-        actorUserId: session.userId,
-        action: "LEAVE_REQUEST_CREATED",
-        entityType: "leave",
-        entityId: String(leave.leaveId),
-        newValue: buildLeaveAuditValue(leave),
-      },
-    });
+    revalidatePath("/dashboard/leaves");
 
-    return leave;
-  });
+    return {
+      ok: true,
+      message: `Leave request #${createdLeave.leaveId} submitted successfully.`,
+    };
+  } catch {
+    await deleteUploadedFileIfExists(savedAttachmentPath);
 
-  revalidatePath("/dashboard/leaves");
-
-  return {
-    ok: true,
-    message: `Leave request #${createdLeave.leaveId} submitted successfully.`,
-  };
+    return {
+      ok: false,
+      message: "Unable to submit leave request. Please try again.",
+    };
+  }
 }
 
 export async function cancelLeaveRequestAction(

@@ -102,6 +102,16 @@ export const NoticeStatus = {
 export type NoticeStatus = (typeof NoticeStatus)[keyof typeof NoticeStatus]
 
 
+export const NoticeAudience = {
+  ALL: 'ALL',
+  HR_ADMIN: 'HR_ADMIN',
+  HEADS: 'HEADS',
+  STAFF_FACULTY_MAINTENANCE: 'STAFF_FACULTY_MAINTENANCE'
+} as const
+
+export type NoticeAudience = (typeof NoticeAudience)[keyof typeof NoticeAudience]
+
+
 export const EducationLevel = {
   ELEMENTARY: 'ELEMENTARY',
   SECONDARY: 'SECONDARY',

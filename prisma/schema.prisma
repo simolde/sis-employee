@@ -73,6 +73,13 @@ enum NoticeStatus {
   ARCHIVED
 }
 
+enum NoticeAudience {
+  ALL
+  HR_ADMIN
+  HEADS
+  STAFF_FACULTY_MAINTENANCE
+}
+
 enum EducationLevel {
   ELEMENTARY
   SECONDARY
@@ -386,6 +393,7 @@ model User {
   approvedLeaves      Leave[] @relation("LeaveApprovedBy")
   createdLeaves       Leave[] @relation("LeaveCreatedBy")
   notices             Notice[] @relation("NoticeCreatedBy")
+  updatedNotices      Notice[] @relation("NoticeUpdatedBy")
   activityLogs        ActivityLog[]
 
   @@index([roleId])
@@ -611,26 +619,31 @@ model Leave {
 }
 
 model Notice {
-  noticeId     Int          @id @default(autoincrement()) @map("notice_id")
-  title        String       @db.VarChar(191)
-  body         String       @db.Text
-  branchId     Int?         @map("branch_id")
-  departmentId Int?         @map("department_id")
-  status       NoticeStatus @default(DRAFT)
-  publishedAt  DateTime?    @map("published_at")
-  expiresAt    DateTime?    @map("expires_at")
-  createdById  Int?         @map("created_by")
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
+  noticeId     Int            @id @default(autoincrement()) @map("notice_id")
+  title        String         @db.VarChar(191)
+  body         String         @db.Text
+  audience     NoticeAudience @default(ALL)
+  branchId     Int?           @map("branch_id")
+  departmentId Int?           @map("department_id")
+  status       NoticeStatus   @default(DRAFT)
+  publishedAt  DateTime?      @map("published_at")
+  expiresAt    DateTime?      @map("expires_at")
+  createdById  Int?           @map("created_by")
+  updatedById  Int?           @map("updated_by")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
 
   branch     Branch?     @relation(fields: [branchId], references: [branchId], onDelete: SetNull)
   department Department? @relation(fields: [departmentId], references: [departmentId], onDelete: SetNull)
   createdBy  User?       @relation("NoticeCreatedBy", fields: [createdById], references: [userId], onDelete: SetNull)
+  updatedBy  User?       @relation("NoticeUpdatedBy", fields: [updatedById], references: [userId], onDelete: SetNull)
 
+  @@index([audience])
   @@index([branchId])
   @@index([departmentId])
   @@index([status])
   @@index([createdById])
+  @@index([updatedById])
   @@map("notices")
 }
 
