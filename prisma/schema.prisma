@@ -393,6 +393,7 @@ model User {
   approvedLeaves      Leave[] @relation("LeaveApprovedBy")
   createdLeaves       Leave[] @relation("LeaveCreatedBy")
   notices             Notice[] @relation("NoticeCreatedBy")
+  noticeReads         NoticeRead[]
   updatedNotices      Notice[] @relation("NoticeUpdatedBy")
   activityLogs        ActivityLog[]
 
@@ -628,6 +629,7 @@ model Notice {
   status       NoticeStatus   @default(DRAFT)
   publishedAt  DateTime?      @map("published_at")
   expiresAt    DateTime?      @map("expires_at")
+  reads        NoticeRead[]
   createdById  Int?           @map("created_by")
   updatedById  Int?           @map("updated_by")
   createdAt    DateTime       @default(now()) @map("created_at")
@@ -666,4 +668,19 @@ model ActivityLog {
   @@index([entityType])
   @@index([createdAt])
   @@map("activity_logs")
+}
+
+model NoticeRead {
+  noticeReadId Int      @id @default(autoincrement()) @map("notice_read_id")
+  noticeId     Int      @map("notice_id")
+  userId       Int      @map("user_id")
+  readAt       DateTime @default(now()) @map("read_at")
+
+  notice Notice @relation(fields: [noticeId], references: [noticeId], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([noticeId, userId])
+  @@index([noticeId])
+  @@index([userId])
+  @@map("notice_reads")
 }

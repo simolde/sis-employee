@@ -408,7 +408,8 @@ export const ModelName = {
   LeaveType: 'LeaveType',
   Leave: 'Leave',
   Notice: 'Notice',
-  ActivityLog: 'ActivityLog'
+  ActivityLog: 'ActivityLog',
+  NoticeRead: 'NoticeRead'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -424,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "branch" | "department" | "designation" | "empType" | "employee" | "employeeFamilyBackground" | "employeeChild" | "employeeEducationSummary" | "employeeEducationalBackground" | "employeeWorkExperience" | "employeeContract" | "role" | "permission" | "rolePermission" | "user" | "shift" | "shiftSchedule" | "employeeScheduleAssignment" | "rfidCard" | "attendance" | "attendanceLog" | "leaveType" | "leave" | "notice" | "activityLog"
+    modelProps: "branch" | "department" | "designation" | "empType" | "employee" | "employeeFamilyBackground" | "employeeChild" | "employeeEducationSummary" | "employeeEducationalBackground" | "employeeWorkExperience" | "employeeContract" | "role" | "permission" | "rolePermission" | "user" | "shift" | "shiftSchedule" | "employeeScheduleAssignment" | "rfidCard" | "attendance" | "attendanceLog" | "leaveType" | "leave" | "notice" | "activityLog" | "noticeRead"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2078,6 +2079,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    NoticeRead: {
+      payload: Prisma.$NoticeReadPayload<ExtArgs>
+      fields: Prisma.NoticeReadFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NoticeReadFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeReadPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NoticeReadFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeReadPayload>
+        }
+        findFirst: {
+          args: Prisma.NoticeReadFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeReadPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NoticeReadFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeReadPayload>
+        }
+        findMany: {
+          args: Prisma.NoticeReadFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeReadPayload>[]
+        }
+        create: {
+          args: Prisma.NoticeReadCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeReadPayload>
+        }
+        createMany: {
+          args: Prisma.NoticeReadCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.NoticeReadDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeReadPayload>
+        }
+        update: {
+          args: Prisma.NoticeReadUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeReadPayload>
+        }
+        deleteMany: {
+          args: Prisma.NoticeReadDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NoticeReadUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.NoticeReadUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticeReadPayload>
+        }
+        aggregate: {
+          args: Prisma.NoticeReadAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNoticeRead>
+        }
+        groupBy: {
+          args: Prisma.NoticeReadGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NoticeReadGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NoticeReadCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NoticeReadCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2549,6 +2616,16 @@ export const ActivityLogScalarFieldEnum = {
 } as const
 
 export type ActivityLogScalarFieldEnum = (typeof ActivityLogScalarFieldEnum)[keyof typeof ActivityLogScalarFieldEnum]
+
+
+export const NoticeReadScalarFieldEnum = {
+  noticeReadId: 'noticeReadId',
+  noticeId: 'noticeId',
+  userId: 'userId',
+  readAt: 'readAt'
+} as const
+
+export type NoticeReadScalarFieldEnum = (typeof NoticeReadScalarFieldEnum)[keyof typeof NoticeReadScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -3103,6 +3180,7 @@ export type GlobalOmitConfig = {
   leave?: Prisma.LeaveOmit
   notice?: Prisma.NoticeOmit
   activityLog?: Prisma.ActivityLogOmit
+  noticeRead?: Prisma.NoticeReadOmit
 }
 
 /* Types for Logging */

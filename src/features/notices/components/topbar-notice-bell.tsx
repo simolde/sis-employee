@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Bell, Loader2, Megaphone, X } from "lucide-react";
 import type {
+  MarkTopbarNoticesReadResponse,
   TopbarNoticeItem,
   TopbarNoticeResponse,
 } from "../types/topbar-notice-types";
@@ -14,39 +15,49 @@ function formatAudience(value: string): string {
 
 export function TopbarNoticeBell() {
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const hasMarkedCurrentBatchRef = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [notices, setNotices] = useState<TopbarNoticeItem[]>([]);
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadNotices() {
-      setIsLoading(true);
-
+    void (async () => {
       try {
-        const response = await fetch("/api/notices/topbar", {
+        const response = await fetch("/api/topbar", {
           method: "GET",
           cache: "no-store",
         });
 
         const result = (await response.json()) as TopbarNoticeResponse;
 
-        if (isMounted) {
-          setNotices(result.ok ? result.notices : []);
+        if (!isMounted) {
+          return;
         }
-      } catch {
-        if (isMounted) {
+
+        if (!response.ok || !result.ok) {
           setNotices([]);
+          setUnreadCount(0);
+          return;
         }
+
+        setNotices(result.notices);
+        setUnreadCount(result.unreadCount);
+      } catch {
+        if (!isMounted) {
+          return;
+        }
+
+        setNotices([]);
+        setUnreadCount(0);
       } finally {
         if (isMounted) {
           setIsLoading(false);
         }
       }
-    }
-
-    void loadNotices();
+    })();
 
     return () => {
       isMounted = false;
@@ -71,7 +82,60 @@ export function TopbarNoticeBell() {
     };
   }, []);
 
-  const noticeCount = notices.length;
+  async function markLoadedNoticesAsRead() {
+    const unreadNoticeIds = notices
+      .filter((notice) => !notice.isRead)
+      .map((notice) => notice.noticeId);
+
+    if (unreadNoticeIds.length === 0 || hasMarkedCurrentBatchRef.current) {
+      return;
+    }
+
+    hasMarkedCurrentBatchRef.current = true;
+
+    try {
+      const response = await fetch("/api/topbar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        body: JSON.stringify({
+          noticeIds: unreadNoticeIds,
+        }),
+      });
+
+      const result = (await response.json()) as MarkTopbarNoticesReadResponse;
+
+      if (!response.ok || !result.ok) {
+        return;
+      }
+
+      setUnreadCount(result.unreadCount);
+      setNotices((currentNotices) =>
+        currentNotices.map((notice) =>
+          unreadNoticeIds.includes(notice.noticeId)
+            ? {
+                ...notice,
+                isRead: true,
+              }
+            : notice,
+        ),
+      );
+    } catch {
+      hasMarkedCurrentBatchRef.current = false;
+    }
+  }
+
+  function handleToggleNotices() {
+    const nextOpenState = !isOpen;
+
+    setIsOpen(nextOpenState);
+
+    if (nextOpenState) {
+      void markLoadedNoticesAsRead();
+    }
+  }
 
   return (
     <div ref={menuRef} className="relative">
@@ -80,13 +144,13 @@ export function TopbarNoticeBell() {
         className="relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[var(--starland-border)] bg-white text-[var(--starland-dark-text)] shadow-sm transition hover:bg-[var(--starland-modern-bg)]"
         aria-label="Open notices"
         aria-expanded={isOpen}
-        onClick={() => setIsOpen((current) => !current)}
+        onClick={handleToggleNotices}
       >
         <Bell className="h-5 w-5" aria-hidden="true" />
 
-        {noticeCount > 0 ? (
+        {unreadCount > 0 ? (
           <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--starland-danger)] px-1 text-[10px] font-extrabold text-white">
-            {noticeCount}
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         ) : null}
       </button>
@@ -100,7 +164,7 @@ export function TopbarNoticeBell() {
                 <h2 className="text-sm font-extrabold">Recent Notices</h2>
               </div>
               <p className="mt-1 text-xs leading-5 text-white/70">
-                Published announcements visible to your account.
+                Unread notices are marked as read when opened.
               </p>
             </div>
 
@@ -138,11 +202,23 @@ export function TopbarNoticeBell() {
                 {notices.map((notice) => (
                   <article
                     key={notice.noticeId}
-                    className="rounded-2xl border border-[var(--starland-border)] bg-white p-4"
+                    className={[
+                      "rounded-2xl border bg-white p-4",
+                      notice.isRead
+                        ? "border-[var(--starland-border)]"
+                        : "border-[var(--starland-success)] ring-2 ring-green-100",
+                    ].join(" ")}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="starland-badge starland-badge-success">
-                        Published
+                      <span
+                        className={[
+                          "starland-badge",
+                          notice.isRead
+                            ? "starland-badge-info"
+                            : "starland-badge-success",
+                        ].join(" ")}
+                      >
+                        {notice.isRead ? "Read" : "Unread"}
                       </span>
                       <span className="starland-badge starland-badge-info">
                         {formatAudience(notice.audience)}

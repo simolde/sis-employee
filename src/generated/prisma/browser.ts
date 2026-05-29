@@ -142,3 +142,8 @@ export type Notice = Prisma.NoticeModel
  * 
  */
 export type ActivityLog = Prisma.ActivityLogModel
+/**
+ * Model NoticeRead
+ * 
+ */
+export type NoticeRead = Prisma.NoticeReadModel

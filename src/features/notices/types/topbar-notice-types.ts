@@ -9,9 +9,16 @@ export type TopbarNoticeItem = {
   departmentName: string;
   publishedAt: string;
   expiresAt: string;
+  isRead: boolean;
 };
 
 export type TopbarNoticeResponse = {
   ok: boolean;
+  unreadCount: number;
   notices: TopbarNoticeItem[];
+};
+
+export type MarkTopbarNoticesReadResponse = {
+  ok: boolean;
+  unreadCount: number;
 };

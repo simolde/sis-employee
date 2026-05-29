@@ -75,7 +75,8 @@ export const ModelName = {
   LeaveType: 'LeaveType',
   Leave: 'Leave',
   Notice: 'Notice',
-  ActivityLog: 'ActivityLog'
+  ActivityLog: 'ActivityLog',
+  NoticeRead: 'NoticeRead'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -526,6 +527,16 @@ export const ActivityLogScalarFieldEnum = {
 } as const
 
 export type ActivityLogScalarFieldEnum = (typeof ActivityLogScalarFieldEnum)[keyof typeof ActivityLogScalarFieldEnum]
+
+
+export const NoticeReadScalarFieldEnum = {
+  noticeReadId: 'noticeReadId',
+  noticeId: 'noticeId',
+  userId: 'userId',
+  readAt: 'readAt'
+} as const
+
+export type NoticeReadScalarFieldEnum = (typeof NoticeReadScalarFieldEnum)[keyof typeof NoticeReadScalarFieldEnum]
 
 
 export const SortOrder = {

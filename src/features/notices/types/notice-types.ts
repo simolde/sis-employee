@@ -66,6 +66,38 @@ export type NoticeEditData = {
   departmentOptions: NoticeTargetOption[];
 };
 
+export type NoticeReadReportItem = {
+  userId: number;
+  username: string;
+  email: string;
+  employeeName: string;
+  roleName: string;
+  branchName: string;
+  departmentName: string;
+  hasRead: boolean;
+  readAt: string;
+};
+
+export type NoticeReadReportData = {
+  notice: {
+    noticeId: number;
+    title: string;
+    audience: NoticeAudienceValue;
+    branchName: string;
+    departmentName: string;
+    status: NoticeStatusValue;
+    publishedAt: string;
+    expiresAt: string;
+  };
+  recipients: NoticeReadReportItem[];
+  summary: {
+    totalRecipients: number;
+    totalRead: number;
+    totalUnread: number;
+    readPercentage: number;
+  };
+};
+
 export type NoticePageData = {
   canManage: boolean;
   branchOptions: NoticeTargetOption[];

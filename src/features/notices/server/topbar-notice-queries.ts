@@ -3,7 +3,10 @@ import { prisma } from "@/lib/db/prisma";
 import type { SystemRole } from "@/lib/security/roles";
 import { getCurrentSession } from "@/features/auth/server/session";
 import type { NoticeAudienceValue } from "../types/notice-types";
-import type { TopbarNoticeItem } from "../types/topbar-notice-types";
+import type {
+  TopbarNoticeItem,
+  TopbarNoticeResponse,
+} from "../types/topbar-notice-types";
 
 function formatDateTime(date: Date | null | undefined): string {
   if (!date) {
@@ -138,6 +141,9 @@ function mapTopbarNotice(notice: {
   department: {
     name: string;
   } | null;
+  reads: {
+    noticeReadId: number;
+  }[];
 }): TopbarNoticeItem {
   return {
     noticeId: notice.noticeId,
@@ -148,52 +154,168 @@ function mapTopbarNotice(notice: {
     departmentName: dash(notice.department?.name),
     publishedAt: formatDateTime(notice.publishedAt),
     expiresAt: formatDateTime(notice.expiresAt),
+    isRead: notice.reads.length > 0,
   };
 }
 
-export async function getTopbarNotices(): Promise<TopbarNoticeItem[]> {
+export async function getTopbarNoticeData(): Promise<TopbarNoticeResponse> {
   const session = await getCurrentSession();
 
   if (!session) {
-    return [];
+    return {
+      ok: false,
+      unreadCount: 0,
+      notices: [],
+    };
   }
 
   const employeeTarget = await getCurrentEmployeeTarget(session.userId);
 
-  const notices = await prisma.notice.findMany({
-    where: buildTopbarNoticeWhere({
-      role: session.role,
-      branchId: employeeTarget.branchId,
-      departmentId: employeeTarget.departmentId,
-    }),
-    select: {
-      noticeId: true,
-      title: true,
-      body: true,
-      audience: true,
-      publishedAt: true,
-      expiresAt: true,
-      branch: {
-        select: {
-          name: true,
-        },
-      },
-      department: {
-        select: {
-          name: true,
-        },
-      },
-    },
-    orderBy: [
-      {
-        publishedAt: "desc",
-      },
-      {
-        noticeId: "desc",
-      },
-    ],
-    take: 5,
+  const visibleWhere = buildTopbarNoticeWhere({
+    role: session.role,
+    branchId: employeeTarget.branchId,
+    departmentId: employeeTarget.departmentId,
   });
 
-  return notices.map(mapTopbarNotice);
+  const [notices, unreadCount] = await Promise.all([
+    prisma.notice.findMany({
+      where: visibleWhere,
+      select: {
+        noticeId: true,
+        title: true,
+        body: true,
+        audience: true,
+        publishedAt: true,
+        expiresAt: true,
+        branch: {
+          select: {
+            name: true,
+          },
+        },
+        department: {
+          select: {
+            name: true,
+          },
+        },
+        reads: {
+          where: {
+            userId: session.userId,
+          },
+          select: {
+            noticeReadId: true,
+          },
+          take: 1,
+        },
+      },
+      orderBy: [
+        {
+          publishedAt: "desc",
+        },
+        {
+          noticeId: "desc",
+        },
+      ],
+      take: 5,
+    }),
+
+    prisma.notice.count({
+      where: {
+        AND: [
+          visibleWhere,
+          {
+            reads: {
+              none: {
+                userId: session.userId,
+              },
+            },
+          },
+        ],
+      },
+    }),
+  ]);
+
+  return {
+    ok: true,
+    unreadCount,
+    notices: notices.map(mapTopbarNotice),
+  };
+}
+
+export async function markTopbarNoticesAsRead(
+  noticeIds: number[],
+): Promise<number> {
+  const session = await getCurrentSession();
+
+  if (!session || noticeIds.length === 0) {
+    return 0;
+  }
+
+  const employeeTarget = await getCurrentEmployeeTarget(session.userId);
+
+  const visibleWhere = buildTopbarNoticeWhere({
+    role: session.role,
+    branchId: employeeTarget.branchId,
+    departmentId: employeeTarget.departmentId,
+  });
+
+  const uniqueNoticeIds = [...new Set(noticeIds)].filter(
+    (noticeId) => Number.isInteger(noticeId) && noticeId > 0,
+  );
+
+  if (uniqueNoticeIds.length === 0) {
+    return 0;
+  }
+
+  const visibleNotices = await prisma.notice.findMany({
+    where: {
+      AND: [
+        visibleWhere,
+        {
+          noticeId: {
+            in: uniqueNoticeIds,
+          },
+        },
+      ],
+    },
+    select: {
+      noticeId: true,
+    },
+  });
+
+  if (visibleNotices.length > 0) {
+    await prisma.$transaction(
+      visibleNotices.map((notice) =>
+        prisma.noticeRead.upsert({
+          where: {
+            noticeId_userId: {
+              noticeId: notice.noticeId,
+              userId: session.userId,
+            },
+          },
+          create: {
+            noticeId: notice.noticeId,
+            userId: session.userId,
+          },
+          update: {
+            readAt: new Date(),
+          },
+        }),
+      ),
+    );
+  }
+
+  return prisma.notice.count({
+    where: {
+      AND: [
+        visibleWhere,
+        {
+          reads: {
+            none: {
+              userId: session.userId,
+            },
+          },
+        },
+      ],
+    },
+  });
 }

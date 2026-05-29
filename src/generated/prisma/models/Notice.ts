@@ -296,6 +296,7 @@ export type NoticeWhereInput = {
   updatedById?: Prisma.IntNullableFilter<"Notice"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Notice"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Notice"> | Date | string
+  reads?: Prisma.NoticeReadListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchNullableScalarRelationFilter, Prisma.BranchWhereInput> | null
   department?: Prisma.XOR<Prisma.DepartmentNullableScalarRelationFilter, Prisma.DepartmentWhereInput> | null
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -316,6 +317,7 @@ export type NoticeOrderByWithRelationInput = {
   updatedById?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  reads?: Prisma.NoticeReadOrderByRelationAggregateInput
   branch?: Prisma.BranchOrderByWithRelationInput
   department?: Prisma.DepartmentOrderByWithRelationInput
   createdBy?: Prisma.UserOrderByWithRelationInput
@@ -340,6 +342,7 @@ export type NoticeWhereUniqueInput = Prisma.AtLeast<{
   updatedById?: Prisma.IntNullableFilter<"Notice"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Notice"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Notice"> | Date | string
+  reads?: Prisma.NoticeReadListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchNullableScalarRelationFilter, Prisma.BranchWhereInput> | null
   department?: Prisma.XOR<Prisma.DepartmentNullableScalarRelationFilter, Prisma.DepartmentWhereInput> | null
   createdBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -395,6 +398,7 @@ export type NoticeCreateInput = {
   expiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reads?: Prisma.NoticeReadCreateNestedManyWithoutNoticeInput
   branch?: Prisma.BranchCreateNestedOneWithoutNoticesInput
   department?: Prisma.DepartmentCreateNestedOneWithoutNoticesInput
   createdBy?: Prisma.UserCreateNestedOneWithoutNoticesInput
@@ -415,6 +419,7 @@ export type NoticeUncheckedCreateInput = {
   updatedById?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reads?: Prisma.NoticeReadUncheckedCreateNestedManyWithoutNoticeInput
 }
 
 export type NoticeUpdateInput = {
@@ -426,6 +431,7 @@ export type NoticeUpdateInput = {
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reads?: Prisma.NoticeReadUpdateManyWithoutNoticeNestedInput
   branch?: Prisma.BranchUpdateOneWithoutNoticesNestedInput
   department?: Prisma.DepartmentUpdateOneWithoutNoticesNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutNoticesNestedInput
@@ -446,6 +452,7 @@ export type NoticeUncheckedUpdateInput = {
   updatedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reads?: Prisma.NoticeReadUncheckedUpdateManyWithoutNoticeNestedInput
 }
 
 export type NoticeCreateManyInput = {
@@ -569,6 +576,11 @@ export type NoticeSumOrderByAggregateInput = {
   departmentId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   updatedById?: Prisma.SortOrder
+}
+
+export type NoticeScalarRelationFilter = {
+  is?: Prisma.NoticeWhereInput
+  isNot?: Prisma.NoticeWhereInput
 }
 
 export type NoticeCreateNestedManyWithoutBranchInput = {
@@ -747,6 +759,20 @@ export type EnumNoticeStatusFieldUpdateOperationsInput = {
   set?: $Enums.NoticeStatus
 }
 
+export type NoticeCreateNestedOneWithoutReadsInput = {
+  create?: Prisma.XOR<Prisma.NoticeCreateWithoutReadsInput, Prisma.NoticeUncheckedCreateWithoutReadsInput>
+  connectOrCreate?: Prisma.NoticeCreateOrConnectWithoutReadsInput
+  connect?: Prisma.NoticeWhereUniqueInput
+}
+
+export type NoticeUpdateOneRequiredWithoutReadsNestedInput = {
+  create?: Prisma.XOR<Prisma.NoticeCreateWithoutReadsInput, Prisma.NoticeUncheckedCreateWithoutReadsInput>
+  connectOrCreate?: Prisma.NoticeCreateOrConnectWithoutReadsInput
+  upsert?: Prisma.NoticeUpsertWithoutReadsInput
+  connect?: Prisma.NoticeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.NoticeUpdateToOneWithWhereWithoutReadsInput, Prisma.NoticeUpdateWithoutReadsInput>, Prisma.NoticeUncheckedUpdateWithoutReadsInput>
+}
+
 export type NoticeCreateWithoutBranchInput = {
   title: string
   body: string
@@ -756,6 +782,7 @@ export type NoticeCreateWithoutBranchInput = {
   expiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reads?: Prisma.NoticeReadCreateNestedManyWithoutNoticeInput
   department?: Prisma.DepartmentCreateNestedOneWithoutNoticesInput
   createdBy?: Prisma.UserCreateNestedOneWithoutNoticesInput
   updatedBy?: Prisma.UserCreateNestedOneWithoutUpdatedNoticesInput
@@ -774,6 +801,7 @@ export type NoticeUncheckedCreateWithoutBranchInput = {
   updatedById?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reads?: Prisma.NoticeReadUncheckedCreateNestedManyWithoutNoticeInput
 }
 
 export type NoticeCreateOrConnectWithoutBranchInput = {
@@ -830,6 +858,7 @@ export type NoticeCreateWithoutDepartmentInput = {
   expiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reads?: Prisma.NoticeReadCreateNestedManyWithoutNoticeInput
   branch?: Prisma.BranchCreateNestedOneWithoutNoticesInput
   createdBy?: Prisma.UserCreateNestedOneWithoutNoticesInput
   updatedBy?: Prisma.UserCreateNestedOneWithoutUpdatedNoticesInput
@@ -848,6 +877,7 @@ export type NoticeUncheckedCreateWithoutDepartmentInput = {
   updatedById?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reads?: Prisma.NoticeReadUncheckedCreateNestedManyWithoutNoticeInput
 }
 
 export type NoticeCreateOrConnectWithoutDepartmentInput = {
@@ -885,6 +915,7 @@ export type NoticeCreateWithoutCreatedByInput = {
   expiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reads?: Prisma.NoticeReadCreateNestedManyWithoutNoticeInput
   branch?: Prisma.BranchCreateNestedOneWithoutNoticesInput
   department?: Prisma.DepartmentCreateNestedOneWithoutNoticesInput
   updatedBy?: Prisma.UserCreateNestedOneWithoutUpdatedNoticesInput
@@ -903,6 +934,7 @@ export type NoticeUncheckedCreateWithoutCreatedByInput = {
   updatedById?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reads?: Prisma.NoticeReadUncheckedCreateNestedManyWithoutNoticeInput
 }
 
 export type NoticeCreateOrConnectWithoutCreatedByInput = {
@@ -924,6 +956,7 @@ export type NoticeCreateWithoutUpdatedByInput = {
   expiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reads?: Prisma.NoticeReadCreateNestedManyWithoutNoticeInput
   branch?: Prisma.BranchCreateNestedOneWithoutNoticesInput
   department?: Prisma.DepartmentCreateNestedOneWithoutNoticesInput
   createdBy?: Prisma.UserCreateNestedOneWithoutNoticesInput
@@ -942,6 +975,7 @@ export type NoticeUncheckedCreateWithoutUpdatedByInput = {
   createdById?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  reads?: Prisma.NoticeReadUncheckedCreateNestedManyWithoutNoticeInput
 }
 
 export type NoticeCreateOrConnectWithoutUpdatedByInput = {
@@ -986,6 +1020,84 @@ export type NoticeUpdateManyWithWhereWithoutUpdatedByInput = {
   data: Prisma.XOR<Prisma.NoticeUpdateManyMutationInput, Prisma.NoticeUncheckedUpdateManyWithoutUpdatedByInput>
 }
 
+export type NoticeCreateWithoutReadsInput = {
+  title: string
+  body: string
+  audience?: $Enums.NoticeAudience
+  status?: $Enums.NoticeStatus
+  publishedAt?: Date | string | null
+  expiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branch?: Prisma.BranchCreateNestedOneWithoutNoticesInput
+  department?: Prisma.DepartmentCreateNestedOneWithoutNoticesInput
+  createdBy?: Prisma.UserCreateNestedOneWithoutNoticesInput
+  updatedBy?: Prisma.UserCreateNestedOneWithoutUpdatedNoticesInput
+}
+
+export type NoticeUncheckedCreateWithoutReadsInput = {
+  noticeId?: number
+  title: string
+  body: string
+  audience?: $Enums.NoticeAudience
+  branchId?: number | null
+  departmentId?: number | null
+  status?: $Enums.NoticeStatus
+  publishedAt?: Date | string | null
+  expiresAt?: Date | string | null
+  createdById?: number | null
+  updatedById?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type NoticeCreateOrConnectWithoutReadsInput = {
+  where: Prisma.NoticeWhereUniqueInput
+  create: Prisma.XOR<Prisma.NoticeCreateWithoutReadsInput, Prisma.NoticeUncheckedCreateWithoutReadsInput>
+}
+
+export type NoticeUpsertWithoutReadsInput = {
+  update: Prisma.XOR<Prisma.NoticeUpdateWithoutReadsInput, Prisma.NoticeUncheckedUpdateWithoutReadsInput>
+  create: Prisma.XOR<Prisma.NoticeCreateWithoutReadsInput, Prisma.NoticeUncheckedCreateWithoutReadsInput>
+  where?: Prisma.NoticeWhereInput
+}
+
+export type NoticeUpdateToOneWithWhereWithoutReadsInput = {
+  where?: Prisma.NoticeWhereInput
+  data: Prisma.XOR<Prisma.NoticeUpdateWithoutReadsInput, Prisma.NoticeUncheckedUpdateWithoutReadsInput>
+}
+
+export type NoticeUpdateWithoutReadsInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  audience?: Prisma.EnumNoticeAudienceFieldUpdateOperationsInput | $Enums.NoticeAudience
+  status?: Prisma.EnumNoticeStatusFieldUpdateOperationsInput | $Enums.NoticeStatus
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branch?: Prisma.BranchUpdateOneWithoutNoticesNestedInput
+  department?: Prisma.DepartmentUpdateOneWithoutNoticesNestedInput
+  createdBy?: Prisma.UserUpdateOneWithoutNoticesNestedInput
+  updatedBy?: Prisma.UserUpdateOneWithoutUpdatedNoticesNestedInput
+}
+
+export type NoticeUncheckedUpdateWithoutReadsInput = {
+  noticeId?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  audience?: Prisma.EnumNoticeAudienceFieldUpdateOperationsInput | $Enums.NoticeAudience
+  branchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  departmentId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumNoticeStatusFieldUpdateOperationsInput | $Enums.NoticeStatus
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  updatedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type NoticeCreateManyBranchInput = {
   noticeId?: number
   title: string
@@ -1010,6 +1122,7 @@ export type NoticeUpdateWithoutBranchInput = {
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reads?: Prisma.NoticeReadUpdateManyWithoutNoticeNestedInput
   department?: Prisma.DepartmentUpdateOneWithoutNoticesNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutNoticesNestedInput
   updatedBy?: Prisma.UserUpdateOneWithoutUpdatedNoticesNestedInput
@@ -1028,6 +1141,7 @@ export type NoticeUncheckedUpdateWithoutBranchInput = {
   updatedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reads?: Prisma.NoticeReadUncheckedUpdateManyWithoutNoticeNestedInput
 }
 
 export type NoticeUncheckedUpdateManyWithoutBranchInput = {
@@ -1069,6 +1183,7 @@ export type NoticeUpdateWithoutDepartmentInput = {
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reads?: Prisma.NoticeReadUpdateManyWithoutNoticeNestedInput
   branch?: Prisma.BranchUpdateOneWithoutNoticesNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutNoticesNestedInput
   updatedBy?: Prisma.UserUpdateOneWithoutUpdatedNoticesNestedInput
@@ -1087,6 +1202,7 @@ export type NoticeUncheckedUpdateWithoutDepartmentInput = {
   updatedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reads?: Prisma.NoticeReadUncheckedUpdateManyWithoutNoticeNestedInput
 }
 
 export type NoticeUncheckedUpdateManyWithoutDepartmentInput = {
@@ -1143,6 +1259,7 @@ export type NoticeUpdateWithoutCreatedByInput = {
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reads?: Prisma.NoticeReadUpdateManyWithoutNoticeNestedInput
   branch?: Prisma.BranchUpdateOneWithoutNoticesNestedInput
   department?: Prisma.DepartmentUpdateOneWithoutNoticesNestedInput
   updatedBy?: Prisma.UserUpdateOneWithoutUpdatedNoticesNestedInput
@@ -1161,6 +1278,7 @@ export type NoticeUncheckedUpdateWithoutCreatedByInput = {
   updatedById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reads?: Prisma.NoticeReadUncheckedUpdateManyWithoutNoticeNestedInput
 }
 
 export type NoticeUncheckedUpdateManyWithoutCreatedByInput = {
@@ -1187,6 +1305,7 @@ export type NoticeUpdateWithoutUpdatedByInput = {
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reads?: Prisma.NoticeReadUpdateManyWithoutNoticeNestedInput
   branch?: Prisma.BranchUpdateOneWithoutNoticesNestedInput
   department?: Prisma.DepartmentUpdateOneWithoutNoticesNestedInput
   createdBy?: Prisma.UserUpdateOneWithoutNoticesNestedInput
@@ -1205,6 +1324,7 @@ export type NoticeUncheckedUpdateWithoutUpdatedByInput = {
   createdById?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reads?: Prisma.NoticeReadUncheckedUpdateManyWithoutNoticeNestedInput
 }
 
 export type NoticeUncheckedUpdateManyWithoutUpdatedByInput = {
@@ -1223,6 +1343,35 @@ export type NoticeUncheckedUpdateManyWithoutUpdatedByInput = {
 }
 
 
+/**
+ * Count Type NoticeCountOutputType
+ */
+
+export type NoticeCountOutputType = {
+  reads: number
+}
+
+export type NoticeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  reads?: boolean | NoticeCountOutputTypeCountReadsArgs
+}
+
+/**
+ * NoticeCountOutputType without action
+ */
+export type NoticeCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the NoticeCountOutputType
+   */
+  select?: Prisma.NoticeCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * NoticeCountOutputType without action
+ */
+export type NoticeCountOutputTypeCountReadsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NoticeReadWhereInput
+}
+
 
 export type NoticeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   noticeId?: boolean
@@ -1238,10 +1387,12 @@ export type NoticeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   updatedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  reads?: boolean | Prisma.Notice$readsArgs<ExtArgs>
   branch?: boolean | Prisma.Notice$branchArgs<ExtArgs>
   department?: boolean | Prisma.Notice$departmentArgs<ExtArgs>
   createdBy?: boolean | Prisma.Notice$createdByArgs<ExtArgs>
   updatedBy?: boolean | Prisma.Notice$updatedByArgs<ExtArgs>
+  _count?: boolean | Prisma.NoticeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["notice"]>
 
 
@@ -1264,15 +1415,18 @@ export type NoticeSelectScalar = {
 
 export type NoticeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"noticeId" | "title" | "body" | "audience" | "branchId" | "departmentId" | "status" | "publishedAt" | "expiresAt" | "createdById" | "updatedById" | "createdAt" | "updatedAt", ExtArgs["result"]["notice"]>
 export type NoticeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  reads?: boolean | Prisma.Notice$readsArgs<ExtArgs>
   branch?: boolean | Prisma.Notice$branchArgs<ExtArgs>
   department?: boolean | Prisma.Notice$departmentArgs<ExtArgs>
   createdBy?: boolean | Prisma.Notice$createdByArgs<ExtArgs>
   updatedBy?: boolean | Prisma.Notice$updatedByArgs<ExtArgs>
+  _count?: boolean | Prisma.NoticeCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $NoticePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Notice"
   objects: {
+    reads: Prisma.$NoticeReadPayload<ExtArgs>[]
     branch: Prisma.$BranchPayload<ExtArgs> | null
     department: Prisma.$DepartmentPayload<ExtArgs> | null
     createdBy: Prisma.$UserPayload<ExtArgs> | null
@@ -1632,6 +1786,7 @@ readonly fields: NoticeFieldRefs;
  */
 export interface Prisma__NoticeClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  reads<T extends Prisma.Notice$readsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Notice$readsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NoticeReadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branch<T extends Prisma.Notice$branchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Notice$branchArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   department<T extends Prisma.Notice$departmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Notice$departmentArgs<ExtArgs>>): Prisma.Prisma__DepartmentClient<runtime.Types.Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   createdBy<T extends Prisma.Notice$createdByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Notice$createdByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -2023,6 +2178,30 @@ export type NoticeDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Limit how many Notices to delete.
    */
   limit?: number
+}
+
+/**
+ * Notice.reads
+ */
+export type Notice$readsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the NoticeRead
+   */
+  select?: Prisma.NoticeReadSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the NoticeRead
+   */
+  omit?: Prisma.NoticeReadOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NoticeReadInclude<ExtArgs> | null
+  where?: Prisma.NoticeReadWhereInput
+  orderBy?: Prisma.NoticeReadOrderByWithRelationInput | Prisma.NoticeReadOrderByWithRelationInput[]
+  cursor?: Prisma.NoticeReadWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NoticeReadScalarFieldEnum | Prisma.NoticeReadScalarFieldEnum[]
 }
 
 /**
