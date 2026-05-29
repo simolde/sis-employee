@@ -30,7 +30,7 @@ export function DashboardNoticeCard({ notice }: DashboardNoticeCardProps) {
         {previewText(notice.body)}
       </p>
 
-      <div className="mt-4 grid gap-2 text-xs font-semibold text-[var(--starland-muted-text)] sm:grid-cols-2">
+      <div className="mt-4 grid gap-2 text-xs font-semibold text-(--starland-muted-text) sm:grid-cols-2">
         <p>Branch: {notice.branchName}</p>
         <p>Department: {notice.departmentName}</p>
         <p>Published: {notice.publishedAt}</p>
