@@ -34,11 +34,13 @@ async function requireSettingsManager() {
 
 function buildOrganizationAuditValue(input: {
   id: number;
+  code: string;
   name: string;
   status: string;
 }): Prisma.InputJsonObject {
   return {
     id: input.id,
+    code: input.code,
     name: input.name,
     status: input.status,
   };
@@ -69,21 +71,38 @@ export async function createBranchAction(
     };
   }
 
+  const data = parsed.data;
+
   const duplicate = await prisma.branch.findFirst({
     where: {
-      name: parsed.data.name,
+      OR: [
+        {
+          branchCode: data.branchCode,
+        },
+        {
+          name: data.name,
+        },
+      ],
     },
     select: {
-      branchId: true,
+      branchCode: true,
+      name: true,
     },
   });
 
   if (duplicate) {
     return {
       ok: false,
-      message: "Branch name already exists.",
+      message: "Branch code or name already exists.",
       fieldErrors: {
-        name: ["Branch name already exists."],
+        branchCode:
+          duplicate.branchCode === data.branchCode
+            ? ["Branch code already exists."]
+            : undefined,
+        name:
+          duplicate.name === data.name
+            ? ["Branch name already exists."]
+            : undefined,
       },
     };
   }
@@ -91,11 +110,13 @@ export async function createBranchAction(
   const branch = await prisma.$transaction(async (tx) => {
     const createdBranch = await tx.branch.create({
       data: {
-        name: parsed.data.name,
+        branchCode: data.branchCode,
+        name: data.name,
         status: "ACTIVE",
       },
       select: {
         branchId: true,
+        branchCode: true,
         name: true,
         status: true,
       },
@@ -109,6 +130,7 @@ export async function createBranchAction(
         entityId: String(createdBranch.branchId),
         newValue: buildOrganizationAuditValue({
           id: createdBranch.branchId,
+          code: createdBranch.branchCode,
           name: createdBranch.name,
           status: createdBranch.status,
         }),
@@ -160,6 +182,7 @@ export async function updateBranchAction(
     },
     select: {
       branchId: true,
+      branchCode: true,
       name: true,
       status: true,
     },
@@ -177,19 +200,34 @@ export async function updateBranchAction(
       branchId: {
         not: data.branchId,
       },
-      name: data.name,
+      OR: [
+        {
+          branchCode: data.branchCode,
+        },
+        {
+          name: data.name,
+        },
+      ],
     },
     select: {
-      branchId: true,
+      branchCode: true,
+      name: true,
     },
   });
 
   if (duplicate) {
     return {
       ok: false,
-      message: "Branch name already exists.",
+      message: "Branch code or name already exists.",
       fieldErrors: {
-        name: ["Branch name already exists."],
+        branchCode:
+          duplicate.branchCode === data.branchCode
+            ? ["Branch code already exists."]
+            : undefined,
+        name:
+          duplicate.name === data.name
+            ? ["Branch name already exists."]
+            : undefined,
       },
     };
   }
@@ -200,11 +238,13 @@ export async function updateBranchAction(
         branchId: data.branchId,
       },
       data: {
+        branchCode: data.branchCode,
         name: data.name,
         status: data.status,
       },
       select: {
         branchId: true,
+        branchCode: true,
         name: true,
         status: true,
       },
@@ -218,11 +258,13 @@ export async function updateBranchAction(
         entityId: String(updatedBranch.branchId),
         oldValue: buildOrganizationAuditValue({
           id: existingBranch.branchId,
+          code: existingBranch.branchCode,
           name: existingBranch.name,
           status: existingBranch.status,
         }),
         newValue: buildOrganizationAuditValue({
           id: updatedBranch.branchId,
+          code: updatedBranch.branchCode,
           name: updatedBranch.name,
           status: updatedBranch.status,
         }),
@@ -264,21 +306,38 @@ export async function createDepartmentAction(
     };
   }
 
+  const data = parsed.data;
+
   const duplicate = await prisma.department.findFirst({
     where: {
-      name: parsed.data.name,
+      OR: [
+        {
+          departmentCode: data.departmentCode,
+        },
+        {
+          name: data.name,
+        },
+      ],
     },
     select: {
-      departmentId: true,
+      departmentCode: true,
+      name: true,
     },
   });
 
   if (duplicate) {
     return {
       ok: false,
-      message: "Department name already exists.",
+      message: "Department code or name already exists.",
       fieldErrors: {
-        name: ["Department name already exists."],
+        departmentCode:
+          duplicate.departmentCode === data.departmentCode
+            ? ["Department code already exists."]
+            : undefined,
+        name:
+          duplicate.name === data.name
+            ? ["Department name already exists."]
+            : undefined,
       },
     };
   }
@@ -286,11 +345,13 @@ export async function createDepartmentAction(
   const department = await prisma.$transaction(async (tx) => {
     const createdDepartment = await tx.department.create({
       data: {
-        name: parsed.data.name,
+        departmentCode: data.departmentCode,
+        name: data.name,
         status: "ACTIVE",
       },
       select: {
         departmentId: true,
+        departmentCode: true,
         name: true,
         status: true,
       },
@@ -304,6 +365,7 @@ export async function createDepartmentAction(
         entityId: String(createdDepartment.departmentId),
         newValue: buildOrganizationAuditValue({
           id: createdDepartment.departmentId,
+          code: createdDepartment.departmentCode,
           name: createdDepartment.name,
           status: createdDepartment.status,
         }),
@@ -355,6 +417,7 @@ export async function updateDepartmentAction(
     },
     select: {
       departmentId: true,
+      departmentCode: true,
       name: true,
       status: true,
     },
@@ -372,19 +435,34 @@ export async function updateDepartmentAction(
       departmentId: {
         not: data.departmentId,
       },
-      name: data.name,
+      OR: [
+        {
+          departmentCode: data.departmentCode,
+        },
+        {
+          name: data.name,
+        },
+      ],
     },
     select: {
-      departmentId: true,
+      departmentCode: true,
+      name: true,
     },
   });
 
   if (duplicate) {
     return {
       ok: false,
-      message: "Department name already exists.",
+      message: "Department code or name already exists.",
       fieldErrors: {
-        name: ["Department name already exists."],
+        departmentCode:
+          duplicate.departmentCode === data.departmentCode
+            ? ["Department code already exists."]
+            : undefined,
+        name:
+          duplicate.name === data.name
+            ? ["Department name already exists."]
+            : undefined,
       },
     };
   }
@@ -395,11 +473,13 @@ export async function updateDepartmentAction(
         departmentId: data.departmentId,
       },
       data: {
+        departmentCode: data.departmentCode,
         name: data.name,
         status: data.status,
       },
       select: {
         departmentId: true,
+        departmentCode: true,
         name: true,
         status: true,
       },
@@ -413,11 +493,13 @@ export async function updateDepartmentAction(
         entityId: String(updatedDepartment.departmentId),
         oldValue: buildOrganizationAuditValue({
           id: existingDepartment.departmentId,
+          code: existingDepartment.departmentCode,
           name: existingDepartment.name,
           status: existingDepartment.status,
         }),
         newValue: buildOrganizationAuditValue({
           id: updatedDepartment.departmentId,
+          code: updatedDepartment.departmentCode,
           name: updatedDepartment.name,
           status: updatedDepartment.status,
         }),

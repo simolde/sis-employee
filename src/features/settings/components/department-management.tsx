@@ -73,6 +73,19 @@ function DepartmentRow({ department }: { department: DepartmentListItem }) {
 
             <div>
               <label className="text-xs font-bold text-[var(--starland-muted-text)]">
+                Department Code
+              </label>
+              <input
+                name="departmentCode"
+                className="starland-input mt-2 uppercase"
+                placeholder="ACADS"
+                disabled={isPending}
+              />
+              <FieldError messages={state.fieldErrors?.departmentCode} />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[var(--starland-muted-text)]">
                 Status
               </label>
               <select

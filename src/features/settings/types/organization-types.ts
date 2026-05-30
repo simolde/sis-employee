@@ -13,6 +13,7 @@ export const initialOrganizationActionState: OrganizationActionState = {
 
 export type BranchListItem = {
   branchId: number;
+  branchCode: string;
   name: string;
   status: RecordStatusValue;
   createdAt: string;
@@ -21,6 +22,7 @@ export type BranchListItem = {
 
 export type DepartmentListItem = {
   departmentId: number;
+  departmentCode: string;
   name: string;
   status: RecordStatusValue;
   createdAt: string;

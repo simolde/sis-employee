@@ -7,7 +7,16 @@ export const organizationStatusSchema = z.enum(
   },
 );
 
+const codeSchema = z
+  .string()
+  .trim()
+  .min(1, "Code is required.")
+  .max(50, "Code is too long.")
+  .transform((value) => value.toUpperCase());
+
 export const createBranchValidationSchema = z.object({
+  branchCode: codeSchema,
+
   name: z
     .string()
     .trim()
@@ -22,10 +31,13 @@ export const updateBranchValidationSchema = createBranchValidationSchema.extend(
     })
     .int()
     .positive("Branch ID is required."),
+
   status: organizationStatusSchema,
 });
 
 export const createDepartmentValidationSchema = z.object({
+  departmentCode: codeSchema,
+
   name: z
     .string()
     .trim()
@@ -41,5 +53,6 @@ export const updateDepartmentValidationSchema =
       })
       .int()
       .positive("Department ID is required."),
+
     status: organizationStatusSchema,
   });

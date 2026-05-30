@@ -20,6 +20,7 @@ function formatDateTime(date: Date): string {
 
 function mapBranch(branch: {
   branchId: number;
+  branchCode: string;
   name: string;
   status: RecordStatusValue;
   createdAt: Date;
@@ -27,6 +28,7 @@ function mapBranch(branch: {
 }): BranchListItem {
   return {
     branchId: branch.branchId,
+    branchCode: branch.branchCode,
     name: branch.name,
     status: branch.status,
     createdAt: formatDateTime(branch.createdAt),
@@ -36,6 +38,7 @@ function mapBranch(branch: {
 
 function mapDepartment(department: {
   departmentId: number;
+  departmentCode: string;
   name: string;
   status: RecordStatusValue;
   createdAt: Date;
@@ -43,6 +46,7 @@ function mapDepartment(department: {
 }): DepartmentListItem {
   return {
     departmentId: department.departmentId,
+    departmentCode: department.departmentCode,
     name: department.name,
     status: department.status,
     createdAt: formatDateTime(department.createdAt),
@@ -54,6 +58,7 @@ export async function getBranchPageData(): Promise<BranchPageData> {
   const branches = await prisma.branch.findMany({
     select: {
       branchId: true,
+      branchCode: true,
       name: true,
       status: true,
       createdAt: true,
@@ -86,6 +91,7 @@ export async function getDepartmentPageData(): Promise<DepartmentPageData> {
   const departments = await prisma.department.findMany({
     select: {
       departmentId: true,
+      departmentCode: true,
       name: true,
       status: true,
       createdAt: true,

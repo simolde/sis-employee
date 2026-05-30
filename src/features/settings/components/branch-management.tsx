@@ -69,6 +69,19 @@ function BranchRow({ branch }: { branch: BranchListItem }) {
 
             <div>
               <label className="text-xs font-bold text-[var(--starland-muted-text)]">
+                Branch Code
+              </label>
+              <input
+                name="branchCode"
+                className="starland-input mt-2 uppercase"
+                placeholder="MAIN"
+                disabled={isPending}
+              />
+              <FieldError messages={state.fieldErrors?.branchCode} />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[var(--starland-muted-text)]">
                 Status
               </label>
               <select
