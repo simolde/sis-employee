@@ -2,6 +2,8 @@ import Link from "next/link";
 import {
   BadgeCheck,
   Building2,
+  CalendarDays,
+  Clock3,
   KeyRound,
   Network,
   Settings,
@@ -29,9 +31,40 @@ const settingsLinks = [
     enabled: true,
   },
   {
-    title: "Roles and Permissions",
+    title: "Designations",
     description:
-      "Manage role-based access and permission rules. Coming soon.",
+      "Manage employee job titles used in profiles, attendance, and HR reports.",
+    href: "/dashboard/settings/designations",
+    icon: BadgeCheck,
+    enabled: true,
+  },
+  {
+    title: "Employee Types",
+    description:
+      "Manage employment categories such as regular, probationary, ODL, and contractual.",
+    href: "/dashboard/settings/employee-types",
+    icon: UsersRound,
+    enabled: true,
+  },
+  {
+    title: "Shifts",
+    description:
+      "Manage shift start/end time, grace period, and overnight shift setup.",
+    href: "/dashboard/settings/shifts",
+    icon: Clock3,
+    enabled: true,
+  },
+  {
+    title: "Schedules",
+    description:
+      "Manage schedule records connected to shifts and employee assignments.",
+    href: "/dashboard/settings/schedules",
+    icon: CalendarDays,
+    enabled: true,
+  },
+  {
+    title: "Roles and Permissions",
+    description: "Manage role-based access and permission rules. Coming soon.",
     href: "/dashboard/settings",
     icon: ShieldCheck,
     enabled: false,
@@ -52,22 +85,6 @@ const settingsLinks = [
     icon: KeyRound,
     enabled: false,
   },
-  {
-    title: "Designations",
-    description:
-      "Manage employee job titles used in profiles, attendance, and HR reports.",
-    href: "/dashboard/settings/designations",
-    icon: BadgeCheck,
-    enabled: true,
-  },
-  {
-    title: "Employee Types",
-    description:
-      "Manage employment categories such as regular, probationary, ODL, and contractual.",
-    href: "/dashboard/settings/employee-types",
-    icon: UsersRound,
-    enabled: true,
-  },
 ];
 
 export default async function SettingsPage() {
@@ -85,8 +102,8 @@ export default async function SettingsPage() {
         </h1>
 
         <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-          Manage system setup, organization records, security, and future
-          configuration modules.
+          Manage system setup, organization records, employment setup,
+          schedules, security, and future configuration modules.
         </p>
       </div>
 
@@ -156,9 +173,8 @@ export default async function SettingsPage() {
         </div>
 
         <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-          Configure branches and departments before adding employees, creating
-          targeted notices, setting attendance branch rules, and generating
-          reports.
+          Configure branches, departments, designations, employee types, shifts,
+          and schedules before adding employees and assigning attendance rules.
         </p>
       </section>
     </section>

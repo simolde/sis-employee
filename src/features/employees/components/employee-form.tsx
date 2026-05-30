@@ -7,8 +7,9 @@ import {
   createEmployeeAction,
   initialCreateEmployeeActionState,
 } from "../server/employee-actions";
-import type { EmployeeFormOptions } from "../types/employee-types";
-import { EmployeeFormFields } from "./employee-form-fields";
+import type { EmployeeFormOptions } from "../types/employee-form-options-types";
+import { EmployeeSetupSelects } from "./employee-setup-selects";
+
 
 type EmployeeFormProps = {
   options: EmployeeFormOptions;
@@ -35,14 +36,10 @@ export function EmployeeForm({ options }: EmployeeFormProps) {
         </div>
       ) : null}
 
-      <EmployeeFormFields
+      <EmployeeSetupSelects
         options={options}
-        fieldErrors={state.fieldErrors}
         disabled={isPending}
-        values={{
-          status: "ACTIVE",
-          avLeave: "0",
-        }}
+        fieldErrors={state.fieldErrors}
       />
 
       <div className="flex flex-col-reverse gap-3 border-t border-[var(--starland-border)] pt-5 sm:flex-row sm:justify-end">

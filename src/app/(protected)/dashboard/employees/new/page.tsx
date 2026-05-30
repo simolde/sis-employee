@@ -1,33 +1,32 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { EmployeeForm } from "@/features/employees/components/employee-form";
-import { getEmployeeCreateFormOptions } from "@/features/employees/server/employee-queries";
+import { getEmployeeFormOptions } from "@/features/employees/server/employee-form-options";
 
 export default async function NewEmployeePage() {
-  const options = await getEmployeeCreateFormOptions();
+  const options = await getEmployeeFormOptions();
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-success">
-            Create Employee
+            Employee Management
           </span>
           <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
-            New Employee
+            Add Employee
           </h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Create a Starland employee profile with branch, department,
-            designation, schedule, contact details, and attendance-related
-            settings.
+            Create a new employee profile and assign branch, department,
+            designation, and employee type from Settings-managed records.
           </p>
         </div>
 
         <Link
           href="/dashboard/employees"
-          className="starland-btn starland-btn-secondary"
+          className="starland-btn starland-btn-soft"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <ArrowLeft className="h-4 w-4" />
           Back to Employees
         </Link>
       </div>
