@@ -3,13 +3,10 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { Loader2, Save } from "lucide-react";
-import {
-  createEmployeeAction,
-  initialCreateEmployeeActionState,
-} from "../server/employee-actions";
+import { createEmployeeAction } from "../server/employee-actions";
+import { initialCreateEmployeeActionState } from "../types/employee-action-state-types";
 import type { EmployeeFormOptions } from "../types/employee-form-options-types";
 import { EmployeeSetupSelects } from "./employee-setup-selects";
-
 
 type EmployeeFormProps = {
   options: EmployeeFormOptions;
