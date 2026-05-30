@@ -225,9 +225,13 @@ export function TopbarNoticeBell() {
                       </span>
                     </div>
 
-                    <h3 className="mt-3 text-sm font-extrabold text-[var(--starland-dark-text)]">
+                    <Link
+                      href={`/dashboard/notices/${notice.noticeId}`}
+                      className="mt-3 block text-sm font-extrabold text-[var(--starland-dark-text)] hover:text-[var(--starland-main-green)] hover:underline"
+                      onClick={() => setIsOpen(false)}
+                    >
                       {notice.title}
-                    </h3>
+                    </Link>
 
                     <p className="mt-2 text-xs leading-5 text-[var(--starland-muted-text)]">
                       {notice.bodyPreview}

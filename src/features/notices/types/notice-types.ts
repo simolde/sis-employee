@@ -53,6 +53,24 @@ export type NoticeListItem = {
   updatedAt: string;
 };
 
+export type NoticeDetailData = {
+  noticeId: number;
+  title: string;
+  body: string;
+  audience: NoticeAudienceValue;
+  branchName: string;
+  departmentName: string;
+  status: NoticeStatusValue;
+  publishedAt: string;
+  expiresAt: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  canManage: boolean;
+  isRead: boolean;
+};
+
 export type NoticeEditData = {
   noticeId: number;
   title: string;

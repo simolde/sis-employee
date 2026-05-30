@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { DashboardNoticeItem } from "../server/dashboard-notice-queries";
 
 type DashboardNoticeCardProps = {
@@ -22,20 +23,30 @@ export function DashboardNoticeCard({ notice }: DashboardNoticeCardProps) {
         </span>
       </div>
 
-      <h3 className="mt-3 text-base font-extrabold text-[var(--starland-dark-text)]">
+      <Link
+        href={`/dashboard/notices/${notice.noticeId}`}
+        className="mt-3 block text-base font-extrabold text-[var(--starland-dark-text)] hover:text-[var(--starland-main-green)] hover:underline"
+      >
         {notice.title}
-      </h3>
+      </Link>
 
       <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--starland-muted-text)]">
         {previewText(notice.body)}
       </p>
 
-      <div className="mt-4 grid gap-2 text-xs font-semibold text-(--starland-muted-text) sm:grid-cols-2">
+      <div className="mt-4 grid gap-2 text-xs font-semibold text-[var(--starland-muted-text)] sm:grid-cols-2">
         <p>Branch: {notice.branchName}</p>
         <p>Department: {notice.departmentName}</p>
         <p>Published: {notice.publishedAt}</p>
         <p>Expires: {notice.expiresAt}</p>
       </div>
+
+      <Link
+        href={`/dashboard/notices/${notice.noticeId}`}
+        className="starland-btn starland-btn-soft starland-btn-sm mt-4"
+      >
+        Read Full Notice
+      </Link>
     </article>
   );
 }

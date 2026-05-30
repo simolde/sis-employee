@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { BarChart3, Eye, Pencil } from "lucide-react";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import {
   archiveNoticeAction,
@@ -44,6 +44,22 @@ function NoticeActions({ notice }: { notice: NoticeListItem }) {
 
   return (
     <div className="flex flex-wrap gap-2">
+      <Link
+        href={`/dashboard/notices/${notice.noticeId}`}
+        className="starland-btn starland-btn-soft starland-btn-sm"
+      >
+        <Eye className="h-4 w-4" aria-hidden="true" />
+        View
+      </Link>
+
+      <Link
+        href={`/dashboard/notices/${notice.noticeId}/reads`}
+        className="starland-btn starland-btn-soft starland-btn-sm"
+      >
+        <BarChart3 className="h-4 w-4" aria-hidden="true" />
+        Reads
+      </Link>
+
       <Link
         href={`/dashboard/notices/${notice.noticeId}/edit`}
         className="starland-btn starland-btn-secondary starland-btn-sm"
@@ -91,6 +107,18 @@ function NoticeActions({ notice }: { notice: NoticeListItem }) {
   );
 }
 
+function EmployeeViewAction({ notice }: { notice: NoticeListItem }) {
+  return (
+    <Link
+      href={`/dashboard/notices/${notice.noticeId}`}
+      className="starland-btn starland-btn-primary starland-btn-sm"
+    >
+      <Eye className="h-4 w-4" aria-hidden="true" />
+      View Full Notice
+    </Link>
+  );
+}
+
 export function NoticeList({ data }: NoticeListProps) {
   return (
     <section className="starland-card overflow-hidden">
@@ -124,9 +152,12 @@ export function NoticeList({ data }: NoticeListProps) {
                     </span>
                   </div>
 
-                  <h3 className="mt-3 text-xl font-extrabold text-[var(--starland-dark-text)]">
+                  <Link
+                    href={`/dashboard/notices/${notice.noticeId}`}
+                    className="mt-3 block text-xl font-extrabold text-[var(--starland-dark-text)] hover:text-[var(--starland-main-green)] hover:underline"
+                  >
                     {notice.title}
-                  </h3>
+                  </Link>
 
                   <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[var(--starland-muted-text)]">
                     {notice.body}
@@ -141,7 +172,13 @@ export function NoticeList({ data }: NoticeListProps) {
                   </div>
                 </div>
 
-                {data.canManage ? <NoticeActions notice={notice} /> : null}
+                <div>
+                  {data.canManage ? (
+                    <NoticeActions notice={notice} />
+                  ) : (
+                    <EmployeeViewAction notice={notice} />
+                  )}
+                </div>
               </div>
             </article>
           ))
