@@ -104,7 +104,10 @@ export function NoticeFilters({ filters, canManage }: NoticeFiltersProps) {
           Apply
         </button>
 
-        <Link href="/dashboard/notices" className="starland-btn starland-btn-soft">
+        <Link
+          href="/dashboard/notices"
+          className="starland-btn starland-btn-soft"
+        >
           Reset
         </Link>
       </form>

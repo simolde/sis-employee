@@ -119,7 +119,7 @@ function EmployeeViewAction({ notice }: { notice: NoticeListItem }) {
   );
 }
 
-export function NoticeList({ data }: NoticeListProps) {
+export  function NoticeList({ data }: NoticeListProps) {
   return (
     <section className="starland-card overflow-hidden">
       <div className="border-b border-[var(--starland-border)] px-5 py-4">
