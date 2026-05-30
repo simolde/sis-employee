@@ -5,8 +5,16 @@ function buildLabel(input: { code: string; name: string }): string {
   return `${input.code} · ${input.name}`;
 }
 
+function formatTimeForDisplay(value: string): string {
+  if (/^\d{2}:\d{2}:\d{2}$/.test(value)) {
+    return value.slice(0, 5);
+  }
+
+  return value;
+}
+
 export async function getEmployeeFormOptions(): Promise<EmployeeFormOptions> {
-  const [branches, departments, designations, employeeTypes] =
+  const [branches, departments, designations, employeeTypes, schedules] =
     await Promise.all([
       prisma.branch.findMany({
         where: {
@@ -63,6 +71,32 @@ export async function getEmployeeFormOptions(): Promise<EmployeeFormOptions> {
           name: "asc",
         },
       }),
+
+      prisma.shiftSchedule.findMany({
+        where: {
+          status: "ACTIVE",
+          shift: {
+            status: "ACTIVE",
+          },
+        },
+        select: {
+          scheduleId: true,
+          scheduleCode: true,
+          name: true,
+          daysOfWeek: true,
+          shift: {
+            select: {
+              shiftCode: true,
+              name: true,
+              startTime: true,
+              endTime: true,
+            },
+          },
+        },
+        orderBy: {
+          name: "asc",
+        },
+      }),
     ]);
 
   return {
@@ -105,5 +139,18 @@ export async function getEmployeeFormOptions(): Promise<EmployeeFormOptions> {
         name: employeeType.name,
       }),
     })),
+
+    schedules: schedules.map((schedule) => {
+      const startTime = formatTimeForDisplay(schedule.shift.startTime);
+      const endTime = formatTimeForDisplay(schedule.shift.endTime);
+      const days = schedule.daysOfWeek ? ` · ${schedule.daysOfWeek}` : "";
+
+      return {
+        id: schedule.scheduleId,
+        code: schedule.scheduleCode,
+        name: schedule.name,
+        label: `${schedule.scheduleCode} · ${schedule.name} (${schedule.shift.shiftCode} ${startTime}-${endTime}${days})`,
+      };
+    }),
   };
 }

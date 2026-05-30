@@ -10,4 +10,5 @@ export type EmployeeFormOptions = {
   departments: EmployeeFormOption[];
   designations: EmployeeFormOption[];
   employeeTypes: EmployeeFormOption[];
+  schedules: EmployeeFormOption[];
 };

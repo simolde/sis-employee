@@ -7,6 +7,8 @@ type EmployeeSetupSelectsProps = {
     departmentId?: number | null;
     designationId?: number | null;
     empTypeId?: number | null;
+    scheduleId?: number | null;
+    isFlexible?: boolean | null;
   };
   disabled?: boolean;
   fieldErrors?: Record<string, string[] | undefined>;
@@ -36,6 +38,7 @@ export function EmployeeSetupSelects({
         <h2 className="text-base font-extrabold text-[var(--starland-dark-text)]">
           Work Assignment
         </h2>
+
         <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
           Select active records from Settings. Add missing options from Settings
           first.
@@ -50,6 +53,7 @@ export function EmployeeSetupSelects({
           >
             Branch
           </label>
+
           <select
             id="branchId"
             name="branchId"
@@ -64,6 +68,7 @@ export function EmployeeSetupSelects({
               </option>
             ))}
           </select>
+
           <FieldError messages={fieldErrors?.branchId} />
         </div>
 
@@ -74,6 +79,7 @@ export function EmployeeSetupSelects({
           >
             Department
           </label>
+
           <select
             id="departmentId"
             name="departmentId"
@@ -88,6 +94,7 @@ export function EmployeeSetupSelects({
               </option>
             ))}
           </select>
+
           <FieldError messages={fieldErrors?.departmentId} />
         </div>
 
@@ -98,6 +105,7 @@ export function EmployeeSetupSelects({
           >
             Designation
           </label>
+
           <select
             id="designationId"
             name="designationId"
@@ -112,6 +120,7 @@ export function EmployeeSetupSelects({
               </option>
             ))}
           </select>
+
           <FieldError messages={fieldErrors?.designationId} />
         </div>
 
@@ -122,6 +131,7 @@ export function EmployeeSetupSelects({
           >
             Employee Type
           </label>
+
           <select
             id="empTypeId"
             name="empTypeId"
@@ -136,8 +146,47 @@ export function EmployeeSetupSelects({
               </option>
             ))}
           </select>
+
           <FieldError messages={fieldErrors?.empTypeId} />
         </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div>
+          <label
+            htmlFor="scheduleId"
+            className="text-sm font-bold text-[var(--starland-dark-text)]"
+          >
+            Current Schedule
+          </label>
+
+          <select
+            id="scheduleId"
+            name="scheduleId"
+            className="starland-input mt-2"
+            defaultValue={defaultValues?.scheduleId ?? ""}
+            disabled={disabled}
+          >
+            <option value="">No fixed schedule / assign later</option>
+            {options.schedules.map((schedule) => (
+              <option key={schedule.id} value={schedule.id}>
+                {schedule.label}
+              </option>
+            ))}
+          </select>
+
+          <FieldError messages={fieldErrors?.scheduleId} />
+        </div>
+
+        <label className="flex items-center gap-3 rounded-2xl border border-[var(--starland-border)] bg-white px-4 py-3 text-sm font-bold text-[var(--starland-dark-text)]">
+          <input
+            type="checkbox"
+            name="isFlexible"
+            defaultChecked={Boolean(defaultValues?.isFlexible)}
+            disabled={disabled}
+          />
+          Flexible Schedule
+        </label>
       </div>
     </section>
   );

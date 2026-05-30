@@ -20,6 +20,8 @@ type EmployeeEditFormEmployee = {
   departmentId?: number | string | null;
   designationId?: number | string | null;
   empTypeId?: number | string | null;
+  scheduleId?: number | string | null;
+  isFlexible?: boolean | string | null;
   [key: string]: unknown;
 };
 
@@ -38,6 +40,8 @@ const visibleWorkAssignmentFields = new Set([
   "departmentId",
   "designationId",
   "empTypeId",
+  "scheduleId",
+  "isFlexible",
 ]);
 
 function toOptionalNumber(value: unknown): number | null {
@@ -52,6 +56,10 @@ function toOptionalNumber(value: unknown): number | null {
   }
 
   return parsed;
+}
+
+function toBoolean(value: unknown): boolean {
+  return value === true || value === "true" || value === "on";
 }
 
 function isHiddenFieldValue(value: unknown): value is string | number | boolean {
@@ -149,6 +157,8 @@ export function EmployeeEditForm({
             departmentId: toOptionalNumber(employee.departmentId),
             designationId: toOptionalNumber(employee.designationId),
             empTypeId: toOptionalNumber(employee.empTypeId),
+            scheduleId: toOptionalNumber(employee.scheduleId),
+            isFlexible: toBoolean(employee.isFlexible),
           }}
           disabled={isPending}
           fieldErrors={state.fieldErrors}

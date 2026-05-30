@@ -124,6 +124,13 @@ function parseEmployeeId(empId: string): number | null {
   return parsed;
 }
 
+function startOfToday(): Date {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return today;
+}
+
 function buildEmployeeAuditValue(
   employee: EmployeeAuditSource,
 ): Prisma.InputJsonObject {
@@ -342,6 +349,114 @@ function buildEmployeeCoreData(data: CreateEmployeeInput | UpdateEmployeeInput) 
   };
 }
 
+async function validateEmployeeSetupReferences(
+  data: CreateEmployeeInput | UpdateEmployeeInput,
+): Promise<CreateEmployeeActionState | UpdateEmployeeActionState | null> {
+  const [branch, department, designation, empType, schedule] =
+    await Promise.all([
+      prisma.branch.findFirst({
+        where: {
+          branchId: data.branchId,
+          status: "ACTIVE",
+        },
+        select: {
+          branchId: true,
+        },
+      }),
+
+      data.departmentId
+        ? prisma.department.findFirst({
+            where: {
+              departmentId: data.departmentId,
+              status: "ACTIVE",
+            },
+            select: {
+              departmentId: true,
+            },
+          })
+        : Promise.resolve({ departmentId: null }),
+
+      data.designationId
+        ? prisma.designation.findFirst({
+            where: {
+              designationId: data.designationId,
+              status: "ACTIVE",
+            },
+            select: {
+              designationId: true,
+            },
+          })
+        : Promise.resolve({ designationId: null }),
+
+      data.empTypeId
+        ? prisma.empType.findFirst({
+            where: {
+              empTypeId: data.empTypeId,
+              status: "ACTIVE",
+            },
+            select: {
+              empTypeId: true,
+            },
+          })
+        : Promise.resolve({ empTypeId: null }),
+
+      data.scheduleId
+        ? prisma.shiftSchedule.findFirst({
+            where: {
+              scheduleId: data.scheduleId,
+              status: "ACTIVE",
+              shift: {
+                status: "ACTIVE",
+              },
+            },
+            select: {
+              scheduleId: true,
+            },
+          })
+        : Promise.resolve({ scheduleId: null }),
+    ]);
+
+  const fieldErrors: Record<string, string[] | undefined> = {};
+
+  if (!branch) {
+    fieldErrors.branchId = ["Selected branch is inactive or does not exist."];
+  }
+
+  if (data.departmentId && !department) {
+    fieldErrors.departmentId = [
+      "Selected department is inactive or does not exist.",
+    ];
+  }
+
+  if (data.designationId && !designation) {
+    fieldErrors.designationId = [
+      "Selected designation is inactive or does not exist.",
+    ];
+  }
+
+  if (data.empTypeId && !empType) {
+    fieldErrors.empTypeId = [
+      "Selected employee type is inactive or does not exist.",
+    ];
+  }
+
+  if (data.scheduleId && !schedule) {
+    fieldErrors.scheduleId = [
+      "Selected schedule is inactive or does not exist.",
+    ];
+  }
+
+  if (Object.keys(fieldErrors).length === 0) {
+    return null;
+  }
+
+  return {
+    ok: false,
+    message: "Please review the selected employee setup records.",
+    fieldErrors,
+  };
+}
+
 async function validateDuplicateEmployee(input: {
   empId?: number;
   empNumber: string;
@@ -434,6 +549,13 @@ export async function createEmployeeAction(
   }
 
   const data = parsed.data;
+
+  const setupError = await validateEmployeeSetupReferences(data);
+
+  if (setupError) {
+    return setupError;
+  }
+
   const duplicateError = await validateDuplicateEmployee({
     empNumber: data.empNumber,
     email: data.email,
@@ -451,6 +573,19 @@ export async function createEmployeeAction(
         data: buildEmployeeCoreData(data),
         select: employeeAuditSelect,
       });
+
+      if (data.scheduleId) {
+        await tx.employeeScheduleAssignment.create({
+          data: {
+            empId: employee.empId,
+            scheduleId: data.scheduleId,
+            validFrom: data.dateOfJoining,
+            isActive: true,
+            assignedById: session.userId,
+            remarks: "Initial schedule assignment from employee creation.",
+          },
+        });
+      }
 
       await tx.employeeFamilyBackground.create({
         data: {
@@ -580,6 +715,12 @@ export async function updateEmployeeAction(
 
   const data = parsed.data;
 
+  const setupError = await validateEmployeeSetupReferences(data);
+
+  if (setupError) {
+    return setupError;
+  }
+
   const existingEmployee = await prisma.employee.findUnique({
     where: {
       empId: employeeId,
@@ -613,6 +754,34 @@ export async function updateEmployeeAction(
         data: buildEmployeeCoreData(data),
         select: employeeAuditSelect,
       });
+
+      if (existingEmployee.scheduleId !== data.scheduleId) {
+        const today = startOfToday();
+
+        await tx.employeeScheduleAssignment.updateMany({
+          where: {
+            empId: employeeId,
+            isActive: true,
+          },
+          data: {
+            isActive: false,
+            validTo: today,
+          },
+        });
+
+        if (data.scheduleId) {
+          await tx.employeeScheduleAssignment.create({
+            data: {
+              empId: employeeId,
+              scheduleId: data.scheduleId,
+              validFrom: today,
+              isActive: true,
+              assignedById: session.userId,
+              remarks: "Updated schedule assignment from employee profile.",
+            },
+          });
+        }
+      }
 
       await tx.employeeFamilyBackground.upsert({
         where: {
