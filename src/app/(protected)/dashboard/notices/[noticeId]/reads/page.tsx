@@ -7,6 +7,7 @@ import {
   MailOpen,
   UsersRound,
 } from "lucide-react";
+import { NoticeReadReportActions } from "@/features/notices/components/notice-read-report-actions";
 import { NoticeReadReportTable } from "@/features/notices/components/notice-read-report-table";
 import { getNoticeReadReportData } from "@/features/notices/server/notice-read-report-queries";
 
@@ -28,7 +29,7 @@ export default async function NoticeReadReportPage({
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-success">
             Notice Report
@@ -41,16 +42,20 @@ export default async function NoticeReadReportPage({
           </p>
         </div>
 
-        <Link
-          href="/dashboard/notices"
-          className="starland-btn starland-btn-soft"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back to Notices
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <NoticeReadReportActions data={data} />
+
+          <Link
+            href="/dashboard/notices"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Back to Notices
+          </Link>
+        </div>
       </div>
 
-      <section className="starland-card p-5">
+      <section className="starland-card p-5 print:shadow-none">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -90,7 +95,7 @@ export default async function NoticeReadReportPage({
       </section>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="starland-card p-5">
+        <article className="starland-card p-5 print:shadow-none">
           <UsersRound className="h-6 w-6 text-[var(--starland-info)]" />
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Recipients
@@ -100,7 +105,7 @@ export default async function NoticeReadReportPage({
           </p>
         </article>
 
-        <article className="starland-card p-5">
+        <article className="starland-card p-5 print:shadow-none">
           <CheckCircle2 className="h-6 w-6 text-[var(--starland-success)]" />
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Read
@@ -110,7 +115,7 @@ export default async function NoticeReadReportPage({
           </p>
         </article>
 
-        <article className="starland-card p-5">
+        <article className="starland-card p-5 print:shadow-none">
           <Eye className="h-6 w-6 text-[var(--starland-warning)]" />
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Unread
@@ -120,7 +125,7 @@ export default async function NoticeReadReportPage({
           </p>
         </article>
 
-        <article className="starland-card p-5">
+        <article className="starland-card p-5 print:shadow-none">
           <MailOpen className="h-6 w-6 text-[var(--starland-danger)]" />
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Read Rate

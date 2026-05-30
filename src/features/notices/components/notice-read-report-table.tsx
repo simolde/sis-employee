@@ -6,7 +6,7 @@ type NoticeReadReportTableProps = {
 
 export function NoticeReadReportTable({ data }: NoticeReadReportTableProps) {
   return (
-    <section className="starland-card overflow-hidden">
+    <section className="starland-card overflow-hidden print:shadow-none">
       <div className="border-b border-[var(--starland-border)] px-5 py-4">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
           Read Report
