@@ -8,6 +8,7 @@ import {
   Clock3,
   History,
 } from "lucide-react";
+import { EmployeeScheduleHistoryActions } from "@/features/employees/components/employee-schedule-history-actions";
 import { EmployeeScheduleHistoryTable } from "@/features/employees/components/employee-schedule-history-table";
 import { getEmployeeScheduleHistoryData } from "@/features/employees/server/employee-schedule-history-queries";
 
@@ -29,7 +30,7 @@ export default async function EmployeeScheduleHistoryPage({
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-success">
             Employee Schedule
@@ -46,6 +47,8 @@ export default async function EmployeeScheduleHistoryPage({
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <EmployeeScheduleHistoryActions data={data} />
+
           <Link
             href={`/dashboard/employees/${data.employee.empId}/edit`}
             className="starland-btn starland-btn-primary"
@@ -64,7 +67,7 @@ export default async function EmployeeScheduleHistoryPage({
         </div>
       </div>
 
-      <section className="starland-card overflow-hidden">
+      <section className="starland-card overflow-hidden print:shadow-none">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">

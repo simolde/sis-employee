@@ -21,7 +21,7 @@ export function EmployeeScheduleHistoryTable({
   data,
 }: EmployeeScheduleHistoryTableProps) {
   return (
-    <section className="starland-card overflow-hidden">
+    <section className="starland-card overflow-hidden print:shadow-none">
       <div className="border-b border-[var(--starland-border)] px-5 py-4">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
           Schedule Assignment History
@@ -56,6 +56,7 @@ export function EmployeeScheduleHistoryTable({
                     <p className="font-bold text-[var(--starland-dark-text)]">
                       {assignment.scheduleName}
                     </p>
+
                     <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
                       {assignment.scheduleCode}
                     </p>
@@ -65,6 +66,7 @@ export function EmployeeScheduleHistoryTable({
                     <p className="font-bold text-[var(--starland-dark-text)]">
                       {assignment.shiftName}
                     </p>
+
                     <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
                       {assignment.shiftCode} · {assignment.shiftTime}
                     </p>
@@ -76,6 +78,7 @@ export function EmployeeScheduleHistoryTable({
                     <p className="font-semibold text-[var(--starland-dark-text)]">
                       From: {assignment.validFrom}
                     </p>
+
                     <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
                       To: {assignment.validTo}
                     </p>
