@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, UserCog } from "lucide-react";
+import { ArrowLeft, CalendarClock, UserCog } from "lucide-react";
 import { EmployeeEditForm } from "@/features/employees/components/employee-edit-form";
 import { getEmployeeFormOptions } from "@/features/employees/server/employee-form-options";
 import { getEmployeeEditData } from "@/features/employees/server/employee-queries";
@@ -43,13 +43,23 @@ export default async function EmployeeEditPage({
           </p>
         </div>
 
-        <Link
-          href={`/dashboard/employees/${editData.employee.empId}`}
-          className="starland-btn starland-btn-soft"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back to Profile
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/dashboard/employees/${editData.employee.empId}/schedule-history`}
+            className="starland-btn starland-btn-primary"
+          >
+            <CalendarClock className="h-4 w-4" aria-hidden="true" />
+            Schedule History
+          </Link>
+
+          <Link
+            href={`/dashboard/employees/${editData.employee.empId}`}
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Back to Profile
+          </Link>
+        </div>
       </div>
 
       <section className="starland-card p-5">
