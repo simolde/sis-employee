@@ -84,6 +84,26 @@ function formatTime(date: Date | null | undefined): string {
   }).format(date);
 }
 
+function formatShiftTimeValue(value: string): string {
+  if (/^\d{2}:\d{2}:\d{2}$/.test(value)) {
+    return value.slice(0, 5);
+  }
+
+  return value;
+}
+
+function formatShiftTime(input: {
+  startTime: string;
+  endTime: string;
+  isOvernight?: boolean;
+}): string {
+  const startTime = formatShiftTimeValue(input.startTime);
+  const endTime = formatShiftTimeValue(input.endTime);
+  const overnight = input.isOvernight ? " · Overnight" : "";
+
+  return `${startTime} - ${endTime}${overnight}`;
+}
+
 function dash(value: string | null | undefined): string {
   return value?.trim() ? value : "—";
 }
@@ -162,6 +182,20 @@ function buildAttendanceWhere(
         },
       },
       {
+        schedule: {
+          name: {
+            contains: filters.q,
+          },
+        },
+      },
+      {
+        schedule: {
+          scheduleCode: {
+            contains: filters.q,
+          },
+        },
+      },
+      {
         inBranch: {
           name: {
             contains: filters.q,
@@ -209,7 +243,13 @@ function mapAttendanceListItem(attendance: {
     } | null;
   };
   schedule: {
+    scheduleCode: string;
     name: string;
+    shift: {
+      startTime: string;
+      endTime: string;
+      isOvernight: boolean;
+    };
   } | null;
   inBranch: {
     name: string;
@@ -227,7 +267,9 @@ function mapAttendanceListItem(attendance: {
       lastName: attendance.employee.lastName,
     }),
     departmentName: attendance.employee.department?.name ?? "—",
-    scheduleName: attendance.schedule?.name ?? "—",
+    scheduleName: attendance.schedule
+      ? `${attendance.schedule.scheduleCode} · ${attendance.schedule.name}`
+      : "—",
     attDate: formatDate(attendance.attDate),
     timeIn: formatTime(attendance.timeIn),
     timeOut: formatTime(attendance.timeOut),
@@ -334,7 +376,15 @@ export async function getAttendanceList(
         },
         schedule: {
           select: {
+            scheduleCode: true,
             name: true,
+            shift: {
+              select: {
+                startTime: true,
+                endTime: true,
+                isOvernight: true,
+              },
+            },
           },
         },
         inBranch: {
@@ -487,11 +537,17 @@ export async function getAttendanceDetail(
       },
       schedule: {
         select: {
+          scheduleCode: true,
           name: true,
+          daysOfWeek: true,
           shift: {
             select: {
+              shiftCode: true,
+              name: true,
               startTime: true,
               endTime: true,
+              graceMinutes: true,
+              isOvernight: true,
             },
           },
         },
@@ -555,9 +611,19 @@ export async function getAttendanceDetail(
     empNumber: attendance.employee.empNumber,
     departmentName: attendance.employee.department?.name ?? "—",
     branchName: attendance.employee.branch.name,
-    scheduleName: attendance.schedule?.name ?? "—",
+    scheduleName: attendance.schedule
+      ? `${attendance.schedule.scheduleCode} · ${attendance.schedule.name}`
+      : "—",
     shiftTime: attendance.schedule
-      ? `${attendance.schedule.shift.startTime} - ${attendance.schedule.shift.endTime}`
+      ? `${attendance.schedule.shift.shiftCode} · ${
+          attendance.schedule.shift.name
+        } (${formatShiftTime({
+          startTime: attendance.schedule.shift.startTime,
+          endTime: attendance.schedule.shift.endTime,
+          isOvernight: attendance.schedule.shift.isOvernight,
+        })}) · Grace ${attendance.schedule.shift.graceMinutes} min · Days ${
+          attendance.schedule.daysOfWeek ?? "—"
+        }`
       : "—",
     attDate: formatDate(attendance.attDate),
     status: attendance.status,
