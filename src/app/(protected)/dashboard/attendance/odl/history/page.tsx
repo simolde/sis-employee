@@ -9,6 +9,7 @@ import {
   TimerOff,
 } from "lucide-react";
 import { getCurrentSession } from "@/features/auth/server/session";
+import { OdlAttendanceHistoryActions } from "@/features/attendance/odl-history/components/odl-attendance-history-actions";
 import { OdlAttendanceHistoryTable } from "@/features/attendance/odl-history/components/odl-attendance-history-table";
 import {
   getOdlAttendanceHistoryData,
@@ -26,7 +27,7 @@ function OdlAttendanceHistoryFiltersForm({
   filters: OdlAttendanceHistoryFilters;
 }) {
   return (
-    <section className="starland-card p-5">
+    <section className="starland-card p-5 print:hidden">
       <form className="grid gap-4 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
         <div>
           <label
@@ -97,7 +98,7 @@ export default async function OdlAttendanceHistoryPage({
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-success">
             ODL Attendance
@@ -113,16 +114,20 @@ export default async function OdlAttendanceHistoryPage({
           </p>
         </div>
 
-        <Link
-          href="/dashboard/attendance/odl"
-          className="starland-btn starland-btn-soft"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back to ODL Time In / Out
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <OdlAttendanceHistoryActions result={result} />
+
+          <Link
+            href="/dashboard/attendance/odl"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Back to ODL Time In / Out
+          </Link>
+        </div>
       </div>
 
-      <section className="starland-card overflow-hidden">
+      <section className="starland-card overflow-hidden print:shadow-none">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
             Logged-in Employee
