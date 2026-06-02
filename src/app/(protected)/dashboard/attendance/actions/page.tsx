@@ -5,6 +5,7 @@ import {
   ClipboardCheck,
   ClipboardEdit,
   Clock3,
+  ClockAlert,
   FileSpreadsheet,
   Hourglass,
   MonitorSmartphone,
@@ -76,6 +77,15 @@ export default async function AttendanceActionsPage() {
       tone: "warning",
     },
     {
+      title: "Missing Timeouts",
+      description:
+        "Old normal time-in records without time-out can be marked as missing timeout without becoming manual.",
+      icon: ClockAlert,
+      label: "Missing Timeout",
+      value: stats.missingTimeout,
+      tone: "danger",
+    },
+    {
       title: "Reporting",
       description:
         "Attendance reports and review queues can be printed or exported to CSV.",
@@ -121,6 +131,17 @@ export default async function AttendanceActionsPage() {
       statValue: stats.openReview,
     },
     {
+      title: "Missing Timeout Management",
+      description:
+        "Mark old normal records with time-in but no time-out as missing timeout.",
+      href: "/dashboard/attendance/missing-timeouts",
+      icon: ClockAlert,
+      badge: "Timeout",
+      buttonLabel: "Open Missing Timeouts",
+      statLabel: "Missing Timeout",
+      statValue: stats.missingTimeout,
+    },
+    {
       title: "Attendance Reports",
       description:
         "Generate filtered attendance reports with print and CSV export.",
@@ -157,8 +178,8 @@ export default async function AttendanceActionsPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Manage attendance records, manual corrections, HR review, and
-            reports from one place.
+            Manage attendance records, manual corrections, missing timeouts, HR
+            review, and reports from one place.
           </p>
         </div>
 
@@ -225,7 +246,7 @@ export default async function AttendanceActionsPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <Hourglass className="h-7 w-7 text-[var(--starland-danger)]" />
+            <ClockAlert className="h-7 w-7 text-[var(--starland-danger)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
               Missing Timeout
@@ -305,7 +326,7 @@ export default async function AttendanceActionsPage() {
           </p>
         </div>
 
-        <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
           {policyCards.map((card) => {
             const Icon = card.icon;
 

@@ -1,115 +1,240 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
-  AlertTriangle,
-  ArrowLeft,
+  BarChart3,
   ClipboardCheck,
+  ClipboardEdit,
+  Clock3,
   ClockAlert,
-  Hourglass,
+  MonitorSmartphone,
+  type LucideIcon,
 } from "lucide-react";
-import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
-import { MissingTimeoutTable } from "@/features/attendance/missing-timeouts/components/missing-timeout-table";
-import { getMissingTimeoutPageData } from "@/features/attendance/missing-timeouts/server/missing-timeout-queries";
+import { AttendanceDetailsModal } from "@/features/attendance/components/attendance-details-modal";
+import { AttendanceListFilters } from "@/features/attendance/components/attendance-list-filters";
+import { AttendancePagination } from "@/features/attendance/components/attendance-pagination";
+import { AttendanceSummaryCards } from "@/features/attendance/components/attendance-summary-cards";
+import { AttendanceTable } from "@/features/attendance/components/attendance-table";
+import { getCurrentSession } from "@/features/auth/server/session";
+import { canViewAllAttendance } from "@/lib/security/roles";
+import {
+  getAttendanceDetail,
+  getAttendanceList,
+} from "@/features/attendance/server/attendance-queries";
+import { parseAttendanceListSearchParams } from "@/features/attendance/validators/attendance-list-validation";
 
-export default async function MissingTimeoutPage() {
-  await requireCanManageEmployees();
+type AttendancePageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
-  const data = await getMissingTimeoutPageData();
+type AttendanceNavigationCard = {
+  title: string;
+  description: string;
+  href: string;
+  icon: LucideIcon;
+  badge: string;
+  buttonLabel: string;
+  tone: "success" | "warning" | "info" | "danger";
+};
+
+const attendanceNavigationCards: AttendanceNavigationCard[] = [
+  {
+    title: "Attendance Actions",
+    description:
+      "Open the attendance hub for quick access to manual input, review queue, reports, missing timeouts, and ODL attendance.",
+    href: "/dashboard/attendance/actions",
+    icon: Clock3,
+    badge: "Hub",
+    buttonLabel: "Open Hub",
+    tone: "success",
+  },
+  {
+    title: "Manual Attendance",
+    description:
+      "Create or correct attendance manually. Saved manual records are marked as pending review.",
+    href: "/dashboard/attendance/manual",
+    icon: ClipboardEdit,
+    badge: "Manual",
+    buttonLabel: "Manual Input",
+    tone: "warning",
+  },
+  {
+    title: "Review Queue",
+    description:
+      "Review only manual attendance, manual edits, and corrections. Normal punches are excluded.",
+    href: "/dashboard/attendance/review",
+    icon: ClipboardCheck,
+    badge: "HR Review",
+    buttonLabel: "Open Queue",
+    tone: "warning",
+  },
+  {
+    title: "Missing Timeouts",
+    description:
+      "Mark old time-in records without time-out as missing timeout without making them manual.",
+    href: "/dashboard/attendance/missing-timeouts",
+    icon: ClockAlert,
+    badge: "Timeout",
+    buttonLabel: "Open Missing",
+    tone: "danger",
+  },
+  {
+    title: "Attendance Reports",
+    description:
+      "Generate filtered attendance reports with print and CSV export.",
+    href: "/dashboard/attendance/reports",
+    icon: BarChart3,
+    badge: "Reports",
+    buttonLabel: "Open Reports",
+    tone: "info",
+  },
+  {
+    title: "ODL Time In / Out",
+    description:
+      "Open the online distance learning teacher time-in and time-out page.",
+    href: "/dashboard/attendance/odl",
+    icon: MonitorSmartphone,
+    badge: "ODL",
+    buttonLabel: "Open ODL",
+    tone: "success",
+  },
+];
+
+function badgeClass(tone: AttendanceNavigationCard["tone"]): string {
+  if (tone === "warning") {
+    return "starland-badge-warning";
+  }
+
+  if (tone === "info") {
+    return "starland-badge-info";
+  }
+
+  if (tone === "danger") {
+    return "starland-badge-danger";
+  }
+
+  return "starland-badge-success";
+}
+
+function iconClass(tone: AttendanceNavigationCard["tone"]): string {
+  if (tone === "warning") {
+    return "text-[var(--starland-warning)]";
+  }
+
+  if (tone === "info") {
+    return "text-[var(--starland-info)]";
+  }
+
+  if (tone === "danger") {
+    return "text-[var(--starland-danger)]";
+  }
+
+  return "text-[var(--starland-main-green)]";
+}
+
+export default async function AttendancePage({
+  searchParams,
+}: AttendancePageProps) {
+  const session = await getCurrentSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  if (!canViewAllAttendance(session.role)) {
+    redirect("/dashboard/attendance/odl");
+  }
+
+  const resolvedSearchParams = await searchParams;
+  const filters = parseAttendanceListSearchParams(resolvedSearchParams);
+
+  const [result, detail] = await Promise.all([
+    getAttendanceList(filters),
+    filters.detailId ? getAttendanceDetail(filters.detailId) : null,
+  ]);
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
-          <span className="starland-badge starland-badge-warning">
-            Missing Timeout
+          <span className="starland-badge starland-badge-success">
+            Attendance Management
           </span>
 
           <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
-            Missing Timeout Management
+            Attendance
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Mark old attendance records with time-in but no time-out as missing
-            timeout. This does not make the record manual and does not require
-            HR review unless the record was manually edited.
+            HR/Admin can review all employee attendance records from ODL web
+            attendance, lobby RFID, biometric kiosk, manual corrections, and
+            future sync sources.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/dashboard/attendance/review"
-            className="starland-btn starland-btn-primary"
-          >
-            <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
-            Review Queue
-          </Link>
-
-          <Link
-            href="/dashboard/attendance"
-            className="starland-btn starland-btn-soft"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Back to Attendance
-          </Link>
-        </div>
+        <Link
+          href="/dashboard/attendance/actions"
+          className="starland-btn starland-btn-primary"
+        >
+          <Clock3 className="h-4 w-4" aria-hidden="true" />
+          Attendance Actions
+        </Link>
       </div>
 
-      <section className="starland-card overflow-hidden">
-        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
-          <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-            Timeout Policy
-          </span>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        {attendanceNavigationCards.map((card) => {
+          const Icon = card.icon;
 
-          <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Time-In Without Time-Out
-          </h2>
+          return (
+            <article key={card.href} className="starland-card p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--starland-light-bg)]">
+                  <Icon
+                    className={["h-5 w-5", iconClass(card.tone)].join(" ")}
+                    aria-hidden="true"
+                  />
+                </div>
 
-          <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Records from previous days or records older than 18 hours with no
-            time-out can be marked as MISSING TIMEOUT. Normal records remain
-            normal punches. Manual corrections still go to the review queue.
-          </p>
-        </div>
+                <span
+                  className={[
+                    "starland-badge",
+                    badgeClass(card.tone),
+                  ].join(" ")}
+                >
+                  {card.badge}
+                </span>
+              </div>
 
-        <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <AlertTriangle className="h-7 w-7 text-[var(--starland-warning)]" />
+              <h2 className="mt-4 text-base font-extrabold text-[var(--starland-dark-text)]">
+                {card.title}
+              </h2>
 
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Eligible Missing Timeouts
-            </p>
+              <p className="mt-2 min-h-16 text-sm leading-6 text-[var(--starland-muted-text)]">
+                {card.description}
+              </p>
 
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {data.summary.eligibleMissingTimeouts}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ClockAlert className="h-7 w-7 text-[var(--starland-danger)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Already Missing Timeout
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {data.summary.alreadyMarkedMissingTimeouts}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4 sm:col-span-2 xl:col-span-1">
-            <Hourglass className="h-7 w-7 text-[var(--starland-info)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Manual Pending Review
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {data.summary.manualPendingReview}
-            </p>
-          </article>
-        </div>
+              <Link
+                href={card.href}
+                className="starland-btn starland-btn-soft mt-4 w-full justify-center"
+              >
+                {card.buttonLabel}
+              </Link>
+            </article>
+          );
+        })}
       </section>
 
-      <MissingTimeoutTable data={data} />
+      <AttendanceSummaryCards summary={result.summary} />
+
+      <AttendanceListFilters filters={result.filters} />
+
+      <AttendanceTable records={result.records} filters={result.filters} />
+
+      <AttendancePagination result={result} />
+
+      <AttendanceDetailsModal
+        detail={detail}
+        closeHref="/dashboard/attendance"
+      />
     </section>
   );
 }
