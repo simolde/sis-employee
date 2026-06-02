@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { buildAttendanceReviewRequiredWhere } from "@/features/attendance/server/attendance-review-policy";
 import { buildEligibleMissingTimeoutWhere } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
-import type { AttendanceAutomationStatus } from "../types/attendance-automation-types";
+import type { AttendanceAutomationStatus } from "../types/attendance-automation-action-types";
 
 function getCronActorEmail(): string {
   return (

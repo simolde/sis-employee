@@ -9,6 +9,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationRunner } from "@/features/attendance/automation/components/attendance-automation-runner";
 import { getAttendanceAutomationStatus } from "@/features/attendance/automation/server/attendance-automation-queries";
 
 function StatusBadge({ ok }: { ok: boolean }) {
@@ -180,6 +181,11 @@ export default async function AttendanceAutomationPage() {
           </article>
         </div>
       </section>
+
+      <AttendanceAutomationRunner
+        batchLimit={status.batchLimit}
+        eligibleMissingTimeouts={status.eligibleMissingTimeouts}
+      />
 
       <section className="starland-card p-5">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
