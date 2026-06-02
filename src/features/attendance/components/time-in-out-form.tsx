@@ -85,9 +85,10 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
     initialAttendanceActionState,
   );
 
-  const captureLocationOnLoad = useCallback(async () => {
+  const captureLocation = useCallback(async () => {
     setIsLocating(true);
     setLocationMessage("Requesting location permission...");
+    setClientMessage("");
 
     try {
       const location = await getBrowserLocationWithAddress();
@@ -112,13 +113,13 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void captureLocationOnLoad();
+      void captureLocation();
     }, 0);
 
     return () => {
       window.clearTimeout(timer);
     };
-  }, [captureLocationOnLoad]);
+  }, [captureLocation]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     setClientMessage("");
@@ -138,7 +139,7 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
     if (!latitude || !longitude || !address) {
       event.preventDefault();
       setClientMessage(
-        "Location and full address are required. Please allow browser location permission and reload the page.",
+        "Location and full address are required. Please click Retry Location and allow browser location permission.",
       );
     }
   }
@@ -218,6 +219,7 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
                 <p className="text-lg font-extrabold text-[var(--starland-dark-text)]">
                   {pageData.employee.fullName}
                 </p>
+
                 <p>{pageData.employee.empNumber}</p>
                 <p>{pageData.employee.departmentName}</p>
                 <p>{pageData.employee.designationName}</p>
@@ -295,8 +297,9 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
 
         {!canPunch ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
-            Camera is enabled for testing, but attendance submit is blocked for
-            this account because it is not detected as an ODL teacher.
+            Camera and GPS are enabled for testing, but attendance submit is
+            blocked for this account because it is not detected as an ODL
+            teacher.
           </div>
         ) : null}
 
@@ -306,6 +309,8 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
           address={address}
           isLocating={isLocating}
           locationMessage={locationMessage}
+          onRefreshLocation={captureLocation}
+          disabled={isPending}
         />
 
         <FieldError messages={state.fieldErrors?.latitude} />
