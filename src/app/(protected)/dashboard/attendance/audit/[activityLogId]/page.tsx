@@ -10,6 +10,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAuditDetailActions } from "@/features/attendance/audit/detail/components/attendance-audit-detail-actions";
 import { getAttendanceAuditDetail } from "@/features/attendance/audit/server/attendance-audit-detail-queries";
 
 type AttendanceAuditDetailPageProps = {
@@ -40,7 +41,7 @@ function actionBadgeClass(action: string): string {
 
 function JsonBlock({ title, value }: { title: string; value: string }) {
   return (
-    <article className="starland-card overflow-hidden">
+    <article className="starland-card overflow-hidden print:shadow-none">
       <div className="border-b border-[var(--starland-border)] px-5 py-4">
         <div className="flex items-center gap-2">
           <FileJson className="h-5 w-5 text-[var(--starland-main-green)]" />
@@ -52,7 +53,7 @@ function JsonBlock({ title, value }: { title: string; value: string }) {
       </div>
 
       <div className="p-5">
-        <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap break-words rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4 text-xs leading-5 text-[var(--starland-muted-text)]">
+        <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap break-words rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4 text-xs leading-5 text-[var(--starland-muted-text)] print:max-h-none print:overflow-visible">
           {value}
         </pre>
       </div>
@@ -74,7 +75,7 @@ export default async function AttendanceAuditDetailPage({
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-info">
             Audit Detail
@@ -90,28 +91,35 @@ export default async function AttendanceAuditDetailPage({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {auditLog.entityId !== "—" ? (
-            <Link
-              href={`/dashboard/attendance/${auditLog.entityId}`}
-              className="starland-btn starland-btn-primary"
-            >
-              <Eye className="h-4 w-4" aria-hidden="true" />
-              Open Attendance Record
-            </Link>
-          ) : null}
+        <div className="flex flex-col gap-2 sm:items-end">
+          <AttendanceAuditDetailActions
+            oldValue={auditLog.oldValue}
+            newValue={auditLog.newValue}
+          />
 
-          <Link
-            href="/dashboard/attendance/audit"
-            className="starland-btn starland-btn-soft"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Back to Audit Trail
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            {auditLog.entityId !== "—" ? (
+              <Link
+                href={`/dashboard/attendance/${auditLog.entityId}`}
+                className="starland-btn starland-btn-primary"
+              >
+                <Eye className="h-4 w-4" aria-hidden="true" />
+                Open Attendance Record
+              </Link>
+            ) : null}
+
+            <Link
+              href="/dashboard/attendance/audit"
+              className="starland-btn starland-btn-soft"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              Back to Audit Trail
+            </Link>
+          </div>
         </div>
       </div>
 
-      <section className="starland-card overflow-hidden">
+      <section className="starland-card overflow-hidden print:shadow-none">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span
             className={[
@@ -192,6 +200,50 @@ export default async function AttendanceAuditDetailPage({
             </p>
           </article>
         </div>
+      </section>
+
+      <section className="starland-card p-5 print:shadow-none">
+        <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+          Print Summary
+        </h2>
+
+        <dl className="mt-4 grid gap-4 text-sm md:grid-cols-2 xl:grid-cols-4">
+          <div>
+            <dt className="font-bold text-[var(--starland-muted-text)]">
+              Audit Log ID
+            </dt>
+            <dd className="mt-1 font-extrabold text-[var(--starland-dark-text)]">
+              {auditLog.activityLogId}
+            </dd>
+          </div>
+
+          <div>
+            <dt className="font-bold text-[var(--starland-muted-text)]">
+              Action
+            </dt>
+            <dd className="mt-1 font-extrabold text-[var(--starland-dark-text)]">
+              {formatActionLabel(auditLog.action)}
+            </dd>
+          </div>
+
+          <div>
+            <dt className="font-bold text-[var(--starland-muted-text)]">
+              Attendance ID
+            </dt>
+            <dd className="mt-1 font-extrabold text-[var(--starland-dark-text)]">
+              {auditLog.entityId}
+            </dd>
+          </div>
+
+          <div>
+            <dt className="font-bold text-[var(--starland-muted-text)]">
+              Actor
+            </dt>
+            <dd className="mt-1 font-extrabold text-[var(--starland-dark-text)]">
+              {auditLog.actorName}
+            </dd>
+          </div>
+        </dl>
       </section>
 
       <div className="grid gap-5 xl:grid-cols-2">
