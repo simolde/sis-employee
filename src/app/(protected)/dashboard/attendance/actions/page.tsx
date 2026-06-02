@@ -142,6 +142,17 @@ export default async function AttendanceActionsPage() {
       statValue: stats.missingTimeout,
     },
     {
+      title: "Attendance Automation",
+      description:
+        "Check cron setup, actor account, secret configuration, and missing-timeout automation status.",
+      href: "/dashboard/attendance/automation",
+      icon: Hourglass,
+      badge: "Cron",
+      buttonLabel: "Open Automation",
+      statLabel: "Eligible Missing",
+      statValue: stats.missingTimeout,
+    },
+    {
       title: "Attendance Reports",
       description:
         "Generate filtered attendance reports with print and CSV export.",
@@ -179,7 +190,7 @@ export default async function AttendanceActionsPage() {
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
             Manage attendance records, manual corrections, missing timeouts, HR
-            review, and reports from one place.
+            review, automation, and reports from one place.
           </p>
         </div>
 
