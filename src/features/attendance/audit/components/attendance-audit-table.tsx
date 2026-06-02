@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, FileJson } from "lucide-react";
 import type {
   AttendanceAuditFilters,
   AttendanceAuditItem,
@@ -121,17 +121,25 @@ function AttendanceAuditRow({ record }: { record: AttendanceAuditItem }) {
       </td>
 
       <td className="print:hidden">
-        {record.entityId !== "—" ? (
+        <div className="flex flex-wrap gap-2">
           <Link
-            href={`/dashboard/attendance/${record.entityId}`}
+            href={`/dashboard/attendance/audit/${record.logId}`}
             className="starland-btn starland-btn-primary starland-btn-sm"
           >
-            <Eye className="h-4 w-4" aria-hidden="true" />
-            View Record
+            <FileJson className="h-4 w-4" aria-hidden="true" />
+            View Audit
           </Link>
-        ) : (
-          <span className="text-sm text-[var(--starland-muted-text)]">—</span>
-        )}
+
+          {record.entityId !== "—" ? (
+            <Link
+              href={`/dashboard/attendance/${record.entityId}`}
+              className="starland-btn starland-btn-soft starland-btn-sm"
+            >
+              <Eye className="h-4 w-4" aria-hidden="true" />
+              View Record
+            </Link>
+          ) : null}
+        </div>
       </td>
     </tr>
   );
