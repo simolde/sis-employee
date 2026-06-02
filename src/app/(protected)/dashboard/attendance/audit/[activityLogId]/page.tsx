@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   ArrowLeft,
   CalendarClock,
@@ -12,7 +12,10 @@ import {
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
 import { AttendanceAuditDetailActions } from "@/features/attendance/audit/detail/components/attendance-audit-detail-actions";
-import { getAttendanceAuditDetail } from "@/features/attendance/audit/server/attendance-audit-detail-queries";
+import {
+  getAttendanceAuditDetail,
+  getAttendanceAuditFallbackAttendanceId,
+} from "@/features/attendance/audit/server/attendance-audit-detail-queries";
 
 type AttendanceAuditDetailPageProps = {
   params: Promise<{
@@ -71,6 +74,13 @@ export default async function AttendanceAuditDetailPage({
   const auditLog = await getAttendanceAuditDetail(activityLogId);
 
   if (!auditLog) {
+    const fallbackAttendanceId =
+      await getAttendanceAuditFallbackAttendanceId(activityLogId);
+
+    if (fallbackAttendanceId) {
+      redirect(`/dashboard/attendance/${fallbackAttendanceId}/audit`);
+    }
+
     notFound();
   }
 

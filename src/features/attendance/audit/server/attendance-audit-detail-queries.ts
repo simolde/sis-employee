@@ -103,7 +103,8 @@ export async function getAttendanceAuditDetail(
   return {
     activityLogId: auditLog.activityLogId,
     actorUserId: auditLog.actorUserId,
-    actorName: actorUser?.username ?? (auditLog.actorUserId ? "Unknown User" : "System"),
+    actorName:
+      actorUser?.username ?? (auditLog.actorUserId ? "Unknown User" : "System"),
     actorEmail: actorUser?.email ?? "—",
     actorStatus: actorUser?.status ?? "—",
     action: auditLog.action,
@@ -115,4 +116,25 @@ export async function getAttendanceAuditDetail(
     userAgent: auditLog.userAgent ?? "—",
     createdAt: formatDateTime(auditLog.createdAt),
   };
+}
+
+export async function getAttendanceAuditFallbackAttendanceId(
+  value: string,
+): Promise<number | null> {
+  const parsedAttendanceId = parsePositiveId(value);
+
+  if (!parsedAttendanceId) {
+    return null;
+  }
+
+  const attendance = await prisma.attendance.findUnique({
+    where: {
+      attendanceId: parsedAttendanceId,
+    },
+    select: {
+      attendanceId: true,
+    },
+  });
+
+  return attendance?.attendanceId ?? null;
 }
