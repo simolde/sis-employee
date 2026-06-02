@@ -122,7 +122,7 @@ function buildAttendanceAuditWhere(
 }
 
 function mapAttendanceAuditItem(input: {
-  logId: number;
+  activityLogId: number;
   actorUserId: number | null;
   action: string;
   entityType: string;
@@ -132,7 +132,7 @@ function mapAttendanceAuditItem(input: {
   createdAt: Date;
 }): AttendanceAuditItem {
   return {
-    logId: input.logId,
+    logId: input.activityLogId,
     actorUserId: input.actorUserId,
     action: input.action,
     entityType: input.entityType,
@@ -164,7 +164,7 @@ export async function getAttendanceAuditData(
     prisma.activityLog.findMany({
       where,
       select: {
-        logId: true,
+        activityLogId: true,
         actorUserId: true,
         action: true,
         entityType: true,
