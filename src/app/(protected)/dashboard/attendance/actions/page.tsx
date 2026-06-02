@@ -7,6 +7,7 @@ import {
   Clock3,
   ClockAlert,
   FileSpreadsheet,
+  History,
   Hourglass,
   MonitorSmartphone,
   ShieldCheck,
@@ -86,12 +87,12 @@ export default async function AttendanceActionsPage() {
       tone: "danger",
     },
     {
-      title: "Reporting",
+      title: "Audit Trail",
       description:
-        "Attendance reports and review queues can be printed or exported to CSV.",
-      icon: BarChart3,
-      label: "Review Required",
-      value: stats.totalReviewRequired,
+        "Manual input, corrections, approvals, and missing-timeout automation are logged for traceability.",
+      icon: History,
+      label: "Audit Logs",
+      value: stats.attendanceAuditLogs,
       tone: "info",
     },
   ];
@@ -149,8 +150,19 @@ export default async function AttendanceActionsPage() {
       icon: Hourglass,
       badge: "Cron",
       buttonLabel: "Open Automation",
-      statLabel: "Eligible Missing",
+      statLabel: "Missing Timeout",
       statValue: stats.missingTimeout,
+    },
+    {
+      title: "Attendance Audit Trail",
+      description:
+        "Track manual changes, approvals, status updates, and missing-timeout automation logs.",
+      href: "/dashboard/attendance/audit",
+      icon: History,
+      badge: "Audit",
+      buttonLabel: "Open Audit Trail",
+      statLabel: "Audit Logs",
+      statValue: stats.attendanceAuditLogs,
     },
     {
       title: "Attendance Reports",
@@ -190,7 +202,7 @@ export default async function AttendanceActionsPage() {
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
             Manage attendance records, manual corrections, missing timeouts, HR
-            review, automation, and reports from one place.
+            review, automation, audit trail, and reports from one place.
           </p>
         </div>
 
@@ -215,7 +227,7 @@ export default async function AttendanceActionsPage() {
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
             Use these live counts to quickly check today’s attendance, missing
-            timeouts, manual corrections, and HR review workload.
+            timeouts, manual corrections, HR review workload, and audit logs.
           </p>
         </div>
 
@@ -307,14 +319,14 @@ export default async function AttendanceActionsPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <FileSpreadsheet className="h-7 w-7 text-[var(--starland-success)]" />
+            <History className="h-7 w-7 text-[var(--starland-info)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Approved Reviews
+              Audit Logs
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.approvedReview}
+              {stats.attendanceAuditLogs}
             </p>
           </article>
         </div>
@@ -368,7 +380,7 @@ export default async function AttendanceActionsPage() {
         </div>
       </section>
 
-      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         {attendanceActionCards.map((card) => {
           const Icon = card.icon;
 

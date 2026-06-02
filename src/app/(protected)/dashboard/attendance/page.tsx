@@ -5,6 +5,9 @@ import {
   ClipboardCheck,
   ClipboardEdit,
   Clock3,
+  ClockAlert,
+  History,
+  Hourglass,
   MonitorSmartphone,
   type LucideIcon,
 } from "lucide-react";
@@ -32,14 +35,14 @@ type AttendanceNavigationCard = {
   icon: LucideIcon;
   badge: string;
   buttonLabel: string;
-  tone: "success" | "warning" | "info";
+  tone: "success" | "warning" | "info" | "danger";
 };
 
 const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Attendance Actions",
     description:
-      "Open the attendance hub for quick access to manual input, review queue, reports, and ODL attendance.",
+      "Open the attendance hub for quick access to manual input, review queue, reports, automation, audit trail, missing timeouts, and ODL attendance.",
     href: "/dashboard/attendance/actions",
     icon: Clock3,
     badge: "Hub",
@@ -65,6 +68,36 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
     badge: "HR Review",
     buttonLabel: "Open Queue",
     tone: "warning",
+  },
+  {
+    title: "Missing Timeouts",
+    description:
+      "Mark old time-in records without time-out as missing timeout without making them manual.",
+    href: "/dashboard/attendance/missing-timeouts",
+    icon: ClockAlert,
+    badge: "Timeout",
+    buttonLabel: "Open Missing",
+    tone: "danger",
+  },
+  {
+    title: "Automation",
+    description:
+      "Check cron setup and run missing-timeout automation manually when needed.",
+    href: "/dashboard/attendance/automation",
+    icon: Hourglass,
+    badge: "Cron",
+    buttonLabel: "Open Automation",
+    tone: "info",
+  },
+  {
+    title: "Audit Trail",
+    description:
+      "Track manual changes, approvals, corrections, and missing-timeout automation logs.",
+    href: "/dashboard/attendance/audit",
+    icon: History,
+    badge: "Audit",
+    buttonLabel: "Open Audit",
+    tone: "info",
   },
   {
     title: "Attendance Reports",
@@ -97,6 +130,10 @@ function badgeClass(tone: AttendanceNavigationCard["tone"]): string {
     return "starland-badge-info";
   }
 
+  if (tone === "danger") {
+    return "starland-badge-danger";
+  }
+
   return "starland-badge-success";
 }
 
@@ -107,6 +144,10 @@ function iconClass(tone: AttendanceNavigationCard["tone"]): string {
 
   if (tone === "info") {
     return "text-[var(--starland-info)]";
+  }
+
+  if (tone === "danger") {
+    return "text-[var(--starland-danger)]";
   }
 
   return "text-[var(--starland-main-green)]";
@@ -161,7 +202,7 @@ export default async function AttendancePage({
         </Link>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {attendanceNavigationCards.map((card) => {
           const Icon = card.icon;
 

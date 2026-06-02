@@ -15,6 +15,7 @@ export type AttendanceActionHubStats = {
   verifiedNotApproved: number;
   approvedReview: number;
   totalReviewRequired: number;
+  attendanceAuditLogs: number;
 };
 
 type AttendanceHubSource = "WEB" | "RFID";
@@ -64,6 +65,7 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     verifiedNotApproved,
     approvedReview,
     totalReviewRequired,
+    attendanceAuditLogs,
   ] = await Promise.all([
     prisma.attendance.count({
       where: {
@@ -171,6 +173,12 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     prisma.attendance.count({
       where: reviewRequiredWhere,
     }),
+
+    prisma.activityLog.count({
+      where: {
+        entityType: "attendance",
+      },
+    }),
   ]);
 
   return {
@@ -186,5 +194,6 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     verifiedNotApproved,
     approvedReview,
     totalReviewRequired,
+    attendanceAuditLogs,
   };
 }
