@@ -46,20 +46,14 @@ function buildPageHref(filters: AttendanceAuditFilters, page: number): string {
   return `/dashboard/attendance/audit?${params.toString()}`;
 }
 
-function JsonPreview({
-  title,
-  value,
-}: {
-  title: string;
-  value: string;
-}) {
+function JsonPreview({ title, value }: { title: string; value: string }) {
   return (
-    <details className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-3">
-      <summary className="cursor-pointer text-xs font-bold text-[var(--starland-dark-text)]">
+    <details className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-3 print:border-0 print:bg-transparent print:p-0">
+      <summary className="cursor-pointer text-xs font-bold text-[var(--starland-dark-text)] print:list-none">
         {title}
       </summary>
 
-      <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-[var(--starland-muted-text)]">
+      <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-[var(--starland-muted-text)] print:max-h-none print:overflow-visible">
         {value}
       </pre>
     </details>
@@ -70,7 +64,11 @@ function AttendanceAuditRow({ record }: { record: AttendanceAuditItem }) {
   return (
     <tr>
       <td>
-        <span className={["starland-badge", actionBadgeClass(record.action)].join(" ")}>
+        <span
+          className={["starland-badge", actionBadgeClass(record.action)].join(
+            " ",
+          )}
+        >
           {formatActionLabel(record.action)}
         </span>
 
@@ -106,7 +104,7 @@ function AttendanceAuditRow({ record }: { record: AttendanceAuditItem }) {
         </div>
       </td>
 
-      <td>
+      <td className="print:hidden">
         {record.entityId !== "—" ? (
           <Link
             href={`/dashboard/attendance/${record.entityId}`}
@@ -125,7 +123,7 @@ function AttendanceAuditRow({ record }: { record: AttendanceAuditItem }) {
 
 export function AttendanceAuditTable({ result }: AttendanceAuditTableProps) {
   return (
-    <section className="starland-card overflow-hidden">
+    <section className="starland-card overflow-hidden print:shadow-none">
       <div className="border-b border-[var(--starland-border)] px-5 py-4">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
           Attendance Audit Logs
@@ -136,7 +134,7 @@ export function AttendanceAuditTable({ result }: AttendanceAuditTableProps) {
         </p>
       </div>
 
-      <div className="starland-scroll-x">
+      <div className="starland-scroll-x print:overflow-visible">
         <table className="starland-table">
           <thead>
             <tr>
@@ -144,7 +142,7 @@ export function AttendanceAuditTable({ result }: AttendanceAuditTableProps) {
               <th>Record</th>
               <th>Actor / Date</th>
               <th>Audit Values</th>
-              <th>Open</th>
+              <th className="print:hidden">Open</th>
             </tr>
           </thead>
 
@@ -172,7 +170,7 @@ export function AttendanceAuditTable({ result }: AttendanceAuditTableProps) {
         </table>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[var(--starland-border)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[var(--starland-border)] px-5 py-4 print:hidden sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-semibold text-[var(--starland-muted-text)]">
           Page {result.pagination.page} of {result.pagination.totalPages} ·{" "}
           {result.pagination.totalItems} log(s)

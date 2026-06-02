@@ -7,6 +7,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAuditActions } from "@/features/attendance/audit/components/attendance-audit-actions";
 import { AttendanceAuditTable } from "@/features/attendance/audit/components/attendance-audit-table";
 import {
   getAttendanceAuditData,
@@ -39,7 +40,7 @@ function AttendanceAuditFiltersForm({
   filters: AttendanceAuditFilters;
 }) {
   return (
-    <section className="starland-card p-5">
+    <section className="starland-card p-5 print:hidden">
       <form className="grid gap-4 lg:grid-cols-[1.5fr_1fr_auto_auto] lg:items-end">
         <div>
           <label
@@ -107,7 +108,7 @@ export default async function AttendanceAuditPage({
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-info">
             Audit Trail
@@ -124,6 +125,8 @@ export default async function AttendanceAuditPage({
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <AttendanceAuditActions result={result} />
+
           <Link
             href="/dashboard/attendance/actions"
             className="starland-btn starland-btn-primary"
@@ -142,7 +145,7 @@ export default async function AttendanceAuditPage({
         </div>
       </div>
 
-      <section className="starland-card overflow-hidden">
+      <section className="starland-card overflow-hidden print:shadow-none">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
             Attendance Security
