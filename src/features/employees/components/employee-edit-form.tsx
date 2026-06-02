@@ -341,14 +341,6 @@ function toBoolean(value: unknown): boolean {
   return value === true || value === "true" || value === "on";
 }
 
-function textValue(value: unknown): string {
-  if (value === null || value === undefined) {
-    return "";
-  }
-
-  return String(value);
-}
-
 export function EmployeeEditForm({
   employee,
   options,
