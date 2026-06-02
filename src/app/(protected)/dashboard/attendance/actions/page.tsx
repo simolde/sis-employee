@@ -6,73 +6,143 @@ import {
   ClipboardEdit,
   Clock3,
   FileSpreadsheet,
+  Hourglass,
   MonitorSmartphone,
   ShieldCheck,
+  Timer,
+  type LucideIcon,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { getAttendanceActionHubStats } from "@/features/attendance/server/attendance-action-hub-queries";
 
 type AttendanceActionCard = {
   title: string;
   description: string;
   href: string;
-  icon: React.ComponentType<{
-    className?: string;
-    "aria-hidden"?: boolean;
-  }>;
+  icon: LucideIcon;
   badge: string;
   buttonLabel: string;
+  statLabel: string;
+  statValue: number;
 };
 
-const attendanceActionCards: AttendanceActionCard[] = [
-  {
-    title: "Attendance List",
-    description:
-      "View all RFID, biometric/kiosk, ODL, and manual attendance records.",
-    href: "/dashboard/attendance",
-    icon: Clock3,
-    badge: "Records",
-    buttonLabel: "Open Attendance",
-  },
-  {
-    title: "Manual Attendance Input",
-    description:
-      "Create or correct attendance manually. These records are automatically marked as pending review.",
-    href: "/dashboard/attendance/manual",
-    icon: ClipboardEdit,
-    badge: "Manual",
-    buttonLabel: "Manual Input",
-  },
-  {
-    title: "Attendance Review Queue",
-    description:
-      "Review only manual attendance, manual edits, and corrections. Normal punches are excluded.",
-    href: "/dashboard/attendance/review",
-    icon: ClipboardCheck,
-    badge: "HR Review",
-    buttonLabel: "Open Review Queue",
-  },
-  {
-    title: "Attendance Reports",
-    description:
-      "Generate filtered attendance reports with print and CSV export.",
-    href: "/dashboard/attendance/reports",
-    icon: FileSpreadsheet,
-    badge: "Reports",
-    buttonLabel: "Open Reports",
-  },
-  {
-    title: "ODL Time In / Out",
-    description:
-      "Open the online distance learning teacher time-in and time-out page.",
-    href: "/dashboard/attendance/odl",
-    icon: MonitorSmartphone,
-    badge: "ODL",
-    buttonLabel: "Open ODL Attendance",
-  },
-];
+type AttendancePolicyCard = {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  label: string;
+  value: string | number;
+  tone: "success" | "warning" | "info" | "danger";
+};
+
+function iconToneClass(tone: AttendancePolicyCard["tone"]): string {
+  if (tone === "warning") {
+    return "text-[var(--starland-warning)]";
+  }
+
+  if (tone === "info") {
+    return "text-[var(--starland-info)]";
+  }
+
+  if (tone === "danger") {
+    return "text-[var(--starland-danger)]";
+  }
+
+  return "text-[var(--starland-success)]";
+}
 
 export default async function AttendanceActionsPage() {
   await requireCanManageEmployees();
+
+  const stats = await getAttendanceActionHubStats();
+
+  const policyCards: AttendancePolicyCard[] = [
+    {
+      title: "Normal Attendance",
+      description:
+        "RFID, biometric/kiosk, and ODL time-in/out records proceed without HR review unless manually changed later.",
+      icon: ShieldCheck,
+      label: "No Review Needed",
+      value: stats.totalToday,
+      tone: "success",
+    },
+    {
+      title: "Manual Changes",
+      description:
+        "Manual input, edits, and corrections are saved as pending review until verified or approved.",
+      icon: ClipboardCheck,
+      label: "Open Review",
+      value: stats.openReview,
+      tone: "warning",
+    },
+    {
+      title: "Reporting",
+      description:
+        "Attendance reports and review queues can be printed or exported to CSV.",
+      icon: BarChart3,
+      label: "Review Required",
+      value: stats.totalReviewRequired,
+      tone: "info",
+    },
+  ];
+
+  const attendanceActionCards: AttendanceActionCard[] = [
+    {
+      title: "Attendance List",
+      description:
+        "View all RFID, biometric/kiosk, ODL, and manual attendance records.",
+      href: "/dashboard/attendance",
+      icon: Clock3,
+      badge: "Records",
+      buttonLabel: "Open Attendance",
+      statLabel: "Today",
+      statValue: stats.totalToday,
+    },
+    {
+      title: "Manual Attendance Input",
+      description:
+        "Create or correct attendance manually. These records are automatically marked as pending review.",
+      href: "/dashboard/attendance/manual",
+      icon: ClipboardEdit,
+      badge: "Manual",
+      buttonLabel: "Manual Input",
+      statLabel: "Manual Today",
+      statValue: stats.manualToday,
+    },
+    {
+      title: "Attendance Review Queue",
+      description:
+        "Review only manual attendance, manual edits, and corrections. Normal punches are excluded.",
+      href: "/dashboard/attendance/review",
+      icon: ClipboardCheck,
+      badge: "HR Review",
+      buttonLabel: "Open Review Queue",
+      statLabel: "Open Review",
+      statValue: stats.openReview,
+    },
+    {
+      title: "Attendance Reports",
+      description:
+        "Generate filtered attendance reports with print and CSV export.",
+      href: "/dashboard/attendance/reports",
+      icon: FileSpreadsheet,
+      badge: "Reports",
+      buttonLabel: "Open Reports",
+      statLabel: "Pending Review",
+      statValue: stats.pendingReview,
+    },
+    {
+      title: "ODL Time In / Out",
+      description:
+        "Open the online distance learning teacher time-in and time-out page.",
+      href: "/dashboard/attendance/odl",
+      icon: MonitorSmartphone,
+      badge: "ODL",
+      buttonLabel: "Open ODL Attendance",
+      statLabel: "WEB Today",
+      statValue: stats.webToday,
+    },
+  ];
 
   return (
     <section className="starland-page space-y-5">
@@ -104,6 +174,123 @@ export default async function AttendanceActionsPage() {
       <section className="starland-card overflow-hidden">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+            Live Attendance Snapshot
+          </span>
+
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+            Today and Review Status
+          </h2>
+
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+            Use these live counts to quickly check today’s attendance, missing
+            timeouts, manual corrections, and HR review workload.
+          </p>
+        </div>
+
+        <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Clock3 className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Today’s Attendance
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.totalToday}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ShieldCheck className="h-7 w-7 text-[var(--starland-success)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              On Time Today
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.onTimeToday}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Timer className="h-7 w-7 text-[var(--starland-warning)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Late Today
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.lateToday}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Hourglass className="h-7 w-7 text-[var(--starland-danger)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Missing Timeout
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.missingTimeout}
+            </p>
+          </article>
+        </div>
+
+        <div className="grid gap-4 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ClipboardEdit className="h-7 w-7 text-[var(--starland-warning)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Manual Today
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.manualToday}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ClipboardCheck className="h-7 w-7 text-[var(--starland-warning)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Open Review
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.openReview}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ShieldCheck className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Verified, Not Approved
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.verifiedNotApproved}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <FileSpreadsheet className="h-7 w-7 text-[var(--starland-success)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Approved Reviews
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.approvedReview}
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
             Review Policy
           </span>
 
@@ -119,56 +306,33 @@ export default async function AttendanceActionsPage() {
         </div>
 
         <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-3">
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ShieldCheck className="h-7 w-7 text-[var(--starland-success)]" />
+          {policyCards.map((card) => {
+            const Icon = card.icon;
 
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Normal Attendance
-            </p>
+            return (
+              <article
+                key={card.title}
+                className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4"
+              >
+                <Icon
+                  className={["h-7 w-7", iconToneClass(card.tone)].join(" ")}
+                  aria-hidden="true"
+                />
 
-            <p className="mt-1 text-lg font-extrabold text-[var(--starland-dark-text)]">
-              No Review Needed
-            </p>
+                <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+                  {card.title}
+                </p>
 
-            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              RFID, biometric/kiosk, and ODL time-in/out records proceed without
-              HR review unless manually changed later.
-            </p>
-          </article>
+                <p className="mt-1 text-lg font-extrabold text-[var(--starland-dark-text)]">
+                  {card.label}: {card.value}
+                </p>
 
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ClipboardCheck className="h-7 w-7 text-[var(--starland-warning)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Manual Changes
-            </p>
-
-            <p className="mt-1 text-lg font-extrabold text-[var(--starland-dark-text)]">
-              Review Required
-            </p>
-
-            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Manual input, edits, and corrections are saved as pending review
-              until verified or approved.
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4 md:col-span-2 xl:col-span-1">
-            <BarChart3 className="h-7 w-7 text-[var(--starland-info)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Reporting
-            </p>
-
-            <p className="mt-1 text-lg font-extrabold text-[var(--starland-dark-text)]">
-              Export and Print
-            </p>
-
-            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Attendance reports and review queues can be printed or exported
-              to CSV.
-            </p>
-          </article>
+                <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+                  {card.description}
+                </p>
+              </article>
+            );
+          })}
         </div>
       </section>
 
@@ -184,7 +348,7 @@ export default async function AttendanceActionsPage() {
               <div>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--starland-light-bg)] text-[var(--starland-main-green)]">
-                    <Icon className="h-6 w-6" aria-hidden />
+                    <Icon className="h-6 w-6" aria-hidden="true" />
                   </div>
 
                   <span className="starland-badge starland-badge-success">
@@ -199,10 +363,23 @@ export default async function AttendanceActionsPage() {
                 <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
                   {card.description}
                 </p>
+
+                <div className="mt-4 rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-3">
+                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                    {card.statLabel}
+                  </p>
+
+                  <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+                    {card.statValue}
+                  </p>
+                </div>
               </div>
 
               <div className="mt-5">
-                <Link href={card.href} className="starland-btn starland-btn-primary">
+                <Link
+                  href={card.href}
+                  className="starland-btn starland-btn-primary"
+                >
                   {card.buttonLabel}
                 </Link>
               </div>
