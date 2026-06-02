@@ -93,7 +93,7 @@ function normalizeAction(value: string): string {
   return "ALL";
 }
 
-function buildAttendanceAuditWhere(
+function buildBaseAttendanceAuditWhere(
   filters: AttendanceAuditFilters,
 ): Prisma.ActivityLogWhereInput {
   const andConditions: Prisma.ActivityLogWhereInput[] = [
@@ -112,20 +112,6 @@ function buildAttendanceAuditWhere(
         ...(dateTo ? { lte: dateTo } : {}),
       },
     });
-  }
-
-  if (filters.action !== "ALL") {
-    if (filters.action === "ATTENDANCE_STATUS_UPDATED") {
-      andConditions.push({
-        action: {
-          startsWith: "ATTENDANCE_STATUS_UPDATED",
-        },
-      });
-    } else {
-      andConditions.push({
-        action: filters.action,
-      });
-    }
   }
 
   if (filters.q) {
@@ -152,6 +138,59 @@ function buildAttendanceAuditWhere(
 
   return {
     AND: andConditions,
+  };
+}
+
+function buildAttendanceAuditWhere(
+  filters: AttendanceAuditFilters,
+): Prisma.ActivityLogWhereInput {
+  const andConditions: Prisma.ActivityLogWhereInput[] = [
+    buildBaseAttendanceAuditWhere(filters),
+  ];
+
+  if (filters.action !== "ALL") {
+    if (filters.action === "ATTENDANCE_STATUS_UPDATED") {
+      andConditions.push({
+        action: {
+          startsWith: "ATTENDANCE_STATUS_UPDATED",
+        },
+      });
+    } else {
+      andConditions.push({
+        action: filters.action,
+      });
+    }
+  }
+
+  return {
+    AND: andConditions,
+  };
+}
+
+function getActionWhere(input: {
+  baseWhere: Prisma.ActivityLogWhereInput;
+  action: string;
+}): Prisma.ActivityLogWhereInput {
+  if (input.action === "ATTENDANCE_STATUS_UPDATED") {
+    return {
+      AND: [
+        input.baseWhere,
+        {
+          action: {
+            startsWith: "ATTENDANCE_STATUS_UPDATED",
+          },
+        },
+      ],
+    };
+  }
+
+  return {
+    AND: [
+      input.baseWhere,
+      {
+        action: input.action,
+      },
+    ],
   };
 }
 
@@ -226,9 +265,20 @@ export async function getAttendanceAuditData(
   filters: AttendanceAuditFilters,
 ): Promise<AttendanceAuditResult> {
   const where = buildAttendanceAuditWhere(filters);
+  const baseWhere = buildBaseAttendanceAuditWhere(filters);
   const skip = (filters.page - 1) * filters.pageSize;
 
-  const [records, totalItems] = await Promise.all([
+  const [
+    records,
+    totalItems,
+    totalLogs,
+    manualCreated,
+    manualCorrected,
+    missingTimeout,
+    verified,
+    approved,
+    statusUpdated,
+  ] = await Promise.all([
     prisma.activityLog.findMany({
       where,
       select: {
@@ -250,6 +300,52 @@ export async function getAttendanceAuditData(
 
     prisma.activityLog.count({
       where,
+    }),
+
+    prisma.activityLog.count({
+      where: baseWhere,
+    }),
+
+    prisma.activityLog.count({
+      where: getActionWhere({
+        baseWhere,
+        action: "MANUAL_ATTENDANCE_CREATED",
+      }),
+    }),
+
+    prisma.activityLog.count({
+      where: getActionWhere({
+        baseWhere,
+        action: "MANUAL_ATTENDANCE_CORRECTED",
+      }),
+    }),
+
+    prisma.activityLog.count({
+      where: getActionWhere({
+        baseWhere,
+        action: "ATTENDANCE_MARKED_MISSING_TIMEOUT",
+      }),
+    }),
+
+    prisma.activityLog.count({
+      where: getActionWhere({
+        baseWhere,
+        action: "ATTENDANCE_VERIFIED",
+      }),
+    }),
+
+    prisma.activityLog.count({
+      where: getActionWhere({
+        baseWhere,
+        action: "ATTENDANCE_APPROVED",
+      }),
+    }),
+
+    prisma.activityLog.count({
+      where: getActionWhere({
+        baseWhere,
+        action: "ATTENDANCE_STATUS_UPDATED",
+      }),
     }),
   ]);
 
@@ -293,6 +389,15 @@ export async function getAttendanceAuditData(
 
   return {
     filters,
+    summary: {
+      totalLogs,
+      manualCreated,
+      manualCorrected,
+      missingTimeout,
+      verified,
+      approved,
+      statusUpdated,
+    },
     records: records.map((record) =>
       mapAttendanceAuditItem(record, actorUsersById),
     ),

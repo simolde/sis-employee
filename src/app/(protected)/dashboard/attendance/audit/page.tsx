@@ -1,10 +1,14 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  CheckCircle2,
+  ClipboardCheck,
   ClipboardList,
+  Edit3,
   History,
   Search,
   ShieldCheck,
+  TimerOff,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
 import { AttendanceAuditActions } from "@/features/attendance/audit/components/attendance-audit-actions";
@@ -200,11 +204,11 @@ export default async function AttendanceAuditPage({
             <History className="h-7 w-7 text-[var(--starland-info)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Total Logs in Filter
+              Total Logs
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {result.pagination.totalItems}
+              {result.summary.totalLogs}
             </p>
           </article>
 
@@ -234,6 +238,80 @@ export default async function AttendanceAuditPage({
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
               Search: {result.filters.q || "—"}
+            </p>
+          </article>
+        </div>
+
+        <div className="grid gap-4 px-5 pb-5 md:grid-cols-2 xl:grid-cols-6">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ClipboardCheck className="h-6 w-6 text-[var(--starland-warning)]" />
+
+            <p className="mt-3 text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+              Manual Created
+            </p>
+
+            <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+              {result.summary.manualCreated}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Edit3 className="h-6 w-6 text-[var(--starland-warning)]" />
+
+            <p className="mt-3 text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+              Manual Corrected
+            </p>
+
+            <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+              {result.summary.manualCorrected}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <TimerOff className="h-6 w-6 text-[var(--starland-danger)]" />
+
+            <p className="mt-3 text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+              Missing Timeout
+            </p>
+
+            <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+              {result.summary.missingTimeout}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ShieldCheck className="h-6 w-6 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+              Verified
+            </p>
+
+            <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+              {result.summary.verified}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <CheckCircle2 className="h-6 w-6 text-[var(--starland-success)]" />
+
+            <p className="mt-3 text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+              Approved
+            </p>
+
+            <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+              {result.summary.approved}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <History className="h-6 w-6 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+              Status Updated
+            </p>
+
+            <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+              {result.summary.statusUpdated}
             </p>
           </article>
         </div>

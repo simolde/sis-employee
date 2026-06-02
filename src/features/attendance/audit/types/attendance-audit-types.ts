@@ -21,8 +21,19 @@ export type AttendanceAuditItem = {
   createdAt: string;
 };
 
+export type AttendanceAuditSummary = {
+  totalLogs: number;
+  manualCreated: number;
+  manualCorrected: number;
+  missingTimeout: number;
+  verified: number;
+  approved: number;
+  statusUpdated: number;
+};
+
 export type AttendanceAuditResult = {
   filters: AttendanceAuditFilters;
+  summary: AttendanceAuditSummary;
   records: AttendanceAuditItem[];
   pagination: {
     page: number;
