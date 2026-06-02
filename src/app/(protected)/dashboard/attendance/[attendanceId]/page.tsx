@@ -168,18 +168,28 @@ export default async function AttendanceDetailPage({
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Review time-in, time-out, schedule, GPS, selfie path, and attendance
-            logs.
+            Review time-in, time-out, schedule, GPS, selfie path, attendance
+            logs, and audit history.
           </p>
         </div>
 
-        <Link
-          href="/dashboard/attendance"
-          className="starland-btn starland-btn-soft"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back to Attendance
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/dashboard/attendance/${attendance.attendanceId}/audit`}
+            className="starland-btn starland-btn-primary"
+          >
+            <History className="h-4 w-4" aria-hidden="true" />
+            Audit History
+          </Link>
+
+          <Link
+            href="/dashboard/attendance"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Back to Attendance
+          </Link>
+        </div>
       </div>
 
       <section className="starland-card overflow-hidden">

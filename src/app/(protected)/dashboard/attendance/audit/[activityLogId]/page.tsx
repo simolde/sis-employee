@@ -6,6 +6,7 @@ import {
   Database,
   Eye,
   FileJson,
+  History,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
@@ -99,13 +100,23 @@ export default async function AttendanceAuditDetailPage({
 
           <div className="flex flex-wrap gap-2">
             {auditLog.entityId !== "—" ? (
-              <Link
-                href={`/dashboard/attendance/${auditLog.entityId}`}
-                className="starland-btn starland-btn-primary"
-              >
-                <Eye className="h-4 w-4" aria-hidden="true" />
-                Open Attendance Record
-              </Link>
+              <>
+                <Link
+                  href={`/dashboard/attendance/${auditLog.entityId}/audit`}
+                  className="starland-btn starland-btn-primary"
+                >
+                  <History className="h-4 w-4" aria-hidden="true" />
+                  Record Audit History
+                </Link>
+
+                <Link
+                  href={`/dashboard/attendance/${auditLog.entityId}`}
+                  className="starland-btn starland-btn-soft"
+                >
+                  <Eye className="h-4 w-4" aria-hidden="true" />
+                  Open Attendance Record
+                </Link>
+              </>
             ) : null}
 
             <Link
