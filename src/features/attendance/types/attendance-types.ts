@@ -100,8 +100,6 @@ export type MyAttendanceListItem = AttendanceListItem;
 
 export type MyAttendanceListResult = {
   records: MyAttendanceListItem[];
-  summary: AttendanceSummary;
-  filters: AttendanceListSearchParams;
   pagination: AttendancePagination;
 };
 
