@@ -41,7 +41,7 @@ function AttendanceAuditFiltersForm({
 }) {
   return (
     <section className="starland-card p-5 print:hidden">
-      <form className="grid gap-4 lg:grid-cols-[1.5fr_1fr_auto_auto] lg:items-end">
+      <form className="grid gap-4 lg:grid-cols-[1.4fr_0.9fr_0.8fr_0.8fr_auto_auto] lg:items-end">
         <div>
           <label
             htmlFor="q"
@@ -79,6 +79,40 @@ function AttendanceAuditFiltersForm({
               </option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="dateFrom"
+            className="text-sm font-bold text-[var(--starland-dark-text)]"
+          >
+            Date From
+          </label>
+
+          <input
+            id="dateFrom"
+            name="dateFrom"
+            type="date"
+            className="starland-input mt-2"
+            defaultValue={filters.dateFrom}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="dateTo"
+            className="text-sm font-bold text-[var(--starland-dark-text)]"
+          >
+            Date To
+          </label>
+
+          <input
+            id="dateTo"
+            name="dateTo"
+            type="date"
+            className="starland-input mt-2"
+            defaultValue={filters.dateTo}
+          />
         </div>
 
         <button type="submit" className="starland-btn starland-btn-primary">
@@ -190,11 +224,16 @@ export default async function AttendanceAuditPage({
             <ClipboardList className="h-7 w-7 text-[var(--starland-warning)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Search
+              Date Filter
             </p>
 
             <p className="mt-1 text-lg font-extrabold text-[var(--starland-dark-text)]">
-              {result.filters.q || "—"}
+              {result.filters.dateFrom || "All"} to{" "}
+              {result.filters.dateTo || "All"}
+            </p>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              Search: {result.filters.q || "—"}
             </p>
           </article>
         </div>

@@ -20,6 +20,8 @@ export function buildAttendanceAuditCsv(result: AttendanceAuditResult): string {
     ["Attendance Audit Trail"],
     ["Search", result.filters.q || "—"],
     ["Action", result.filters.action],
+    ["Date From", result.filters.dateFrom || "—"],
+    ["Date To", result.filters.dateTo || "—"],
     ["Total Logs", result.pagination.totalItems],
     ["Page", result.pagination.page],
     ["Page Size", result.pagination.pageSize],
@@ -66,6 +68,9 @@ export function buildAttendanceAuditFileName(
 ): string {
   const actionPart = safeFilePart(result.filters.action || "all");
   const searchPart = result.filters.q ? safeFilePart(result.filters.q) : "all";
+  const datePart = safeFilePart(
+    `${result.filters.dateFrom || "all"}-${result.filters.dateTo || "all"}`,
+  );
 
-  return `attendance-audit-${actionPart}-${searchPart}.csv`;
+  return `attendance-audit-${actionPart}-${datePart}-${searchPart}.csv`;
 }

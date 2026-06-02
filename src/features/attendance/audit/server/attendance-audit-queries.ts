@@ -36,6 +36,22 @@ function parsePositiveInteger(value: string, fallback: number): number {
   return parsed;
 }
 
+function dateInputToStartDate(value: string): Date | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  return new Date(`${value}T00:00:00.000+08:00`);
+}
+
+function dateInputToEndDate(value: string): Date | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  return new Date(`${value}T23:59:59.999+08:00`);
+}
+
 function safeJsonString(value: Prisma.JsonValue | null): string {
   if (value === null) {
     return "—";
@@ -85,6 +101,18 @@ function buildAttendanceAuditWhere(
       entityType: "attendance",
     },
   ];
+
+  const dateFrom = dateInputToStartDate(filters.dateFrom);
+  const dateTo = dateInputToEndDate(filters.dateTo);
+
+  if (dateFrom || dateTo) {
+    andConditions.push({
+      createdAt: {
+        ...(dateFrom ? { gte: dateFrom } : {}),
+        ...(dateTo ? { lte: dateTo } : {}),
+      },
+    });
+  }
 
   if (filters.action !== "ALL") {
     if (filters.action === "ATTENDANCE_STATUS_UPDATED") {
@@ -187,6 +215,8 @@ export function parseAttendanceAuditSearchParams(
   return {
     q: singleSearchParam(searchParams.q).trim(),
     action: normalizeAction(singleSearchParam(searchParams.action, "ALL")),
+    dateFrom: singleSearchParam(searchParams.dateFrom),
+    dateTo: singleSearchParam(searchParams.dateTo),
     page: parsePositiveInteger(singleSearchParam(searchParams.page), 1),
     pageSize: DEFAULT_PAGE_SIZE,
   };

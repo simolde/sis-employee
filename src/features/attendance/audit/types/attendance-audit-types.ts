@@ -1,6 +1,8 @@
 export type AttendanceAuditFilters = {
   q: string;
   action: string;
+  dateFrom: string;
+  dateTo: string;
   page: number;
   pageSize: number;
 };

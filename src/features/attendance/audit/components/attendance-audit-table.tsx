@@ -41,6 +41,14 @@ function buildPageHref(filters: AttendanceAuditFilters, page: number): string {
     params.set("action", filters.action);
   }
 
+  if (filters.dateFrom) {
+    params.set("dateFrom", filters.dateFrom);
+  }
+
+  if (filters.dateTo) {
+    params.set("dateTo", filters.dateTo);
+  }
+
   params.set("page", String(page));
 
   return `/dashboard/attendance/audit?${params.toString()}`;
