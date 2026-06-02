@@ -1,6 +1,7 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { formatFullName, formatMinutesToHours } from "@/lib/utils/formatting";
+import { buildAttendanceReviewRequiredWhere } from "@/features/attendance/server/attendance-review-policy";
 import {
   attendanceReviewQueueStatusValues,
   type AttendanceReviewQueueFilters,
@@ -92,36 +93,11 @@ function dash(value: string | null | undefined): string {
   return value?.trim() ? value : "—";
 }
 
-function buildReviewRequiredWhere(): Prisma.AttendanceWhereInput {
-  return {
-    OR: [
-      {
-        isManual: true,
-      },
-      {
-        inSource: "MANUAL",
-      },
-      {
-        outSource: "MANUAL",
-      },
-      {
-        logs: {
-          some: {
-            punchType: {
-              in: ["MANUAL_EDIT", "CORRECTION"],
-            },
-          },
-        },
-      },
-    ],
-  };
-}
-
 function buildAttendanceReviewQueueWhere(
   filters: AttendanceReviewQueueFilters,
 ): Prisma.AttendanceWhereInput {
   const andConditions: Prisma.AttendanceWhereInput[] = [
-    buildReviewRequiredWhere(),
+    buildAttendanceReviewRequiredWhere(),
   ];
 
   const dateFrom = dateInputToDate(filters.dateFrom);
@@ -237,6 +213,7 @@ function buildReviewReason(input: {
   outSource: string | null;
   logs: {
     punchType: string;
+    source: string;
   }[];
 }): string {
   const reasons = new Set<string>();
@@ -249,12 +226,20 @@ function buildReviewReason(input: {
     reasons.add("Manual source");
   }
 
-  if (input.logs.some((log) => log.punchType === "MANUAL_EDIT")) {
+  if (
+    input.logs.some(
+      (log) => log.source === "MANUAL" && log.punchType === "MANUAL_EDIT",
+    )
+  ) {
     reasons.add("Manual edit");
   }
 
-  if (input.logs.some((log) => log.punchType === "CORRECTION")) {
-    reasons.add("Correction");
+  if (
+    input.logs.some(
+      (log) => log.source === "MANUAL" && log.punchType === "CORRECTION",
+    )
+  ) {
+    reasons.add("Manual correction");
   }
 
   return Array.from(reasons).join(", ") || "Review required";
@@ -296,6 +281,7 @@ function mapReviewQueueItem(input: {
   } | null;
   logs: {
     punchType: string;
+    source: string;
     punchedAt: Date;
     remarks: string | null;
     reason: string | null;
@@ -367,7 +353,7 @@ export async function getAttendanceReviewQueueData(
   filters: AttendanceReviewQueueFilters,
 ): Promise<AttendanceReviewQueueResult> {
   const where = buildAttendanceReviewQueueWhere(filters);
-  const reviewRequiredWhere = buildReviewRequiredWhere();
+  const reviewRequiredWhere = buildAttendanceReviewRequiredWhere();
   const skip = (filters.page - 1) * filters.pageSize;
 
   const [
@@ -428,12 +414,14 @@ export async function getAttendanceReviewQueueData(
         },
         logs: {
           where: {
+            source: "MANUAL",
             punchType: {
               in: ["MANUAL_EDIT", "CORRECTION"],
             },
           },
           select: {
             punchType: true,
+            source: true,
             punchedAt: true,
             remarks: true,
             reason: true,

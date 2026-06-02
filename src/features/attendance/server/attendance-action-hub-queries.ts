@@ -1,5 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
+import { buildAttendanceReviewRequiredWhere } from "./attendance-review-policy";
 
 export type AttendanceActionHubStats = {
   totalToday: number;
@@ -33,31 +34,6 @@ function getManilaDateOnly(date = new Date()): Date {
   return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 }
 
-function buildReviewRequiredWhere(): Prisma.AttendanceWhereInput {
-  return {
-    OR: [
-      {
-        isManual: true,
-      },
-      {
-        inSource: "MANUAL",
-      },
-      {
-        outSource: "MANUAL",
-      },
-      {
-        logs: {
-          some: {
-            punchType: {
-              in: ["MANUAL_EDIT", "CORRECTION"],
-            },
-          },
-        },
-      },
-    ],
-  };
-}
-
 function sourceWhere(source: AttendanceHubSource): Prisma.AttendanceWhereInput {
   return {
     OR: [
@@ -73,7 +49,7 @@ function sourceWhere(source: AttendanceHubSource): Prisma.AttendanceWhereInput {
 
 export async function getAttendanceActionHubStats(): Promise<AttendanceActionHubStats> {
   const today = getManilaDateOnly();
-  const reviewRequiredWhere = buildReviewRequiredWhere();
+  const reviewRequiredWhere = buildAttendanceReviewRequiredWhere();
 
   const [
     totalToday,
@@ -111,14 +87,7 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
 
     prisma.attendance.count({
       where: {
-        OR: [
-          {
-            status: "MISSING_TIMEOUT",
-          },
-          {
-            timeOut: null,
-          },
-        ],
+        status: "MISSING_TIMEOUT",
       },
     }),
 

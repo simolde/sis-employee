@@ -1,6 +1,7 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { formatFullName, formatMinutesToHours } from "@/lib/utils/formatting";
+import { buildAttendanceReviewRequiredWhere, isAttendanceReviewRequired } from "./attendance-review-policy";
 import type {
   AttendanceDetail,
   AttendanceDetailLog,
@@ -332,33 +333,13 @@ function mapAttendanceLog(log: {
   };
 }
 
-function getReviewRequired(input: {
-  isManual: boolean;
-  inSource: string | null;
-  outSource: string | null;
-  logs: {
-    punchType: string;
-  }[];
-}): boolean {
-  if (input.isManual) {
-    return true;
-  }
-
-  if (input.inSource === "MANUAL" || input.outSource === "MANUAL") {
-    return true;
-  }
-
-  return input.logs.some(
-    (log) => log.punchType === "MANUAL_EDIT" || log.punchType === "CORRECTION",
-  );
-}
-
 export async function getAttendanceList(
   filters: AttendanceListSearchParams,
 ): Promise<AttendanceListResult> {
   const where = buildAttendanceWhere(filters);
   const skip = (filters.page - 1) * filters.pageSize;
   const today = dateInputToDate(getManilaDateString());
+  const reviewRequiredWhere = buildAttendanceReviewRequiredWhere();
 
   const [
     records,
@@ -456,43 +437,12 @@ export async function getAttendanceList(
     }),
 
     prisma.attendance.count({
-      where: {
-        OR: [
-          {
-            status: "PENDING_REVIEW",
-          },
-          {
-            isManual: true,
-          },
-          {
-            inSource: "MANUAL",
-          },
-          {
-            outSource: "MANUAL",
-          },
-          {
-            logs: {
-              some: {
-                punchType: {
-                  in: ["MANUAL_EDIT", "CORRECTION"],
-                },
-              },
-            },
-          },
-        ],
-      },
+      where: reviewRequiredWhere,
     }),
 
     prisma.attendance.count({
       where: {
-        OR: [
-          {
-            status: "MISSING_TIMEOUT",
-          },
-          {
-            timeOut: null,
-          },
-        ],
+        status: "MISSING_TIMEOUT",
       },
     }),
   ]);
@@ -675,7 +625,7 @@ export async function getAttendanceDetail(
     totalHours: formatMinutesToHours(attendance.totalMinutes),
     isManual: attendance.isManual,
     isSynced: attendance.isSynced,
-    reviewRequired: getReviewRequired({
+    reviewRequired: isAttendanceReviewRequired({
       isManual: attendance.isManual,
       inSource: attendance.inSource,
       outSource: attendance.outSource,

@@ -1,6 +1,7 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { formatFullName } from "@/lib/utils/formatting";
+import { buildAttendanceReviewRequiredWhere } from "@/features/attendance/server/attendance-review-policy";
 import type {
   MissingTimeoutPageData,
   MissingTimeoutRecord,
@@ -80,31 +81,6 @@ function getAgeHours(date: Date | null): number {
   }
 
   return Math.max(0, Math.floor((Date.now() - date.getTime()) / 3_600_000));
-}
-
-function buildReviewRequiredWhere(): Prisma.AttendanceWhereInput {
-  return {
-    OR: [
-      {
-        isManual: true,
-      },
-      {
-        inSource: "MANUAL",
-      },
-      {
-        outSource: "MANUAL",
-      },
-      {
-        logs: {
-          some: {
-            punchType: {
-              in: ["MANUAL_EDIT", "CORRECTION"],
-            },
-          },
-        },
-      },
-    ],
-  };
 }
 
 function buildEligibleMissingTimeoutWhere(): Prisma.AttendanceWhereInput {
@@ -200,7 +176,7 @@ function mapMissingTimeoutRecord(input: {
 
 export async function getMissingTimeoutPageData(): Promise<MissingTimeoutPageData> {
   const eligibleWhere = buildEligibleMissingTimeoutWhere();
-  const reviewRequiredWhere = buildReviewRequiredWhere();
+  const reviewRequiredWhere = buildAttendanceReviewRequiredWhere();
 
   const [
     records,
