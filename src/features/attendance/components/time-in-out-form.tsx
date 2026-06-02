@@ -46,6 +46,31 @@ function getPunchLabel(punchState: OdlAttendancePageData["punchState"]): string 
   return "BLOCKED";
 }
 
+function getReadinessMessage(input: {
+  canPunch: boolean;
+  hasPhoto: boolean;
+  hasLocation: boolean;
+  punchState: OdlAttendancePageData["punchState"];
+}) {
+  if (!input.canPunch) {
+    return "Submit is blocked because this account is not currently eligible for ODL web attendance. Camera and GPS can still be tested, but attendance submit remains disabled.";
+  }
+
+  if (!input.hasPhoto && !input.hasLocation) {
+    return "Required before submit: uniform selfie, automatic GPS coordinates, and full address.";
+  }
+
+  if (!input.hasPhoto) {
+    return "Required before submit: please capture a uniform selfie.";
+  }
+
+  if (!input.hasLocation) {
+    return "Required before submit: automatic GPS coordinates and full address.";
+  }
+
+  return `Ready to submit ${getPunchLabel(input.punchState)}.`;
+}
+
 export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
   const [clientMessage, setClientMessage] = useState("");
   const [locationMessage, setLocationMessage] = useState("");
@@ -96,6 +121,14 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
   }, [captureLocationOnLoad]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    setClientMessage("");
+
+    if (!canPunch) {
+      event.preventDefault();
+      setClientMessage(pageData.message);
+      return;
+    }
+
     if (!photoPath) {
       event.preventDefault();
       setClientMessage("Please capture a uniform selfie before submitting.");
@@ -113,10 +146,18 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
   const canPunch =
     pageData.punchState === "TIME_IN" || pageData.punchState === "TIME_OUT";
 
-  const isBusy = isPending || isLocating;
-  const isReadyToSubmit = Boolean(
-    canPunch && photoPath && latitude && longitude && address,
-  );
+  const hasPhoto = Boolean(photoPath);
+  const hasLocation = Boolean(latitude && longitude && address);
+  const isSubmitBusy = isPending || isLocating;
+
+  const isReadyToSubmit = Boolean(canPunch && hasPhoto && hasLocation);
+
+  const readinessMessage = getReadinessMessage({
+    canPunch,
+    hasPhoto,
+    hasLocation,
+    punchState: pageData.punchState,
+  });
 
   return (
     <section className="starland-card overflow-hidden">
@@ -124,9 +165,11 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
         <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
           ODL Web Attendance
         </span>
+
         <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
           ODL Teacher Time-In / Time-Out
         </h2>
+
         <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
           No employee selection and no punch selection. The system automatically
           decides if your next submit is TIME IN or TIME OUT.
@@ -164,6 +207,7 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
                 className="h-5 w-5 text-[var(--starland-main-green)]"
                 aria-hidden="true"
               />
+
               <h3 className="text-sm font-extrabold text-[var(--starland-dark-text)]">
                 Logged-in ODL Teacher
               </h3>
@@ -193,6 +237,7 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
                 className="h-5 w-5 text-[var(--starland-main-green)]"
                 aria-hidden="true"
               />
+
               <h3 className="text-sm font-extrabold text-[var(--starland-dark-text)]">
                 Today’s Attendance Status
               </h3>
@@ -216,6 +261,7 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
                 <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
                   Time In
                 </p>
+
                 <p className="mt-1 font-bold text-[var(--starland-dark-text)]">
                   {pageData.timeInAt}
                 </p>
@@ -225,6 +271,7 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
                 <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
                   Time Out
                 </p>
+
                 <p className="mt-1 font-bold text-[var(--starland-dark-text)]">
                   {pageData.timeOutAt}
                 </p>
@@ -240,11 +287,18 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
         </div>
 
         <WebcamCapture
-          disabled={isBusy || !canPunch}
+          disabled={isPending}
           photoPath={photoPath}
           onPhotoPathChange={setPhotoPath}
           errorMessages={state.fieldErrors?.photoPath}
         />
+
+        {!canPunch ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
+            Camera is enabled for testing, but attendance submit is blocked for
+            this account because it is not detected as an ODL teacher.
+          </div>
+        ) : null}
 
         <LocationCapture
           latitude={latitude}
@@ -266,13 +320,15 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
             >
               Remarks
             </label>
+
             <textarea
               id="remarks"
               name="remarks"
               className="starland-input mt-2 min-h-24 resize-y"
               placeholder="Optional remarks"
-              disabled={isBusy || !canPunch}
+              disabled={isSubmitBusy || !canPunch}
             />
+
             <FieldError messages={state.fieldErrors?.remarks} />
           </div>
 
@@ -283,34 +339,36 @@ export function TimeInOutForm({ pageData }: TimeInOutFormProps) {
             >
               Reason
             </label>
+
             <textarea
               id="reason"
               name="reason"
               className="starland-input mt-2 min-h-24 resize-y"
               placeholder="Optional reason"
-              disabled={isBusy || !canPunch}
+              disabled={isSubmitBusy || !canPunch}
             />
+
             <FieldError messages={state.fieldErrors?.reason} />
           </div>
         </div>
 
-        {!isReadyToSubmit ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-700">
-            Required before submit: valid ODL teacher status, available punch
-            action, uniform selfie, automatic location, and full address.
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-semibold text-green-700">
-            Ready to submit {getPunchLabel(pageData.punchState)}.
-          </div>
-        )}
+        <div
+          className={[
+            "rounded-2xl border p-4 text-sm font-semibold",
+            isReadyToSubmit
+              ? "border-green-200 bg-green-50 text-green-700"
+              : "border-amber-200 bg-amber-50 text-amber-700",
+          ].join(" ")}
+        >
+          {readinessMessage}
+        </div>
 
         <button
           type="submit"
           className="starland-btn starland-btn-primary w-full"
-          disabled={isBusy || !isReadyToSubmit}
+          disabled={isSubmitBusy || !isReadyToSubmit}
         >
-          {isBusy ? (
+          {isSubmitBusy ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               {isLocating ? "Getting Location..." : "Recording..."}
