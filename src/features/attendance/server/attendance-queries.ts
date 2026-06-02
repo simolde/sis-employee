@@ -332,6 +332,27 @@ function mapAttendanceLog(log: {
   };
 }
 
+function getReviewRequired(input: {
+  isManual: boolean;
+  inSource: string | null;
+  outSource: string | null;
+  logs: {
+    punchType: string;
+  }[];
+}): boolean {
+  if (input.isManual) {
+    return true;
+  }
+
+  if (input.inSource === "MANUAL" || input.outSource === "MANUAL") {
+    return true;
+  }
+
+  return input.logs.some(
+    (log) => log.punchType === "MANUAL_EDIT" || log.punchType === "CORRECTION",
+  );
+}
+
 export async function getAttendanceList(
   filters: AttendanceListSearchParams,
 ): Promise<AttendanceListResult> {
@@ -436,7 +457,29 @@ export async function getAttendanceList(
 
     prisma.attendance.count({
       where: {
-        status: "PENDING_REVIEW",
+        OR: [
+          {
+            status: "PENDING_REVIEW",
+          },
+          {
+            isManual: true,
+          },
+          {
+            inSource: "MANUAL",
+          },
+          {
+            outSource: "MANUAL",
+          },
+          {
+            logs: {
+              some: {
+                punchType: {
+                  in: ["MANUAL_EDIT", "CORRECTION"],
+                },
+              },
+            },
+          },
+        ],
       },
     }),
 
@@ -605,6 +648,8 @@ export async function getAttendanceDetail(
     lastName: attendance.employee.lastName,
   });
 
+  const logs = attendance.logs.map(mapAttendanceLog);
+
   return {
     attendanceId: attendance.attendanceId,
     employeeName,
@@ -630,6 +675,12 @@ export async function getAttendanceDetail(
     totalHours: formatMinutesToHours(attendance.totalMinutes),
     isManual: attendance.isManual,
     isSynced: attendance.isSynced,
+    reviewRequired: getReviewRequired({
+      isManual: attendance.isManual,
+      inSource: attendance.inSource,
+      outSource: attendance.outSource,
+      logs: attendance.logs,
+    }),
     verifiedBy: attendance.verifiedBy?.username ?? "—",
     verifiedAt: formatDateTime(attendance.verifiedAt),
     approvedBy: attendance.approvedBy?.username ?? "—",
@@ -658,6 +709,6 @@ export async function getAttendanceDetail(
       remark: attendance.outRemark,
       reason: attendance.outReason,
     }),
-    logs: attendance.logs.map(mapAttendanceLog),
+    logs,
   };
 }

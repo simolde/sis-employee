@@ -251,8 +251,12 @@ function calculateStatusAfterTimeOut(input: {
     return "PENDING_REVIEW";
   }
 
-  if (input.currentStatus === "MISSING_TIMEOUT") {
+  if (input.currentStatus === "PENDING_REVIEW") {
     return "PENDING_REVIEW";
+  }
+
+  if (input.currentStatus === "MISSING_TIMEOUT") {
+    return "HALF_DAY";
   }
 
   const scheduledMinutes = getScheduledMinutes({
@@ -265,15 +269,6 @@ function calculateStatusAfterTimeOut(input: {
     input.totalMinutes < Math.floor(scheduledMinutes / 2)
   ) {
     return "HALF_DAY";
-  }
-
-  const scheduledEnd = getScheduledEndDateTime({
-    attDate: input.attDate,
-    schedule,
-  });
-
-  if (input.timeOut < scheduledEnd) {
-    return "PENDING_REVIEW";
   }
 
   return input.currentStatus;

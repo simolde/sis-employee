@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   CalendarDays,
-  CheckCircle2,
   Clock3,
   History,
+  Info,
   MapPin,
+  ShieldCheck,
   UserRound,
 } from "lucide-react";
 import { getCurrentSession } from "@/features/auth/server/session";
@@ -68,6 +69,7 @@ function PunchCard({
     <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
       <div className="flex items-center gap-2">
         <Clock3 className="h-5 w-5 text-[var(--starland-main-green)]" />
+
         <h3 className="text-base font-extrabold text-[var(--starland-dark-text)]">
           {title}
         </h3>
@@ -149,7 +151,9 @@ export default async function AttendanceDetailPage({
     notFound();
   }
 
-  const canReview = session ? canManageEmployees(session.role) : false;
+  const canReview =
+    Boolean(session && canManageEmployees(session.role)) &&
+    Boolean(attendance.reviewRequired);
 
   return (
     <section className="starland-page space-y-5">
@@ -201,6 +205,16 @@ export default async function AttendanceDetailPage({
             >
               {formatStatusLabel(attendance.status)}
             </span>
+
+            {attendance.reviewRequired ? (
+              <span className="starland-badge starland-badge-warning">
+                Review Required
+              </span>
+            ) : (
+              <span className="starland-badge starland-badge-success">
+                Normal Punch
+              </span>
+            )}
           </div>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">
@@ -238,18 +252,26 @@ export default async function AttendanceDetailPage({
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <CheckCircle2 className="h-6 w-6 text-[var(--starland-warning)]" />
+            {attendance.reviewRequired ? (
+              <Info className="h-6 w-6 text-[var(--starland-warning)]" />
+            ) : (
+              <ShieldCheck className="h-6 w-6 text-[var(--starland-success)]" />
+            )}
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Verification
+              Review Rule
             </p>
 
             <p className="mt-1 text-sm font-extrabold text-[var(--starland-dark-text)]">
-              {attendance.verifiedBy}
+              {attendance.reviewRequired
+                ? "Manual/Edit/Correction"
+                : "No Review Needed"}
             </p>
 
             <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
-              {attendance.verifiedAt}
+              {attendance.reviewRequired
+                ? "HR verification required"
+                : "Normal RFID/Kiosk/ODL punch"}
             </p>
           </article>
 
@@ -321,8 +343,8 @@ export default async function AttendanceDetailPage({
           </div>
 
           <p className="mt-1 text-sm leading-6 text-[var(--starland-muted-text)]">
-            All punch events and repeated scan attempts recorded for this
-            attendance.
+            All punch events, repeated scan attempts, manual edits, and
+            correction records for this attendance.
           </p>
         </div>
 

@@ -1,4 +1,5 @@
 export const attendanceStatusValues = [
+  "ALL",
   "ON_TIME",
   "LATE",
   "HALF_DAY",
@@ -9,6 +10,7 @@ export const attendanceStatusValues = [
 ] as const;
 
 export const attendanceSourceValues = [
+  "ALL",
   "RFID",
   "WEB",
   "MANUAL",
@@ -16,21 +18,49 @@ export const attendanceSourceValues = [
   "MOBILE",
 ] as const;
 
-export type AttendanceStatusValue = (typeof attendanceStatusValues)[number];
-export type AttendanceSourceValue = (typeof attendanceSourceValues)[number];
+export type AttendanceStatusValue =
+  | "ON_TIME"
+  | "LATE"
+  | "HALF_DAY"
+  | "ABSENT"
+  | "EXCUSED"
+  | "PENDING_REVIEW"
+  | "MISSING_TIMEOUT";
 
-export type AttendanceStatusFilterValue = "ALL" | AttendanceStatusValue;
-export type AttendanceSourceFilterValue = "ALL" | AttendanceSourceValue;
+export type AttendanceSourceValue =
+  | "RFID"
+  | "WEB"
+  | "MANUAL"
+  | "KIOSK"
+  | "MOBILE";
+
+export type AttendanceListStatusFilter =
+  (typeof attendanceStatusValues)[number];
+
+export type AttendanceListSourceFilter =
+  (typeof attendanceSourceValues)[number];
+
+export type AttendanceStatusFilterValue = AttendanceListStatusFilter;
+
+export type AttendanceSourceFilterValue = AttendanceListSourceFilter;
 
 export type AttendanceListSearchParams = {
   q: string;
-  status: AttendanceStatusFilterValue;
-  source: AttendanceSourceFilterValue;
   dateFrom: string;
   dateTo: string;
+  status: AttendanceListStatusFilter;
+  source: AttendanceListSourceFilter;
+  detailId: string;
   page: number;
   pageSize: number;
-  detailId: string;
+};
+
+export type AttendanceSummary = {
+  totalToday: number;
+  onTimeToday: number;
+  lateToday: number;
+  pendingReview: number;
+  missingTimeout: number;
 };
 
 export type AttendanceListItem = {
@@ -50,38 +80,29 @@ export type AttendanceListItem = {
   isSynced: boolean;
 };
 
-export type AttendanceSummary = {
-  totalToday: number;
-  onTimeToday: number;
-  lateToday: number;
-  pendingReview: number;
-  missingTimeout: number;
+export type AttendancePagination = {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
 };
 
 export type AttendanceListResult = {
   records: AttendanceListItem[];
   summary: AttendanceSummary;
   filters: AttendanceListSearchParams;
-  pagination: {
-    page: number;
-    pageSize: number;
-    totalItems: number;
-    totalPages: number;
-    hasPreviousPage: boolean;
-    hasNextPage: boolean;
-  };
+  pagination: AttendancePagination;
 };
 
+export type MyAttendanceListItem = AttendanceListItem;
+
 export type MyAttendanceListResult = {
-  records: AttendanceListItem[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    totalItems: number;
-    totalPages: number;
-    hasPreviousPage: boolean;
-    hasNextPage: boolean;
-  };
+  records: MyAttendanceListItem[];
+  summary: AttendanceSummary;
+  filters: AttendanceListSearchParams;
+  pagination: AttendancePagination;
 };
 
 export type AttendanceDetailPunch = {
@@ -121,6 +142,7 @@ export type AttendanceDetail = {
   totalHours: string;
   isManual: boolean;
   isSynced: boolean;
+  reviewRequired?: boolean;
   verifiedBy: string;
   verifiedAt: string;
   approvedBy: string;
