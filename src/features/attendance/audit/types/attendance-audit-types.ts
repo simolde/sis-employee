@@ -8,6 +8,9 @@ export type AttendanceAuditFilters = {
 export type AttendanceAuditItem = {
   logId: number;
   actorUserId: number | null;
+  actorName: string;
+  actorEmail: string;
+  actorStatus: string;
   action: string;
   entityType: string;
   entityId: string;

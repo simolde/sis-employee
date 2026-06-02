@@ -88,11 +88,19 @@ function AttendanceAuditRow({ record }: { record: AttendanceAuditItem }) {
       </td>
 
       <td>
-        <p className="font-semibold text-[var(--starland-dark-text)]">
-          User ID: {record.actorUserId ?? "—"}
+        <p className="font-bold text-[var(--starland-dark-text)]">
+          {record.actorName}
         </p>
 
         <p className="mt-1 text-xs text-[var(--starland-muted-text)]">
+          {record.actorEmail}
+        </p>
+
+        <p className="mt-1 text-xs text-[var(--starland-muted-text)]">
+          User ID: {record.actorUserId ?? "—"} · Status: {record.actorStatus}
+        </p>
+
+        <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
           {record.createdAt}
         </p>
       </td>

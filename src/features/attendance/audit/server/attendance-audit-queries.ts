@@ -9,6 +9,12 @@ import {
 
 const DEFAULT_PAGE_SIZE = 20;
 
+type ActorUserMapValue = {
+  username: string;
+  email: string;
+  status: string;
+};
+
 function singleSearchParam(
   value: string | string[] | undefined,
   fallback = "",
@@ -121,19 +127,51 @@ function buildAttendanceAuditWhere(
   };
 }
 
-function mapAttendanceAuditItem(input: {
-  activityLogId: number;
+function getActorDetails(input: {
   actorUserId: number | null;
-  action: string;
-  entityType: string;
-  entityId: string | null;
-  oldValue: Prisma.JsonValue | null;
-  newValue: Prisma.JsonValue | null;
-  createdAt: Date;
-}): AttendanceAuditItem {
+  actorUsersById: Map<number, ActorUserMapValue>;
+}): ActorUserMapValue {
+  if (!input.actorUserId) {
+    return {
+      username: "System",
+      email: "—",
+      status: "—",
+    };
+  }
+
+  return (
+    input.actorUsersById.get(input.actorUserId) ?? {
+      username: "Unknown User",
+      email: "—",
+      status: "—",
+    }
+  );
+}
+
+function mapAttendanceAuditItem(
+  input: {
+    activityLogId: number;
+    actorUserId: number | null;
+    action: string;
+    entityType: string;
+    entityId: string | null;
+    oldValue: Prisma.JsonValue | null;
+    newValue: Prisma.JsonValue | null;
+    createdAt: Date;
+  },
+  actorUsersById: Map<number, ActorUserMapValue>,
+): AttendanceAuditItem {
+  const actor = getActorDetails({
+    actorUserId: input.actorUserId,
+    actorUsersById,
+  });
+
   return {
     logId: input.activityLogId,
     actorUserId: input.actorUserId,
+    actorName: actor.username,
+    actorEmail: actor.email,
+    actorStatus: actor.status,
     action: input.action,
     entityType: input.entityType,
     entityId: input.entityId ?? "—",
@@ -185,11 +223,49 @@ export async function getAttendanceAuditData(
     }),
   ]);
 
+  const actorUserIds = Array.from(
+    new Set(
+      records
+        .map((record) => record.actorUserId)
+        .filter((actorUserId): actorUserId is number => actorUserId !== null),
+    ),
+  );
+
+  const actorUsers =
+    actorUserIds.length > 0
+      ? await prisma.user.findMany({
+          where: {
+            userId: {
+              in: actorUserIds,
+            },
+          },
+          select: {
+            userId: true,
+            username: true,
+            email: true,
+            status: true,
+          },
+        })
+      : [];
+
+  const actorUsersById = new Map<number, ActorUserMapValue>(
+    actorUsers.map((user) => [
+      user.userId,
+      {
+        username: user.username,
+        email: user.email,
+        status: user.status,
+      },
+    ]),
+  );
+
   const totalPages = Math.max(1, Math.ceil(totalItems / filters.pageSize));
 
   return {
     filters,
-    records: records.map(mapAttendanceAuditItem),
+    records: records.map((record) =>
+      mapAttendanceAuditItem(record, actorUsersById),
+    ),
     pagination: {
       page: filters.page,
       pageSize: filters.pageSize,

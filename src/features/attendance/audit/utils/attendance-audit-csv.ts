@@ -29,6 +29,9 @@ export function buildAttendanceAuditCsv(result: AttendanceAuditResult): string {
   const headers = [
     "Log ID",
     "Actor User ID",
+    "Actor Name",
+    "Actor Email",
+    "Actor Status",
     "Action",
     "Entity Type",
     "Attendance ID",
@@ -40,6 +43,9 @@ export function buildAttendanceAuditCsv(result: AttendanceAuditResult): string {
   const rows = result.records.map((record) => [
     record.logId,
     record.actorUserId ?? "—",
+    record.actorName,
+    record.actorEmail,
+    record.actorStatus,
     record.action,
     record.entityType,
     record.entityId,
