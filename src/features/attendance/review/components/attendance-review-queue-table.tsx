@@ -79,7 +79,7 @@ export function AttendanceReviewQueueTable({
   result,
 }: AttendanceReviewQueueTableProps) {
   return (
-    <section className="starland-card overflow-hidden">
+    <section className="starland-card overflow-hidden print:shadow-none">
       <div className="border-b border-[var(--starland-border)] px-5 py-4">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
           Review Queue
@@ -102,7 +102,7 @@ export function AttendanceReviewQueueTable({
               <th>Status</th>
               <th>Review</th>
               <th>Latest Review Log</th>
-              <th>Action</th>
+              <th className="print:hidden">Action</th>
             </tr>
           </thead>
 
@@ -114,6 +114,7 @@ export function AttendanceReviewQueueTable({
                     <p className="font-bold text-[var(--starland-dark-text)]">
                       {record.employeeName}
                     </p>
+
                     <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
                       {record.empNumber}
                     </p>
@@ -121,6 +122,7 @@ export function AttendanceReviewQueueTable({
 
                   <td>
                     <p>{record.branchName}</p>
+
                     <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
                       {record.departmentName}
                     </p>
@@ -130,9 +132,11 @@ export function AttendanceReviewQueueTable({
                     <p className="font-semibold text-[var(--starland-dark-text)]">
                       {record.attDate}
                     </p>
+
                     <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
                       {record.timeIn} - {record.timeOut}
                     </p>
+
                     <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
                       Total: {record.totalHours}
                     </p>
@@ -186,7 +190,7 @@ export function AttendanceReviewQueueTable({
                     </p>
                   </td>
 
-                  <td>
+                  <td className="print:hidden">
                     <Link
                       href={`/dashboard/attendance/${record.attendanceId}`}
                       className="starland-btn starland-btn-primary starland-btn-sm"
@@ -217,7 +221,7 @@ export function AttendanceReviewQueueTable({
         </table>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[var(--starland-border)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[var(--starland-border)] px-5 py-4 print:hidden sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-semibold text-[var(--starland-muted-text)]">
           Page {result.pagination.page} of {result.pagination.totalPages} ·{" "}
           {result.pagination.totalItems} record(s)

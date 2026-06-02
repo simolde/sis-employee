@@ -8,6 +8,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceReviewQueueActions } from "@/features/attendance/review/components/attendance-review-queue-actions";
 import { AttendanceReviewQueueTable } from "@/features/attendance/review/components/attendance-review-queue-table";
 import {
   getAttendanceReviewQueueData,
@@ -44,7 +45,7 @@ function AttendanceReviewQueueFiltersForm({
   filters: AttendanceReviewQueueFilters;
 }) {
   return (
-    <section className="starland-card p-5">
+    <section className="starland-card p-5 print:hidden">
       <form className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr_0.8fr_1fr_auto_auto] lg:items-end">
         <div>
           <label
@@ -146,7 +147,7 @@ export default async function AttendanceReviewQueuePage({
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-warning">
             HR Review
@@ -163,6 +164,8 @@ export default async function AttendanceReviewQueuePage({
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <AttendanceReviewQueueActions result={result} />
+
           <Link
             href="/dashboard/attendance/manual"
             className="starland-btn starland-btn-primary"
@@ -181,7 +184,7 @@ export default async function AttendanceReviewQueuePage({
         </div>
       </div>
 
-      <section className="starland-card overflow-hidden">
+      <section className="starland-card overflow-hidden print:shadow-none">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
             Review Policy
