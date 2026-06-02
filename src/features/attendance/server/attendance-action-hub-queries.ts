@@ -16,6 +16,8 @@ export type AttendanceActionHubStats = {
   totalReviewRequired: number;
 };
 
+type AttendanceHubSource = "WEB" | "RFID";
+
 function getManilaDateOnly(date = new Date()): Date {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Manila",
@@ -56,7 +58,7 @@ function buildReviewRequiredWhere(): Prisma.AttendanceWhereInput {
   };
 }
 
-function sourceWhere(source: string): Prisma.AttendanceWhereInput {
+function sourceWhere(source: AttendanceHubSource): Prisma.AttendanceWhereInput {
   return {
     OR: [
       {
