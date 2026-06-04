@@ -90,13 +90,13 @@ export default async function AttendanceActionsPage() {
       tone: "danger",
     },
     {
-      title: "Status Calculation",
+      title: "ABSENT Records",
       description:
-        "Normal punches are automatically recalculated from assigned schedule, shift start time, and grace minutes.",
-      icon: RefreshCw,
-      label: "Today",
-      value: stats.totalToday,
-      tone: "info",
+        "Generated ABSENT records are automatic records. Manual ABSENT corrections remain visible separately.",
+      icon: TimerOff,
+      label: "Track",
+      value: "ABSENT",
+      tone: "danger",
     },
   ];
 
@@ -129,9 +129,20 @@ export default async function AttendanceActionsPage() {
         "Preview scheduled employees with no attendance record before generating ABSENT records.",
       href: "/dashboard/attendance/absences/candidates",
       icon: TimerOff,
-      badge: "Absences",
+      badge: "Preview",
       buttonLabel: "Preview Absences",
       statLabel: "Safe Preview",
+      statValue: stats.totalToday,
+    },
+    {
+      title: "ABSENT Records",
+      description:
+        "Review generated and manual ABSENT attendance records with filters, print, CSV export, and detail links.",
+      href: "/dashboard/attendance/absences",
+      icon: TimerOff,
+      badge: "ABSENT",
+      buttonLabel: "View ABSENT Records",
+      statLabel: "Generated",
       statValue: stats.totalToday,
     },
     {
@@ -192,7 +203,7 @@ export default async function AttendanceActionsPage() {
     {
       title: "Attendance Audit Trail",
       description:
-        "Track manual changes, approvals, status updates, recalculation, and missing-timeout automation logs.",
+        "Track manual changes, approvals, status updates, recalculation, missing-timeout automation, and ABSENT generation logs.",
       href: "/dashboard/attendance/audit",
       icon: History,
       badge: "Audit",
@@ -238,9 +249,9 @@ export default async function AttendanceActionsPage() {
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
             Manage attendance records, employee schedule assignment, absence
-            preview, manual corrections, missing timeouts, HR review,
-            automation, audit trail, status recalculation, and reports from one
-            place.
+            preview, ABSENT records, manual corrections, missing timeouts, HR
+            review, automation, audit trail, status recalculation, and reports
+            from one place.
           </p>
         </div>
 
@@ -378,13 +389,13 @@ export default async function AttendanceActionsPage() {
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Schedule First, Preview Absences, Then Auto Status
+            Schedule First, Preview Absences, Then Track ABSENT
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Make sure employees have the correct schedule assigned. Then the
-            system can calculate attendance status and safely preview absence
-            candidates before ABSENT generation.
+            Make sure employees have the correct schedule assigned. Then preview
+            absence candidates, generate ABSENT records after HR confirmation,
+            and review generated ABSENT records in the ABSENT tracking page.
           </p>
         </div>
 

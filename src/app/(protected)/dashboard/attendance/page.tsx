@@ -68,8 +68,18 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
       "Preview scheduled employees with no attendance record before safely generating ABSENT records.",
     href: "/dashboard/attendance/absences/candidates",
     icon: TimerOff,
-    badge: "Absences",
+    badge: "Preview",
     buttonLabel: "Preview Absences",
+    tone: "danger",
+  },
+  {
+    title: "ABSENT Records",
+    description:
+      "Review generated and manual ABSENT attendance records with filters, print, CSV export, and detail links.",
+    href: "/dashboard/attendance/absences",
+    icon: TimerOff,
+    badge: "ABSENT",
+    buttonLabel: "View ABSENT",
     tone: "danger",
   },
   {
@@ -125,7 +135,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Audit Trail",
     description:
-      "Track manual changes, approvals, corrections, status recalculation, and missing-timeout automation logs.",
+      "Track manual changes, approvals, corrections, status recalculation, missing-timeout automation, and ABSENT generation logs.",
     href: "/dashboard/attendance/audit",
     icon: History,
     badge: "Audit",

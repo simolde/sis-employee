@@ -208,8 +208,16 @@ export default async function AbsenceCandidatePage({
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/dashboard/attendance/schedule-assignment"
+              href="/dashboard/attendance/absences"
               className="starland-btn starland-btn-primary"
+            >
+              <TimerOff className="h-4 w-4" aria-hidden="true" />
+              ABSENT Records
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/schedule-assignment"
+              className="starland-btn starland-btn-soft"
             >
               <CalendarClock className="h-4 w-4" aria-hidden="true" />
               Assign Schedules
@@ -314,7 +322,7 @@ export default async function AbsenceCandidatePage({
           Safe Absence Workflow
         </h2>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-4">
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
               1. Preview Candidates
@@ -344,6 +352,17 @@ export default async function AbsenceCandidatePage({
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
               Generate normal ABSENT records only after HR/Admin confirmation.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <p className="font-bold text-[var(--starland-dark-text)]">
+              4. Review Records
+            </p>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              Open the ABSENT Records page to verify generated records and
+              export reports.
             </p>
           </div>
         </div>
