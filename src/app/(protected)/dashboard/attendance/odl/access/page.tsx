@@ -121,15 +121,23 @@ export default async function OdlAccessPage({
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
             Enable or disable ODL web attendance access by updating the existing
-            Flexible employee flag. This is useful for ODL, online, distance,
-            remote, or flexible teachers.
+            Flexible employee flag. Use bulk access when HR needs to update by
+            department, designation, employee type, schedule, or branch.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Link
-            href="/dashboard/attendance/odl/eligibility"
+            href="/dashboard/attendance/odl/access/bulk"
             className="starland-btn starland-btn-primary"
+          >
+            <UsersRound className="h-4 w-4" aria-hidden="true" />
+            Bulk Update
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/odl/eligibility"
+            className="starland-btn starland-btn-soft"
           >
             <ShieldCheck className="h-4 w-4" aria-hidden="true" />
             Eligibility Check
