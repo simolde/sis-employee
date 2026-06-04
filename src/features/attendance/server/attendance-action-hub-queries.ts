@@ -1,95 +1,121 @@
-import type { Prisma } from "@/generated/prisma/client";
+import { AttendanceSource } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { buildAttendanceReviewRequiredWhere } from "./attendance-review-policy";
+import type { AttendanceActionHubStats } from "../types/attendance-action-hub-types";
 
-export type AttendanceActionHubStats = {
-  totalToday: number;
-  onTimeToday: number;
-  lateToday: number;
-  missingTimeout: number;
-  pendingReview: number;
-  manualToday: number;
-  webToday: number;
-  rfidToday: number;
-  openReview: number;
-  verifiedNotApproved: number;
-  approvedReview: number;
-  totalReviewRequired: number;
-  attendanceAuditLogs: number;
-};
+function getManilaTodayRange(): {
+  start: Date;
+  end: Date;
+} {
+  const now = new Date();
 
-type AttendanceHubSource = "WEB" | "RFID";
-
-function getManilaDateOnly(date = new Date()): Date {
-  const parts = new Intl.DateTimeFormat("en-US", {
+  const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Manila",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).formatToParts(date);
+  }).formatToParts(now);
 
   const year = Number(parts.find((part) => part.type === "year")?.value);
   const month = Number(parts.find((part) => part.type === "month")?.value);
   const day = Number(parts.find((part) => part.type === "day")?.value);
 
-  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-}
+  const start = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+  const end = new Date(start);
 
-function sourceWhere(source: AttendanceHubSource): Prisma.AttendanceWhereInput {
+  end.setUTCDate(end.getUTCDate() + 1);
+
   return {
-    OR: [
-      {
-        inSource: source,
-      },
-      {
-        outSource: source,
-      },
-    ],
+    start,
+    end,
   };
 }
 
 export async function getAttendanceActionHubStats(): Promise<AttendanceActionHubStats> {
-  const today = getManilaDateOnly();
+  const today = getManilaTodayRange();
+  const todayWhere = {
+    attDate: {
+      gte: today.start,
+      lt: today.end,
+    },
+  };
+
   const reviewRequiredWhere = buildAttendanceReviewRequiredWhere();
 
   const [
     totalToday,
     onTimeToday,
     lateToday,
+    halfDayToday,
+    absentToday,
     missingTimeout,
-    pendingReview,
     manualToday,
     webToday,
-    rfidToday,
+    pendingReview,
     openReview,
     verifiedNotApproved,
-    approvedReview,
-    totalReviewRequired,
     attendanceAuditLogs,
+    absentTotal,
+    automaticAbsent,
+    manualAbsent,
+    generatedAbsentAuditLogs,
   ] = await Promise.all([
     prisma.attendance.count({
-      where: {
-        attDate: today,
-      },
+      where: todayWhere,
     }),
 
     prisma.attendance.count({
       where: {
-        attDate: today,
+        ...todayWhere,
         status: "ON_TIME",
       },
     }),
 
     prisma.attendance.count({
       where: {
-        attDate: today,
+        ...todayWhere,
         status: "LATE",
       },
     }),
 
     prisma.attendance.count({
       where: {
+        ...todayWhere,
+        status: "HALF_DAY",
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        ...todayWhere,
+        status: "ABSENT",
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
         status: "MISSING_TIMEOUT",
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        ...todayWhere,
+        isManual: true,
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        ...todayWhere,
+        OR: [
+          {
+            inSource: AttendanceSource.WEB,
+          },
+          {
+            outSource: AttendanceSource.WEB,
+          },
+        ],
       },
     }),
 
@@ -102,39 +128,6 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     prisma.attendance.count({
       where: {
         AND: [
-          {
-            attDate: today,
-          },
-          reviewRequiredWhere,
-        ],
-      },
-    }),
-
-    prisma.attendance.count({
-      where: {
-        AND: [
-          {
-            attDate: today,
-          },
-          sourceWhere("WEB"),
-        ],
-      },
-    }),
-
-    prisma.attendance.count({
-      where: {
-        AND: [
-          {
-            attDate: today,
-          },
-          sourceWhere("RFID"),
-        ],
-      },
-    }),
-
-    prisma.attendance.count({
-      where: {
-        AND: [
           reviewRequiredWhere,
           {
             approvedAt: null,
@@ -145,38 +138,42 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
 
     prisma.attendance.count({
       where: {
-        AND: [
-          reviewRequiredWhere,
-          {
-            verifiedAt: {
-              not: null,
-            },
-            approvedAt: null,
-          },
-        ],
+        verifiedAt: {
+          not: null,
+        },
+        approvedAt: null,
       },
-    }),
-
-    prisma.attendance.count({
-      where: {
-        AND: [
-          reviewRequiredWhere,
-          {
-            approvedAt: {
-              not: null,
-            },
-          },
-        ],
-      },
-    }),
-
-    prisma.attendance.count({
-      where: reviewRequiredWhere,
     }),
 
     prisma.activityLog.count({
       where: {
         entityType: "attendance",
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        status: "ABSENT",
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        status: "ABSENT",
+        isManual: false,
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        status: "ABSENT",
+        isManual: true,
+      },
+    }),
+
+    prisma.activityLog.count({
+      where: {
+        action: "ATTENDANCE_ABSENT_AUTO_GENERATED",
       },
     }),
   ]);
@@ -185,15 +182,18 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     totalToday,
     onTimeToday,
     lateToday,
+    halfDayToday,
+    absentToday,
     missingTimeout,
-    pendingReview,
     manualToday,
     webToday,
-    rfidToday,
+    pendingReview,
     openReview,
     verifiedNotApproved,
-    approvedReview,
-    totalReviewRequired,
     attendanceAuditLogs,
+    absentTotal,
+    automaticAbsent,
+    manualAbsent,
+    generatedAbsentAuditLogs,
   };
 }

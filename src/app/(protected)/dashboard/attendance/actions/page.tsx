@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   ArrowLeft,
-  BarChart3,
   CalendarClock,
   ClipboardCheck,
   ClipboardEdit,
@@ -94,8 +93,8 @@ export default async function AttendanceActionsPage() {
       description:
         "Generated ABSENT records are automatic records. Manual ABSENT corrections remain visible separately.",
       icon: TimerOff,
-      label: "Track",
-      value: "ABSENT",
+      label: "Total",
+      value: stats.absentTotal,
       tone: "danger",
     },
   ];
@@ -131,8 +130,8 @@ export default async function AttendanceActionsPage() {
       icon: TimerOff,
       badge: "Preview",
       buttonLabel: "Preview Absences",
-      statLabel: "Safe Preview",
-      statValue: stats.totalToday,
+      statLabel: "Absent Today",
+      statValue: stats.absentToday,
     },
     {
       title: "ABSENT Records",
@@ -142,8 +141,8 @@ export default async function AttendanceActionsPage() {
       icon: TimerOff,
       badge: "ABSENT",
       buttonLabel: "View ABSENT Records",
-      statLabel: "Generated",
-      statValue: stats.totalToday,
+      statLabel: "Total ABSENT",
+      statValue: stats.absentTotal,
     },
     {
       title: "Status Recalculation",
@@ -192,7 +191,7 @@ export default async function AttendanceActionsPage() {
     {
       title: "Attendance Automation",
       description:
-        "Check cron setup, actor account, secret configuration, missing-timeout automation, and status recalculation automation.",
+        "Check cron setup, actor account, secret configuration, missing-timeout automation, status recalculation automation, and absence generation checks.",
       href: "/dashboard/attendance/automation",
       icon: Hourglass,
       badge: "Cron",
@@ -276,8 +275,8 @@ export default async function AttendanceActionsPage() {
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
             Use these live counts to quickly check today&apos;s attendance,
-            missing timeouts, manual corrections, HR review workload, and audit
-            logs.
+            ABSENT records, missing timeouts, manual corrections, HR review
+            workload, and audit logs.
           </p>
         </div>
 
@@ -319,6 +318,36 @@ export default async function AttendanceActionsPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <TimerOff className="h-7 w-7 text-[var(--starland-danger)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Absent Today
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.absentToday}
+            </p>
+          </article>
+        </div>
+
+        <div className="grid gap-4 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <TimerOff className="h-7 w-7 text-[var(--starland-danger)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Total ABSENT
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.absentTotal}
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
+              Auto: {stats.automaticAbsent} · Manual: {stats.manualAbsent}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <ClockAlert className="h-7 w-7 text-[var(--starland-danger)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
@@ -327,20 +356,6 @@ export default async function AttendanceActionsPage() {
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
               {stats.missingTimeout}
-            </p>
-          </article>
-        </div>
-
-        <div className="grid gap-4 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-4">
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ClipboardEdit className="h-7 w-7 text-[var(--starland-warning)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Manual Today
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.manualToday}
             </p>
           </article>
 
@@ -357,18 +372,6 @@ export default async function AttendanceActionsPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ShieldCheck className="h-7 w-7 text-[var(--starland-info)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Verified, Not Approved
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.verifiedNotApproved}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <History className="h-7 w-7 text-[var(--starland-info)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
@@ -377,6 +380,10 @@ export default async function AttendanceActionsPage() {
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
               {stats.attendanceAuditLogs}
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
+              ABSENT generated logs: {stats.generatedAbsentAuditLogs}
             </p>
           </article>
         </div>
