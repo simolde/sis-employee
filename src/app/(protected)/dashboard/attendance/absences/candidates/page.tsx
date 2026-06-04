@@ -8,6 +8,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AbsenceCandidatesActions } from "@/features/attendance/absences/components/absence-candidates-actions";
 import { AbsenceCandidatesTable } from "@/features/attendance/absences/components/absence-candidates-table";
 import {
   getAbsenceCandidateData,
@@ -44,7 +45,7 @@ function AbsenceCandidateFiltersForm({
   options: AbsenceCandidateOptions;
 }) {
   return (
-    <section className="starland-card p-5">
+    <section className="starland-card p-5 print:hidden">
       <form className="grid gap-4 xl:grid-cols-4">
         <div>
           <label
@@ -183,7 +184,7 @@ export default async function AbsenceCandidatePage({
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-danger">
             Absence Preview
@@ -200,34 +201,38 @@ export default async function AbsenceCandidatePage({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/dashboard/attendance/schedule-assignment"
-            className="starland-btn starland-btn-primary"
-          >
-            <CalendarClock className="h-4 w-4" aria-hidden="true" />
-            Assign Schedules
-          </Link>
+        <div className="flex flex-col gap-2 sm:items-end">
+          <AbsenceCandidatesActions result={result} />
 
-          <Link
-            href="/dashboard/attendance/status-recalculation"
-            className="starland-btn starland-btn-soft"
-          >
-            <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            Status Recalculation
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/attendance/schedule-assignment"
+              className="starland-btn starland-btn-primary"
+            >
+              <CalendarClock className="h-4 w-4" aria-hidden="true" />
+              Assign Schedules
+            </Link>
 
-          <Link
-            href="/dashboard/attendance/actions"
-            className="starland-btn starland-btn-soft"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Attendance Actions
-          </Link>
+            <Link
+              href="/dashboard/attendance/status-recalculation"
+              className="starland-btn starland-btn-soft"
+            >
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              Status Recalculation
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/actions"
+              className="starland-btn starland-btn-soft"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              Attendance Actions
+            </Link>
+          </div>
         </div>
       </div>
 
-      <section className="starland-card overflow-hidden">
+      <section className="starland-card overflow-hidden print:shadow-none">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
             Selected Date: {result.summary.selectedDate}
@@ -300,7 +305,7 @@ export default async function AbsenceCandidatePage({
         options={result.options}
       />
 
-      <section className="starland-card p-5">
+      <section className="starland-card p-5 print:hidden">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
           Safe Absence Workflow
         </h2>
