@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   CalendarClock,
+  History,
   Search,
   UsersRound,
 } from "lucide-react";
@@ -289,8 +290,16 @@ export default async function ScheduleAssignmentPage({
 
         <div className="flex flex-wrap gap-2">
           <Link
-            href="/dashboard/attendance/status-recalculation"
+            href="/dashboard/attendance/schedule-assignment/history"
             className="starland-btn starland-btn-primary"
+          >
+            <History className="h-4 w-4" aria-hidden="true" />
+            Assignment History
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/status-recalculation"
+            className="starland-btn starland-btn-soft"
           >
             <CalendarClock className="h-4 w-4" aria-hidden="true" />
             Status Recalculation
