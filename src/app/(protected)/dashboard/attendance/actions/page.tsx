@@ -11,6 +11,7 @@ import {
   Hourglass,
   MonitorSmartphone,
   RefreshCw,
+  RotateCcw,
   ShieldCheck,
   Timer,
   TimerOff,
@@ -71,15 +72,6 @@ export default async function AttendanceActionsPage() {
       tone: "success",
     },
     {
-      title: "Schedule Assignment",
-      description:
-        "Bulk employee schedule assignment prevents HR from editing employee schedules one by one.",
-      icon: CalendarClock,
-      label: "Required For",
-      value: "Auto Status",
-      tone: "info",
-    },
-    {
       title: "Absence Preview",
       description:
         "Preview scheduled employees with no attendance record before generating ABSENT records.",
@@ -89,13 +81,22 @@ export default async function AttendanceActionsPage() {
       tone: "danger",
     },
     {
-      title: "ABSENT Records",
+      title: "ABSENT Rollback",
       description:
-        "Generated ABSENT records are automatic records. Manual ABSENT corrections remain visible separately.",
-      icon: TimerOff,
-      label: "Total",
-      value: stats.absentTotal,
+        "Rollback only automatic ABSENT records with no punch data. Manual and punched records are protected.",
+      icon: RotateCcw,
+      label: "Eligible",
+      value: stats.rollbackEligibleAbsent,
       tone: "danger",
+    },
+    {
+      title: "Schedule Assignment",
+      description:
+        "Bulk employee schedule assignment prevents HR from editing employee schedules one by one.",
+      icon: CalendarClock,
+      label: "Required For",
+      value: "Auto Status",
+      tone: "info",
     },
   ];
 
@@ -143,6 +144,17 @@ export default async function AttendanceActionsPage() {
       buttonLabel: "View ABSENT Records",
       statLabel: "Total ABSENT",
       statValue: stats.absentTotal,
+    },
+    {
+      title: "Rollback ABSENT",
+      description:
+        "Rollback wrongly generated automatic ABSENT records while protecting manual and punched records.",
+      href: "/dashboard/attendance/absences/rollback",
+      icon: RotateCcw,
+      badge: "Rollback",
+      buttonLabel: "Open Rollback",
+      statLabel: "Eligible",
+      statValue: stats.rollbackEligibleAbsent,
     },
     {
       title: "Status Recalculation",
@@ -202,7 +214,7 @@ export default async function AttendanceActionsPage() {
     {
       title: "Attendance Audit Trail",
       description:
-        "Track manual changes, approvals, status updates, recalculation, missing-timeout automation, and ABSENT generation logs.",
+        "Track manual changes, approvals, status updates, recalculation, missing-timeout automation, ABSENT generation, and ABSENT rollback logs.",
       href: "/dashboard/attendance/audit",
       icon: History,
       badge: "Audit",
@@ -248,9 +260,9 @@ export default async function AttendanceActionsPage() {
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
             Manage attendance records, employee schedule assignment, absence
-            preview, ABSENT records, manual corrections, missing timeouts, HR
-            review, automation, audit trail, status recalculation, and reports
-            from one place.
+            preview, ABSENT records, ABSENT rollback, manual corrections,
+            missing timeouts, HR review, automation, audit trail, status
+            recalculation, and reports from one place.
           </p>
         </div>
 
@@ -275,8 +287,8 @@ export default async function AttendanceActionsPage() {
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
             Use these live counts to quickly check today&apos;s attendance,
-            ABSENT records, missing timeouts, manual corrections, HR review
-            workload, and audit logs.
+            ABSENT records, rollback eligibility, missing timeouts, manual
+            corrections, HR review workload, and audit logs.
           </p>
         </div>
 
@@ -348,14 +360,18 @@ export default async function AttendanceActionsPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ClockAlert className="h-7 w-7 text-[var(--starland-danger)]" />
+            <RotateCcw className="h-7 w-7 text-[var(--starland-danger)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Missing Timeout
+              Rollback Eligible
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.missingTimeout}
+              {stats.rollbackEligibleAbsent}
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
+              Rollback logs: {stats.absentRollbackAuditLogs}
             </p>
           </article>
 
@@ -396,13 +412,14 @@ export default async function AttendanceActionsPage() {
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Schedule First, Preview Absences, Then Track ABSENT
+            Schedule First, Preview Absences, Track and Rollback if Needed
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
             Make sure employees have the correct schedule assigned. Then preview
             absence candidates, generate ABSENT records after HR confirmation,
-            and review generated ABSENT records in the ABSENT tracking page.
+            review generated records, and rollback only automatic ABSENT records
+            when needed.
           </p>
         </div>
 

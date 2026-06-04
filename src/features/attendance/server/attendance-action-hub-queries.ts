@@ -33,6 +33,7 @@ function getManilaTodayRange(): {
 
 export async function getAttendanceActionHubStats(): Promise<AttendanceActionHubStats> {
   const today = getManilaTodayRange();
+
   const todayWhere = {
     attDate: {
       gte: today.start,
@@ -59,6 +60,8 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     automaticAbsent,
     manualAbsent,
     generatedAbsentAuditLogs,
+    rollbackEligibleAbsent,
+    absentRollbackAuditLogs,
   ] = await Promise.all([
     prisma.attendance.count({
       where: todayWhere,
@@ -176,6 +179,21 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
         action: "ATTENDANCE_ABSENT_AUTO_GENERATED",
       },
     }),
+
+    prisma.attendance.count({
+      where: {
+        status: "ABSENT",
+        isManual: false,
+        timeIn: null,
+        timeOut: null,
+      },
+    }),
+
+    prisma.activityLog.count({
+      where: {
+        action: "ATTENDANCE_ABSENT_AUTO_ROLLED_BACK",
+      },
+    }),
   ]);
 
   return {
@@ -195,5 +213,7 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     automaticAbsent,
     manualAbsent,
     generatedAbsentAuditLogs,
+    rollbackEligibleAbsent,
+    absentRollbackAuditLogs,
   };
 }

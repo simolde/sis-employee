@@ -11,6 +11,7 @@ import {
   Hourglass,
   MonitorSmartphone,
   RefreshCw,
+  RotateCcw,
   TimerOff,
   type LucideIcon,
 } from "lucide-react";
@@ -83,6 +84,16 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
     tone: "danger",
   },
   {
+    title: "Rollback ABSENT",
+    description:
+      "Safely rollback wrongly generated automatic ABSENT records while protecting manual and punched records.",
+    href: "/dashboard/attendance/absences/rollback",
+    icon: RotateCcw,
+    badge: "Rollback",
+    buttonLabel: "Open Rollback",
+    tone: "danger",
+  },
+  {
     title: "Manual Attendance",
     description:
       "Create or correct attendance manually. Saved manual records are marked as pending review.",
@@ -135,7 +146,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Audit Trail",
     description:
-      "Track manual changes, approvals, corrections, status recalculation, missing-timeout automation, and ABSENT generation logs.",
+      "Track manual changes, approvals, corrections, status recalculation, missing-timeout automation, ABSENT generation, and rollback logs.",
     href: "/dashboard/attendance/audit",
     icon: History,
     badge: "Audit",

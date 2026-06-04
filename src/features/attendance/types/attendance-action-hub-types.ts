@@ -15,4 +15,6 @@ export type AttendanceActionHubStats = {
   automaticAbsent: number;
   manualAbsent: number;
   generatedAbsentAuditLogs: number;
+  rollbackEligibleAbsent: number;
+  absentRollbackAuditLogs: number;
 };
