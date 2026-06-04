@@ -49,6 +49,14 @@ export default async function AttendanceStatusRecalculationPage() {
           </Link>
 
           <Link
+            href="/dashboard/attendance/absences/candidates"
+            className="starland-btn starland-btn-soft"
+          >
+            <TimerOff className="h-4 w-4" aria-hidden="true" />
+            Absence Candidates
+          </Link>
+
+          <Link
             href="/dashboard/attendance/actions"
             className="starland-btn starland-btn-soft"
           >
@@ -222,7 +230,7 @@ export default async function AttendanceStatusRecalculationPage() {
           Recommended HR Workflow
         </h2>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-4">
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
               1. Assign Schedules
@@ -247,7 +255,18 @@ export default async function AttendanceStatusRecalculationPage() {
 
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              3. Review Exceptions
+              3. Preview Absences
+            </p>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              Preview scheduled employees who have no attendance record before
+              generating ABSENT records.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <p className="font-bold text-[var(--starland-dark-text)]">
+              4. Review Exceptions
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">

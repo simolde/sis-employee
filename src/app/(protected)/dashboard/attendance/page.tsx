@@ -11,6 +11,7 @@ import {
   Hourglass,
   MonitorSmartphone,
   RefreshCw,
+  TimerOff,
   type LucideIcon,
 } from "lucide-react";
 import { AttendanceDetailsModal } from "@/features/attendance/components/attendance-details-modal";
@@ -44,7 +45,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Attendance Actions",
     description:
-      "Open the attendance hub for quick access to manual input, review queue, reports, automation, audit trail, status recalculation, missing timeouts, and ODL attendance.",
+      "Open the attendance hub for quick access to manual input, review queue, reports, automation, audit trail, status recalculation, missing timeouts, absences, and ODL attendance.",
     href: "/dashboard/attendance/actions",
     icon: Clock3,
     badge: "Hub",
@@ -60,6 +61,16 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
     badge: "Schedules",
     buttonLabel: "Assign Schedules",
     tone: "info",
+  },
+  {
+    title: "Absence Candidates",
+    description:
+      "Preview scheduled employees with no attendance record before safely generating ABSENT records.",
+    href: "/dashboard/attendance/absences/candidates",
+    icon: TimerOff,
+    badge: "Absences",
+    buttonLabel: "Preview Absences",
+    tone: "danger",
   },
   {
     title: "Manual Attendance",

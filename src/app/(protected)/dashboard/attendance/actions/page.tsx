@@ -14,6 +14,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Timer,
+  TimerOff,
   type LucideIcon,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
@@ -80,6 +81,15 @@ export default async function AttendanceActionsPage() {
       tone: "info",
     },
     {
+      title: "Absence Preview",
+      description:
+        "Preview scheduled employees with no attendance record before generating ABSENT records.",
+      icon: TimerOff,
+      label: "Safe First",
+      value: "Preview",
+      tone: "danger",
+    },
+    {
       title: "Status Calculation",
       description:
         "Normal punches are automatically recalculated from assigned schedule, shift start time, and grace minutes.",
@@ -87,15 +97,6 @@ export default async function AttendanceActionsPage() {
       label: "Today",
       value: stats.totalToday,
       tone: "info",
-    },
-    {
-      title: "Manual Changes",
-      description:
-        "Manual input, edits, and corrections are saved as pending review until verified or approved.",
-      icon: ClipboardCheck,
-      label: "Open Review",
-      value: stats.openReview,
-      tone: "warning",
     },
   ];
 
@@ -120,6 +121,17 @@ export default async function AttendanceActionsPage() {
       badge: "Schedules",
       buttonLabel: "Assign Schedules",
       statLabel: "For Auto Status",
+      statValue: stats.totalToday,
+    },
+    {
+      title: "Absence Candidates",
+      description:
+        "Preview scheduled employees with no attendance record before generating ABSENT records.",
+      href: "/dashboard/attendance/absences/candidates",
+      icon: TimerOff,
+      badge: "Absences",
+      buttonLabel: "Preview Absences",
+      statLabel: "Safe Preview",
       statValue: stats.totalToday,
     },
     {
@@ -225,9 +237,10 @@ export default async function AttendanceActionsPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Manage attendance records, employee schedule assignment, manual
-            corrections, missing timeouts, HR review, automation, audit trail,
-            status recalculation, and reports from one place.
+            Manage attendance records, employee schedule assignment, absence
+            preview, manual corrections, missing timeouts, HR review,
+            automation, audit trail, status recalculation, and reports from one
+            place.
           </p>
         </div>
 
@@ -365,13 +378,13 @@ export default async function AttendanceActionsPage() {
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Schedule First, Then Auto Status
+            Schedule First, Preview Absences, Then Auto Status
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
             Make sure employees have the correct schedule assigned. Then the
-            system can automatically calculate ON_TIME, LATE, HALF_DAY, and
-            MISSING_TIMEOUT from the linked shift rules.
+            system can calculate attendance status and safely preview absence
+            candidates before ABSENT generation.
           </p>
         </div>
 

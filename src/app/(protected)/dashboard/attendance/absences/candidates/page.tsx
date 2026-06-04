@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   CalendarClock,
+  RefreshCw,
   Search,
   TimerOff,
   UsersRound,
@@ -206,6 +207,14 @@ export default async function AbsenceCandidatePage({
           >
             <CalendarClock className="h-4 w-4" aria-hidden="true" />
             Assign Schedules
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/status-recalculation"
+            className="starland-btn starland-btn-soft"
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            Status Recalculation
           </Link>
 
           <Link
