@@ -26,19 +26,20 @@ export function AttendanceExceptionTable({
   result,
 }: AttendanceExceptionTableProps) {
   return (
-    <section className="starland-card overflow-hidden">
+    <section className="starland-card overflow-hidden print:shadow-none">
       <div className="border-b border-[var(--starland-border)] px-5 py-4">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
           Exception Dates
         </h2>
 
         <p className="mt-1 text-sm leading-6 text-[var(--starland-muted-text)]">
-          Active exception dates will be used by absence generation in the next
-          integration step.
+          Active exception dates are used to prevent wrong ABSENT generation
+          during holidays, suspensions, no-work days, rest days, and
+          branch-specific exception dates.
         </p>
       </div>
 
-      <div className="starland-scroll-x">
+      <div className="starland-scroll-x print:overflow-visible">
         <table className="starland-table">
           <thead>
             <tr>
@@ -49,7 +50,7 @@ export function AttendanceExceptionTable({
               <th>Absence Rule</th>
               <th>Status</th>
               <th>Created</th>
-              <th>Action</th>
+              <th className="print:hidden">Action</th>
             </tr>
           </thead>
 
@@ -106,7 +107,7 @@ export function AttendanceExceptionTable({
 
                   <td>{record.createdAt}</td>
 
-                  <td>
+                  <td className="print:hidden">
                     {record.status === "ACTIVE" ? (
                       <form action={archiveAttendanceExceptionAction}>
                         <input

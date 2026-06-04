@@ -7,6 +7,7 @@ import {
   TimerOff,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceExceptionActions } from "@/features/attendance/exceptions/components/attendance-exception-actions";
 import { AttendanceExceptionForm } from "@/features/attendance/exceptions/components/attendance-exception-form";
 import { AttendanceExceptionTable } from "@/features/attendance/exceptions/components/attendance-exception-table";
 import {
@@ -75,7 +76,7 @@ function AttendanceExceptionFiltersForm({
   options: AttendanceExceptionOptions;
 }) {
   return (
-    <section className="starland-card p-5">
+    <section className="starland-card p-5 print:hidden">
       <form className="grid gap-4 xl:grid-cols-4">
         <div>
           <label
@@ -216,7 +217,7 @@ export default async function AttendanceExceptionsPage({
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-info">
             Attendance Exceptions
@@ -232,26 +233,30 @@ export default async function AttendanceExceptionsPage({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/dashboard/attendance/absences/candidates"
-            className="starland-btn starland-btn-primary"
-          >
-            <TimerOff className="h-4 w-4" aria-hidden="true" />
-            Absence Candidates
-          </Link>
+        <div className="flex flex-col gap-2 sm:items-end">
+          <AttendanceExceptionActions result={result} />
 
-          <Link
-            href="/dashboard/attendance/actions"
-            className="starland-btn starland-btn-soft"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Attendance Actions
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/attendance/absences/candidates"
+              className="starland-btn starland-btn-primary"
+            >
+              <TimerOff className="h-4 w-4" aria-hidden="true" />
+              Absence Candidates
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/actions"
+              className="starland-btn starland-btn-soft"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              Attendance Actions
+            </Link>
+          </div>
         </div>
       </div>
 
-      <section className="starland-card overflow-hidden">
+      <section className="starland-card overflow-hidden print:shadow-none">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
             Exception Rules
@@ -319,7 +324,9 @@ export default async function AttendanceExceptionsPage({
         </div>
       </section>
 
-      <AttendanceExceptionForm options={result.options} />
+      <div className="print:hidden">
+        <AttendanceExceptionForm options={result.options} />
+      </div>
 
       <AttendanceExceptionFiltersForm
         filters={result.filters}
