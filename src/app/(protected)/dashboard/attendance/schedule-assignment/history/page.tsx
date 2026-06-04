@@ -8,6 +8,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { ScheduleAssignmentHistoryActions } from "@/features/attendance/schedule-assignment/history/components/schedule-assignment-history-actions";
 import { ScheduleAssignmentHistoryTable } from "@/features/attendance/schedule-assignment/history/components/schedule-assignment-history-table";
 import {
   getScheduleAssignmentHistoryData,
@@ -46,7 +47,7 @@ function ScheduleAssignmentHistoryFiltersForm({
   filters: ScheduleAssignmentHistoryFilters;
 }) {
   return (
-    <section className="starland-card p-5">
+    <section className="starland-card p-5 print:hidden">
       <form className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr_0.8fr_0.8fr_auto_auto] lg:items-end">
         <div>
           <label
@@ -149,7 +150,7 @@ export default async function ScheduleAssignmentHistoryPage({
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-info">
             Schedule History
@@ -165,26 +166,30 @@ export default async function ScheduleAssignmentHistoryPage({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/dashboard/attendance/schedule-assignment"
-            className="starland-btn starland-btn-primary"
-          >
-            <CalendarClock className="h-4 w-4" aria-hidden="true" />
-            Assign Schedules
-          </Link>
+        <div className="flex flex-col gap-2 sm:items-end">
+          <ScheduleAssignmentHistoryActions result={result} />
 
-          <Link
-            href="/dashboard/attendance/actions"
-            className="starland-btn starland-btn-soft"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Attendance Actions
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/attendance/schedule-assignment"
+              className="starland-btn starland-btn-primary"
+            >
+              <CalendarClock className="h-4 w-4" aria-hidden="true" />
+              Assign Schedules
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/actions"
+              className="starland-btn starland-btn-soft"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              Attendance Actions
+            </Link>
+          </div>
         </div>
       </div>
 
-      <section className="starland-card overflow-hidden">
+      <section className="starland-card overflow-hidden print:shadow-none">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
             Schedule Tracking

@@ -143,7 +143,7 @@ function AssignmentHistoryRow({
         </p>
       </td>
 
-      <td>
+      <td className="print:hidden">
         <Link
           href={`/dashboard/employees/${record.empId}`}
           className="starland-btn starland-btn-soft starland-btn-sm"
@@ -160,7 +160,7 @@ export function ScheduleAssignmentHistoryTable({
   result,
 }: ScheduleAssignmentHistoryTableProps) {
   return (
-    <section className="starland-card overflow-hidden">
+    <section className="starland-card overflow-hidden print:shadow-none">
       <div className="border-b border-[var(--starland-border)] px-5 py-4">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
           Schedule Assignment Records
@@ -172,7 +172,7 @@ export function ScheduleAssignmentHistoryTable({
         </p>
       </div>
 
-      <div className="starland-scroll-x">
+      <div className="starland-scroll-x print:overflow-visible">
         <table className="starland-table">
           <thead>
             <tr>
@@ -182,7 +182,7 @@ export function ScheduleAssignmentHistoryTable({
               <th>Effective Dates</th>
               <th>Assigned By</th>
               <th>Remarks</th>
-              <th>Open</th>
+              <th className="print:hidden">Open</th>
             </tr>
           </thead>
 
@@ -213,7 +213,7 @@ export function ScheduleAssignmentHistoryTable({
         </table>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[var(--starland-border)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[var(--starland-border)] px-5 py-4 print:hidden sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-semibold text-[var(--starland-muted-text)]">
           Page {result.pagination.page} of {result.pagination.totalPages} ·{" "}
           {result.pagination.totalItems} assignment(s)
