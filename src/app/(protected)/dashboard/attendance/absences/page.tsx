@@ -2,13 +2,14 @@ import Link from "next/link";
 import {
   ArrowLeft,
   CalendarClock,
+  RotateCcw,
   Search,
   TimerOff,
   UsersRound,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
-import { AbsenceRecordActions } from "@/features/attendance/absences/records/components/absence-records-actions";
-import { AbsenceRecordsTable } from "@/features/attendance/absences/records/components/absence-records-table";
+import { AbsenceRecordActions } from "@/features/attendance/absences/records/components/absence-record-actions";
+import { AbsenceRecordsTable } from "@/features/attendance/absences/records/components/absence-record-table";
 import {
   getAbsenceRecordData,
   parseAbsenceRecordSearchParams,
@@ -191,8 +192,8 @@ export default async function AbsenceRecordsPage({
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Review generated and manual ABSENT attendance records. Use this page
-            after generating absences from absence candidates.
+            Review generated and manual ABSENT attendance records. Use rollback
+            only for wrongly generated automatic ABSENT records.
           </p>
         </div>
 
@@ -206,6 +207,14 @@ export default async function AbsenceRecordsPage({
             >
               <TimerOff className="h-4 w-4" aria-hidden="true" />
               Absence Candidates
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/absences/rollback"
+              className="starland-btn starland-btn-soft"
+            >
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              Rollback ABSENT
             </Link>
 
             <Link
