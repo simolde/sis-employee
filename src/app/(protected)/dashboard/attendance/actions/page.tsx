@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   BarChart3,
+  CalendarClock,
   ClipboardCheck,
   ClipboardEdit,
   Clock3,
@@ -70,13 +71,13 @@ export default async function AttendanceActionsPage() {
       tone: "success",
     },
     {
-      title: "Manual Changes",
+      title: "Schedule Assignment",
       description:
-        "Manual input, edits, and corrections are saved as pending review until verified or approved.",
-      icon: ClipboardCheck,
-      label: "Open Review",
-      value: stats.openReview,
-      tone: "warning",
+        "Bulk employee schedule assignment prevents HR from editing employee schedules one by one.",
+      icon: CalendarClock,
+      label: "Required For",
+      value: "Auto Status",
+      tone: "info",
     },
     {
       title: "Status Calculation",
@@ -88,13 +89,13 @@ export default async function AttendanceActionsPage() {
       tone: "info",
     },
     {
-      title: "Audit Trail",
+      title: "Manual Changes",
       description:
-        "Manual input, corrections, approvals, recalculation, and missing-timeout automation are logged for traceability.",
-      icon: History,
-      label: "Audit Logs",
-      value: stats.attendanceAuditLogs,
-      tone: "info",
+        "Manual input, edits, and corrections are saved as pending review until verified or approved.",
+      icon: ClipboardCheck,
+      label: "Open Review",
+      value: stats.openReview,
+      tone: "warning",
     },
   ];
 
@@ -107,6 +108,28 @@ export default async function AttendanceActionsPage() {
       icon: Clock3,
       badge: "Records",
       buttonLabel: "Open Attendance",
+      statLabel: "Today",
+      statValue: stats.totalToday,
+    },
+    {
+      title: "Schedule Assignment",
+      description:
+        "Bulk assign employee schedules by branch, department, designation, employee type, or current schedule.",
+      href: "/dashboard/attendance/schedule-assignment",
+      icon: CalendarClock,
+      badge: "Schedules",
+      buttonLabel: "Assign Schedules",
+      statLabel: "For Auto Status",
+      statValue: stats.totalToday,
+    },
+    {
+      title: "Status Recalculation",
+      description:
+        "Automatically recalculate normal attendance statuses using employee schedule and shift rules.",
+      href: "/dashboard/attendance/status-recalculation",
+      icon: RefreshCw,
+      badge: "Auto Status",
+      buttonLabel: "Open Recalculation",
       statLabel: "Today",
       statValue: stats.totalToday,
     },
@@ -131,17 +154,6 @@ export default async function AttendanceActionsPage() {
       buttonLabel: "Open Review Queue",
       statLabel: "Open Review",
       statValue: stats.openReview,
-    },
-    {
-      title: "Status Recalculation",
-      description:
-        "Automatically recalculate normal attendance statuses using employee schedule and shift rules.",
-      href: "/dashboard/attendance/status-recalculation",
-      icon: RefreshCw,
-      badge: "Auto Status",
-      buttonLabel: "Open Recalculation",
-      statLabel: "Today",
-      statValue: stats.totalToday,
     },
     {
       title: "Missing Timeout Management",
@@ -213,9 +225,9 @@ export default async function AttendanceActionsPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Manage attendance records, manual corrections, missing timeouts, HR
-            review, automation, audit trail, status recalculation, and reports
-            from one place.
+            Manage attendance records, employee schedule assignment, manual
+            corrections, missing timeouts, HR review, automation, audit trail,
+            status recalculation, and reports from one place.
           </p>
         </div>
 
@@ -349,17 +361,17 @@ export default async function AttendanceActionsPage() {
       <section className="starland-card overflow-hidden">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-            Review Policy
+            Automation Policy
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Normal Punches vs Manual Corrections
+            Schedule First, Then Auto Status
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            RFID, biometric/kiosk, and ODL attendance are treated as normal
-            punches. Manual input, manual edits, and corrections are marked as
-            pending review and must be checked by HR/Admin.
+            Make sure employees have the correct schedule assigned. Then the
+            system can automatically calculate ON_TIME, LATE, HALF_DAY, and
+            MISSING_TIMEOUT from the linked shift rules.
           </p>
         </div>
 

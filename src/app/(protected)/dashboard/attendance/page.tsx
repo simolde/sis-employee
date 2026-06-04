@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   BarChart3,
+  CalendarClock,
   ClipboardCheck,
   ClipboardEdit,
   Clock3,
@@ -49,6 +50,16 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
     badge: "Hub",
     buttonLabel: "Open Hub",
     tone: "success",
+  },
+  {
+    title: "Schedule Assignment",
+    description:
+      "Bulk assign employee schedules so automatic status calculation can use the correct shift rules.",
+    href: "/dashboard/attendance/schedule-assignment",
+    icon: CalendarClock,
+    badge: "Schedules",
+    buttonLabel: "Assign Schedules",
+    tone: "info",
   },
   {
     title: "Manual Attendance",
@@ -228,10 +239,9 @@ export default async function AttendancePage({
                 </div>
 
                 <span
-                  className={[
-                    "starland-badge",
-                    badgeClass(card.tone),
-                  ].join(" ")}
+                  className={["starland-badge", badgeClass(card.tone)].join(
+                    " ",
+                  )}
                 >
                   {card.badge}
                 </span>

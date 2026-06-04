@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  CalendarClock,
   CheckCircle2,
   ClockAlert,
   Clock3,
@@ -40,8 +41,16 @@ export default async function AttendanceStatusRecalculationPage() {
 
         <div className="flex flex-wrap gap-2">
           <Link
-            href="/dashboard/attendance/actions"
+            href="/dashboard/attendance/schedule-assignment"
             className="starland-btn starland-btn-primary"
+          >
+            <CalendarClock className="h-4 w-4" aria-hidden="true" />
+            Assign Schedules
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/actions"
+            className="starland-btn starland-btn-soft"
           >
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
             Attendance Actions
@@ -175,6 +184,34 @@ export default async function AttendanceStatusRecalculationPage() {
         </div>
       </section>
 
+      <section className="starland-card p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <span className="starland-badge starland-badge-warning">
+              Before Recalculation
+            </span>
+
+            <h2 className="mt-3 text-lg font-extrabold text-[var(--starland-dark-text)]">
+              Make Sure Employees Have Schedules
+            </h2>
+
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+              Automatic status calculation requires Employee.scheduleId. Use
+              bulk schedule assignment first for employees without schedules or
+              employees assigned to the wrong schedule.
+            </p>
+          </div>
+
+          <Link
+            href="/dashboard/attendance/schedule-assignment"
+            className="starland-btn starland-btn-primary"
+          >
+            <CalendarClock className="h-4 w-4" aria-hidden="true" />
+            Open Schedule Assignment
+          </Link>
+        </div>
+      </section>
+
       <AttendanceStatusRecalculationRunner
         batchLimit={batchLimit}
         eligibleCount={summary.normalRecordsWithSchedule}
@@ -185,26 +222,37 @@ export default async function AttendanceStatusRecalculationPage() {
           Recommended HR Workflow
         </h2>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              Automatic
+              1. Assign Schedules
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              RFID, biometric, and ODL records should be calculated by the
-              system using the assigned schedule and shift.
+              Bulk assign schedules by branch, department, designation,
+              employee type, or current schedule.
             </p>
           </div>
 
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              HR Review Only
+              2. Recalculate Status
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              HR should only review manual input, manual edits, corrections, and
-              exceptional overrides.
+              Run automatic status recalculation so normal records follow the
+              assigned shift rules.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <p className="font-bold text-[var(--starland-dark-text)]">
+              3. Review Exceptions
+            </p>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              HR only reviews manual input, edits, corrections, and exceptional
+              override records.
             </p>
           </div>
         </div>
