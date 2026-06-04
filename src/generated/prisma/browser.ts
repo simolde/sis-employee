@@ -147,3 +147,8 @@ export type ActivityLog = Prisma.ActivityLogModel
  * 
  */
 export type NoticeRead = Prisma.NoticeReadModel
+/**
+ * Model AttendanceExceptionDate
+ * 
+ */
+export type AttendanceExceptionDate = Prisma.AttendanceExceptionDateModel

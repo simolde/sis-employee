@@ -409,7 +409,8 @@ export const ModelName = {
   Leave: 'Leave',
   Notice: 'Notice',
   ActivityLog: 'ActivityLog',
-  NoticeRead: 'NoticeRead'
+  NoticeRead: 'NoticeRead',
+  AttendanceExceptionDate: 'AttendanceExceptionDate'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -425,7 +426,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "branch" | "department" | "designation" | "empType" | "employee" | "employeeFamilyBackground" | "employeeChild" | "employeeEducationSummary" | "employeeEducationalBackground" | "employeeWorkExperience" | "employeeContract" | "role" | "permission" | "rolePermission" | "user" | "shift" | "shiftSchedule" | "employeeScheduleAssignment" | "rfidCard" | "attendance" | "attendanceLog" | "leaveType" | "leave" | "notice" | "activityLog" | "noticeRead"
+    modelProps: "branch" | "department" | "designation" | "empType" | "employee" | "employeeFamilyBackground" | "employeeChild" | "employeeEducationSummary" | "employeeEducationalBackground" | "employeeWorkExperience" | "employeeContract" | "role" | "permission" | "rolePermission" | "user" | "shift" | "shiftSchedule" | "employeeScheduleAssignment" | "rfidCard" | "attendance" | "attendanceLog" | "leaveType" | "leave" | "notice" | "activityLog" | "noticeRead" | "attendanceExceptionDate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2145,6 +2146,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AttendanceExceptionDate: {
+      payload: Prisma.$AttendanceExceptionDatePayload<ExtArgs>
+      fields: Prisma.AttendanceExceptionDateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AttendanceExceptionDateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceExceptionDatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AttendanceExceptionDateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceExceptionDatePayload>
+        }
+        findFirst: {
+          args: Prisma.AttendanceExceptionDateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceExceptionDatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AttendanceExceptionDateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceExceptionDatePayload>
+        }
+        findMany: {
+          args: Prisma.AttendanceExceptionDateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceExceptionDatePayload>[]
+        }
+        create: {
+          args: Prisma.AttendanceExceptionDateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceExceptionDatePayload>
+        }
+        createMany: {
+          args: Prisma.AttendanceExceptionDateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AttendanceExceptionDateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceExceptionDatePayload>
+        }
+        update: {
+          args: Prisma.AttendanceExceptionDateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceExceptionDatePayload>
+        }
+        deleteMany: {
+          args: Prisma.AttendanceExceptionDateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AttendanceExceptionDateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AttendanceExceptionDateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceExceptionDatePayload>
+        }
+        aggregate: {
+          args: Prisma.AttendanceExceptionDateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAttendanceExceptionDate>
+        }
+        groupBy: {
+          args: Prisma.AttendanceExceptionDateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttendanceExceptionDateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AttendanceExceptionDateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttendanceExceptionDateCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2628,6 +2695,23 @@ export const NoticeReadScalarFieldEnum = {
 export type NoticeReadScalarFieldEnum = (typeof NoticeReadScalarFieldEnum)[keyof typeof NoticeReadScalarFieldEnum]
 
 
+export const AttendanceExceptionDateScalarFieldEnum = {
+  exceptionId: 'exceptionId',
+  exceptionDate: 'exceptionDate',
+  branchId: 'branchId',
+  exceptionType: 'exceptionType',
+  title: 'title',
+  description: 'description',
+  affectsAbsenceGeneration: 'affectsAbsenceGeneration',
+  status: 'status',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AttendanceExceptionDateScalarFieldEnum = (typeof AttendanceExceptionDateScalarFieldEnum)[keyof typeof AttendanceExceptionDateScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2907,6 +2991,14 @@ export const ActivityLogOrderByRelevanceFieldEnum = {
 export type ActivityLogOrderByRelevanceFieldEnum = (typeof ActivityLogOrderByRelevanceFieldEnum)[keyof typeof ActivityLogOrderByRelevanceFieldEnum]
 
 
+export const AttendanceExceptionDateOrderByRelevanceFieldEnum = {
+  title: 'title',
+  description: 'description'
+} as const
+
+export type AttendanceExceptionDateOrderByRelevanceFieldEnum = (typeof AttendanceExceptionDateOrderByRelevanceFieldEnum)[keyof typeof AttendanceExceptionDateOrderByRelevanceFieldEnum]
+
+
 
 /**
  * Field references
@@ -3045,6 +3137,13 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
+
+/**
+ * Reference to a field of type 'AttendanceExceptionType'
+ */
+export type EnumAttendanceExceptionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AttendanceExceptionType'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -3181,6 +3280,7 @@ export type GlobalOmitConfig = {
   notice?: Prisma.NoticeOmit
   activityLog?: Prisma.ActivityLogOmit
   noticeRead?: Prisma.NoticeReadOmit
+  attendanceExceptionDate?: Prisma.AttendanceExceptionDateOmit
 }
 
 /* Types for Logging */

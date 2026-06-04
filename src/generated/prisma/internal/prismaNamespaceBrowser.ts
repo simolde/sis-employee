@@ -76,7 +76,8 @@ export const ModelName = {
   Leave: 'Leave',
   Notice: 'Notice',
   ActivityLog: 'ActivityLog',
-  NoticeRead: 'NoticeRead'
+  NoticeRead: 'NoticeRead',
+  AttendanceExceptionDate: 'AttendanceExceptionDate'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -539,6 +540,23 @@ export const NoticeReadScalarFieldEnum = {
 export type NoticeReadScalarFieldEnum = (typeof NoticeReadScalarFieldEnum)[keyof typeof NoticeReadScalarFieldEnum]
 
 
+export const AttendanceExceptionDateScalarFieldEnum = {
+  exceptionId: 'exceptionId',
+  exceptionDate: 'exceptionDate',
+  branchId: 'branchId',
+  exceptionType: 'exceptionType',
+  title: 'title',
+  description: 'description',
+  affectsAbsenceGeneration: 'affectsAbsenceGeneration',
+  status: 'status',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AttendanceExceptionDateScalarFieldEnum = (typeof AttendanceExceptionDateScalarFieldEnum)[keyof typeof AttendanceExceptionDateScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -816,4 +834,12 @@ export const ActivityLogOrderByRelevanceFieldEnum = {
 } as const
 
 export type ActivityLogOrderByRelevanceFieldEnum = (typeof ActivityLogOrderByRelevanceFieldEnum)[keyof typeof ActivityLogOrderByRelevanceFieldEnum]
+
+
+export const AttendanceExceptionDateOrderByRelevanceFieldEnum = {
+  title: 'title',
+  description: 'description'
+} as const
+
+export type AttendanceExceptionDateOrderByRelevanceFieldEnum = (typeof AttendanceExceptionDateOrderByRelevanceFieldEnum)[keyof typeof AttendanceExceptionDateOrderByRelevanceFieldEnum]
 

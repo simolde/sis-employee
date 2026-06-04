@@ -511,6 +511,23 @@ export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
   _max?: Prisma.NestedJsonNullableFilter<$PrismaModel>
 }
 
+export type EnumAttendanceExceptionTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceExceptionType | Prisma.EnumAttendanceExceptionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceExceptionType[]
+  notIn?: $Enums.AttendanceExceptionType[]
+  not?: Prisma.NestedEnumAttendanceExceptionTypeFilter<$PrismaModel> | $Enums.AttendanceExceptionType
+}
+
+export type EnumAttendanceExceptionTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceExceptionType | Prisma.EnumAttendanceExceptionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceExceptionType[]
+  notIn?: $Enums.AttendanceExceptionType[]
+  not?: Prisma.NestedEnumAttendanceExceptionTypeWithAggregatesFilter<$PrismaModel> | $Enums.AttendanceExceptionType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAttendanceExceptionTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAttendanceExceptionTypeFilter<$PrismaModel>
+}
+
 export type NestedIntFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[]
@@ -985,6 +1002,23 @@ export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
   gt?: runtime.InputJsonValue
   gte?: runtime.InputJsonValue
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+}
+
+export type NestedEnumAttendanceExceptionTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceExceptionType | Prisma.EnumAttendanceExceptionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceExceptionType[]
+  notIn?: $Enums.AttendanceExceptionType[]
+  not?: Prisma.NestedEnumAttendanceExceptionTypeFilter<$PrismaModel> | $Enums.AttendanceExceptionType
+}
+
+export type NestedEnumAttendanceExceptionTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceExceptionType | Prisma.EnumAttendanceExceptionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceExceptionType[]
+  notIn?: $Enums.AttendanceExceptionType[]
+  not?: Prisma.NestedEnumAttendanceExceptionTypeWithAggregatesFilter<$PrismaModel> | $Enums.AttendanceExceptionType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAttendanceExceptionTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAttendanceExceptionTypeFilter<$PrismaModel>
 }
 
 

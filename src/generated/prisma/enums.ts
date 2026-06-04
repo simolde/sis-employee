@@ -122,3 +122,15 @@ export const EducationLevel = {
 } as const
 
 export type EducationLevel = (typeof EducationLevel)[keyof typeof EducationLevel]
+
+
+export const AttendanceExceptionType = {
+  HOLIDAY: 'HOLIDAY',
+  CLASS_SUSPENSION: 'CLASS_SUSPENSION',
+  NO_WORK: 'NO_WORK',
+  SCHOOL_EVENT: 'SCHOOL_EVENT',
+  REST_DAY: 'REST_DAY',
+  OTHER: 'OTHER'
+} as const
+
+export type AttendanceExceptionType = (typeof AttendanceExceptionType)[keyof typeof AttendanceExceptionType]

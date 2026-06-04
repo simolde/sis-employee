@@ -89,6 +89,15 @@ enum EducationLevel {
   DOCTORATE
 }
 
+enum AttendanceExceptionType {
+  HOLIDAY
+  CLASS_SUSPENSION
+  NO_WORK
+  SCHOOL_EVENT
+  REST_DAY
+  OTHER
+}
+
 model Branch {
   branchId   Int          @id @default(autoincrement()) @map("branch_id")
   branchCode String       @unique @map("branch_code") @db.VarChar(50)
@@ -683,4 +692,24 @@ model NoticeRead {
   @@index([noticeId])
   @@index([userId])
   @@map("notice_reads")
+}
+
+model AttendanceExceptionDate {
+  exceptionId               Int                     @id @default(autoincrement()) @map("exception_id")
+  exceptionDate             DateTime                @map("exception_date") @db.Date
+  branchId                  Int?                    @map("branch_id")
+  exceptionType             AttendanceExceptionType @default(HOLIDAY) @map("exception_type")
+  title                     String                  @db.VarChar(160)
+  description               String?                 @db.Text
+  affectsAbsenceGeneration  Boolean                 @default(true) @map("affects_absence_generation")
+  status                    RecordStatus            @default(ACTIVE)
+  createdById               Int?                    @map("created_by")
+  createdAt                 DateTime                @default(now()) @map("created_at")
+  updatedAt                 DateTime                @updatedAt @map("updated_at")
+
+  @@index([exceptionDate])
+  @@index([branchId])
+  @@index([exceptionType])
+  @@index([status])
+  @@map("attendance_exception_dates")
 }
