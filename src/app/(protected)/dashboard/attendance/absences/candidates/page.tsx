@@ -10,6 +10,7 @@ import {
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
 import { AbsenceCandidatesActions } from "@/features/attendance/absences/components/absence-candidates-actions";
 import { AbsenceCandidatesTable } from "@/features/attendance/absences/components/absence-candidates-table";
+import { AbsenceGenerationPanel } from "@/features/attendance/absences/components/absence-generation-panel";
 import {
   getAbsenceCandidateData,
   parseAbsenceCandidateSearchParams,
@@ -181,6 +182,7 @@ export default async function AbsenceCandidatePage({
   const resolvedSearchParams = await searchParams;
   const filters = parseAbsenceCandidateSearchParams(resolvedSearchParams);
   const result = await getAbsenceCandidateData(filters);
+  const generationLimit = 500;
 
   return (
     <section className="starland-page space-y-5">
@@ -196,8 +198,8 @@ export default async function AbsenceCandidatePage({
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
             Preview employees who are scheduled on the selected date but have no
-            attendance record. This is the safe first step before automatic
-            ABSENT generation.
+            attendance record. After review, HR/Admin may generate ABSENT
+            records from the current preview.
           </p>
         </div>
 
@@ -305,6 +307,8 @@ export default async function AbsenceCandidatePage({
         options={result.options}
       />
 
+      <AbsenceGenerationPanel result={result} limit={generationLimit} />
+
       <section className="starland-card p-5 print:hidden">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
           Safe Absence Workflow
@@ -324,12 +328,12 @@ export default async function AbsenceCandidatePage({
 
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              2. Exclude Exceptions
+              2. Review Exceptions
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Next step should exclude approved leave, holidays, suspended
-              classes, and rest days.
+              Confirm approved leave, holidays, suspensions, and rest days are
+              excluded before generation.
             </p>
           </div>
 
@@ -339,8 +343,7 @@ export default async function AbsenceCandidatePage({
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              After policy checks are ready, the system can safely create ABSENT
-              records automatically.
+              Generate normal ABSENT records only after HR/Admin confirmation.
             </p>
           </div>
         </div>
