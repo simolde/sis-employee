@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { History } from "lucide-react";
+import { History, ShieldCheck } from "lucide-react";
 import { AttendanceDetailsModal } from "@/features/attendance/components/attendance-details-modal";
 import { MyAttendanceTable } from "@/features/attendance/components/my-attendance-table";
 import { TimeInOutForm } from "@/features/attendance/components/time-in-out-form";
@@ -77,13 +77,23 @@ export default async function OdlAttendancePage({
           </p>
         </div>
 
-        <Link
-          href="/dashboard/attendance/odl/history"
-          className="starland-btn starland-btn-primary"
-        >
-          <History className="h-4 w-4" aria-hidden="true" />
-          View ODL History
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/odl/eligibility"
+            className="starland-btn starland-btn-soft"
+          >
+            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+            Eligibility Check
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/odl/history"
+            className="starland-btn starland-btn-primary"
+          >
+            <History className="h-4 w-4" aria-hidden="true" />
+            View ODL History
+          </Link>
+        </div>
       </div>
 
       <TimeInOutForm pageData={odlAttendancePageData} />
@@ -101,13 +111,23 @@ export default async function OdlAttendancePage({
             </p>
           </div>
 
-          <Link
-            href="/dashboard/attendance/odl/history"
-            className="starland-btn starland-btn-soft"
-          >
-            <History className="h-4 w-4" aria-hidden="true" />
-            Full History
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/attendance/odl/eligibility"
+              className="starland-btn starland-btn-soft"
+            >
+              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              Check Eligibility
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/odl/history"
+              className="starland-btn starland-btn-soft"
+            >
+              <History className="h-4 w-4" aria-hidden="true" />
+              Full History
+            </Link>
+          </div>
         </div>
 
         <MyAttendanceTable result={myAttendance} />
