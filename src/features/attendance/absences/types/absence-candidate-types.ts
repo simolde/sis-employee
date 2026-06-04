@@ -33,16 +33,26 @@ export type AbsenceCandidateItem = {
   expectedStatus: "ABSENT";
 };
 
+export type AbsenceCandidateBlockingException = {
+  exceptionId: number;
+  title: string;
+  exceptionType: string;
+  branchName: string;
+};
+
 export type AbsenceCandidateResult = {
   filters: AbsenceCandidateFilters;
   options: AbsenceCandidateOptions;
   records: AbsenceCandidateItem[];
+  blockingExceptions: AbsenceCandidateBlockingException[];
   summary: {
     selectedDate: string;
     matchingEmployees: number;
     candidateAbsences: number;
     scheduledEmployees: number;
     employeesWithoutAttendance: number;
+    excludedByException: number;
+    activeBlockingExceptions: number;
   };
   pagination: {
     page: number;

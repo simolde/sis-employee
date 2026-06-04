@@ -40,49 +40,19 @@ type AbsenceGenerationEmployee = {
   } | null;
 };
 
+type AbsenceBlockingExceptionRecord = {
+  exceptionId: number;
+  branchId: number | null;
+};
+
 const weekdayTokens = [
-  {
-    index: 0,
-    short: "SUN",
-    long: "SUNDAY",
-    numberTokens: ["0", "7"],
-  },
-  {
-    index: 1,
-    short: "MON",
-    long: "MONDAY",
-    numberTokens: ["1"],
-  },
-  {
-    index: 2,
-    short: "TUE",
-    long: "TUESDAY",
-    numberTokens: ["2"],
-  },
-  {
-    index: 3,
-    short: "WED",
-    long: "WEDNESDAY",
-    numberTokens: ["3"],
-  },
-  {
-    index: 4,
-    short: "THU",
-    long: "THURSDAY",
-    numberTokens: ["4"],
-  },
-  {
-    index: 5,
-    short: "FRI",
-    long: "FRIDAY",
-    numberTokens: ["5"],
-  },
-  {
-    index: 6,
-    short: "SAT",
-    long: "SATURDAY",
-    numberTokens: ["6"],
-  },
+  { index: 0, short: "SUN", long: "SUNDAY", numberTokens: ["0", "7"] },
+  { index: 1, short: "MON", long: "MONDAY", numberTokens: ["1"] },
+  { index: 2, short: "TUE", long: "TUESDAY", numberTokens: ["2"] },
+  { index: 3, short: "WED", long: "WEDNESDAY", numberTokens: ["3"] },
+  { index: 4, short: "THU", long: "THURSDAY", numberTokens: ["4"] },
+  { index: 5, short: "FRI", long: "FRIDAY", numberTokens: ["5"] },
+  { index: 6, short: "SAT", long: "SATURDAY", numberTokens: ["6"] },
 ];
 
 function formDataString(formData: FormData, key: string): string {
@@ -180,6 +150,16 @@ function isScheduleApplicableOnDate(input: {
       token === day.short ||
       token === day.long ||
       day.numberTokens.includes(token),
+  );
+}
+
+function isBlockedByException(input: {
+  employeeBranchId: number;
+  exceptions: AbsenceBlockingExceptionRecord[];
+}): boolean {
+  return input.exceptions.some(
+    (exception) =>
+      exception.branchId === null || exception.branchId === input.employeeBranchId,
   );
 }
 
@@ -320,10 +300,34 @@ function buildAbsenceAuditValue(input: {
   };
 }
 
+async function getBlockingExceptionsForDate(input: {
+  tx: Prisma.TransactionClient;
+  attDate: Date;
+}): Promise<AbsenceBlockingExceptionRecord[]> {
+  const dateRange = getDateRange(input.attDate);
+
+  return input.tx.attendanceExceptionDate.findMany({
+    where: {
+      exceptionDate: {
+        gte: dateRange.start,
+        lt: dateRange.end,
+      },
+      status: "ACTIVE",
+      affectsAbsenceGeneration: true,
+    },
+    select: {
+      exceptionId: true,
+      branchId: true,
+    },
+  });
+}
+
 function revalidateAbsencePages() {
   revalidatePath("/dashboard/attendance");
   revalidatePath("/dashboard/attendance/actions");
+  revalidatePath("/dashboard/attendance/absences");
   revalidatePath("/dashboard/attendance/absences/candidates");
+  revalidatePath("/dashboard/attendance/absences/rollback");
   revalidatePath("/dashboard/attendance/reports");
   revalidatePath("/dashboard/attendance/audit");
 }
@@ -377,6 +381,11 @@ export async function generateAbsentRecordsAction(
   });
 
   const result = await prisma.$transaction(async (tx) => {
+    const blockingExceptions = await getBlockingExceptionsForDate({
+      tx,
+      attDate,
+    });
+
     const employees = await tx.employee.findMany({
       where,
       select: {
@@ -419,14 +428,29 @@ export async function generateAbsentRecordsAction(
       take: limit * 3,
     });
 
-    const candidates = employees
+    const scheduledCandidates = employees.filter(
+      (employee) =>
+        employee.scheduleId &&
+        employee.schedule &&
+        isScheduleApplicableOnDate({
+          date: attDate,
+          daysOfWeek: employee.schedule.daysOfWeek,
+        }),
+    );
+
+    const skippedByExceptionCount = scheduledCandidates.filter((employee) =>
+      isBlockedByException({
+        employeeBranchId: employee.branchId,
+        exceptions: blockingExceptions,
+      }),
+    ).length;
+
+    const candidates = scheduledCandidates
       .filter(
         (employee) =>
-          employee.scheduleId &&
-          employee.schedule &&
-          isScheduleApplicableOnDate({
-            date: attDate,
-            daysOfWeek: employee.schedule.daysOfWeek,
+          !isBlockedByException({
+            employeeBranchId: employee.branchId,
+            exceptions: blockingExceptions,
           }),
       )
       .slice(0, limit);
@@ -502,6 +526,7 @@ export async function generateAbsentRecordsAction(
       checkedCount: candidates.length,
       generatedCount,
       skippedCount,
+      skippedByExceptionCount,
     };
   });
 
@@ -512,9 +537,10 @@ export async function generateAbsentRecordsAction(
     checkedCount: result.checkedCount,
     generatedCount: result.generatedCount,
     skippedCount: result.skippedCount,
+    skippedByExceptionCount: result.skippedByExceptionCount,
     message:
       result.generatedCount > 0
-        ? `${result.generatedCount} ABSENT record(s) generated. ${result.skippedCount} candidate(s) skipped.`
-        : `No ABSENT records generated. ${result.checkedCount} candidate(s) checked.`,
+        ? `${result.generatedCount} ABSENT record(s) generated. ${result.skippedByExceptionCount} candidate(s) excluded by exception calendar. ${result.skippedCount} candidate(s) skipped.`
+        : `No ABSENT records generated. ${result.skippedByExceptionCount} candidate(s) excluded by exception calendar. ${result.checkedCount} candidate(s) checked.`,
   };
 }

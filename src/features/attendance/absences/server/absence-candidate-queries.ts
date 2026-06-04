@@ -2,6 +2,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { formatFullName } from "@/lib/utils/formatting";
 import type {
+  AbsenceCandidateBlockingException,
   AbsenceCandidateFilters,
   AbsenceCandidateItem,
   AbsenceCandidateOptions,
@@ -11,49 +12,21 @@ import type {
 const DEFAULT_PAGE_SIZE = 20;
 
 const weekdayTokens = [
-  {
-    index: 0,
-    short: "SUN",
-    long: "SUNDAY",
-    numberTokens: ["0", "7"],
-  },
-  {
-    index: 1,
-    short: "MON",
-    long: "MONDAY",
-    numberTokens: ["1"],
-  },
-  {
-    index: 2,
-    short: "TUE",
-    long: "TUESDAY",
-    numberTokens: ["2"],
-  },
-  {
-    index: 3,
-    short: "WED",
-    long: "WEDNESDAY",
-    numberTokens: ["3"],
-  },
-  {
-    index: 4,
-    short: "THU",
-    long: "THURSDAY",
-    numberTokens: ["4"],
-  },
-  {
-    index: 5,
-    short: "FRI",
-    long: "FRIDAY",
-    numberTokens: ["5"],
-  },
-  {
-    index: 6,
-    short: "SAT",
-    long: "SATURDAY",
-    numberTokens: ["6"],
-  },
+  { index: 0, short: "SUN", long: "SUNDAY", numberTokens: ["0", "7"] },
+  { index: 1, short: "MON", long: "MONDAY", numberTokens: ["1"] },
+  { index: 2, short: "TUE", long: "TUESDAY", numberTokens: ["2"] },
+  { index: 3, short: "WED", long: "WEDNESDAY", numberTokens: ["3"] },
+  { index: 4, short: "THU", long: "THURSDAY", numberTokens: ["4"] },
+  { index: 5, short: "FRI", long: "FRIDAY", numberTokens: ["5"] },
+  { index: 6, short: "SAT", long: "SATURDAY", numberTokens: ["6"] },
 ];
+
+type AbsenceBlockingExceptionRecord = {
+  exceptionId: number;
+  branchId: number | null;
+  exceptionType: string;
+  title: string;
+};
 
 function singleSearchParam(
   value: string | string[] | undefined,
@@ -170,35 +143,34 @@ function isScheduleApplicableOnDate(input: {
     return true;
   }
 
-  const dayIndex = Number(
-    new Intl.DateTimeFormat("en-US", {
-      timeZone: "Asia/Manila",
-      weekday: "short",
-    })
-      .formatToParts(input.date)
-      .find((part) => part.type === "weekday")
-      ?.value
-      ? input.date.getUTCDay()
-      : input.date.getUTCDay(),
-  );
-
-  const scheduleText = input.daysOfWeek.toUpperCase();
-  const tokens = scheduleText
-    .split(/[\s,;/|]+/g)
-    .map((token) => token.trim())
-    .filter(Boolean);
-
+  const dayIndex = input.date.getUTCDay();
   const day = weekdayTokens.find((item) => item.index === dayIndex);
 
   if (!day) {
     return false;
   }
 
+  const tokens = input.daysOfWeek
+    .toUpperCase()
+    .split(/[\s,;/|]+/g)
+    .map((token) => token.trim())
+    .filter(Boolean);
+
   return tokens.some(
     (token) =>
       token === day.short ||
       token === day.long ||
       day.numberTokens.includes(token),
+  );
+}
+
+function isBlockedByException(input: {
+  employeeBranchId: number;
+  exceptions: AbsenceBlockingExceptionRecord[];
+}): boolean {
+  return input.exceptions.some(
+    (exception) =>
+      exception.branchId === null || exception.branchId === input.employeeBranchId,
   );
 }
 
@@ -363,6 +335,70 @@ function mapCandidate(input: {
   };
 }
 
+async function getBlockingExceptionsForDate(
+  dateValue: string,
+): Promise<AbsenceBlockingExceptionRecord[]> {
+  const dateRange = getDateRange(dateValue);
+
+  return prisma.attendanceExceptionDate.findMany({
+    where: {
+      exceptionDate: {
+        gte: dateRange.start,
+        lt: dateRange.end,
+      },
+      status: "ACTIVE",
+      affectsAbsenceGeneration: true,
+    },
+    select: {
+      exceptionId: true,
+      branchId: true,
+      exceptionType: true,
+      title: true,
+    },
+  });
+}
+
+async function mapBlockingExceptions(
+  exceptions: AbsenceBlockingExceptionRecord[],
+): Promise<AbsenceCandidateBlockingException[]> {
+  const branchIds = Array.from(
+    new Set(
+      exceptions
+        .map((exception) => exception.branchId)
+        .filter((branchId): branchId is number => branchId !== null),
+    ),
+  );
+
+  const branches =
+    branchIds.length > 0
+      ? await prisma.branch.findMany({
+          where: {
+            branchId: {
+              in: branchIds,
+            },
+          },
+          select: {
+            branchId: true,
+            name: true,
+          },
+        })
+      : [];
+
+  const branchMap = new Map(
+    branches.map((branch) => [branch.branchId, branch.name]),
+  );
+
+  return exceptions.map((exception) => ({
+    exceptionId: exception.exceptionId,
+    title: exception.title,
+    exceptionType: exception.exceptionType,
+    branchName:
+      exception.branchId === null
+        ? "All branches"
+        : branchMap.get(exception.branchId) ?? `Branch #${exception.branchId}`,
+  }));
+}
+
 export function parseAbsenceCandidateSearchParams(
   searchParams: Record<string, string | string[] | undefined>,
 ): AbsenceCandidateFilters {
@@ -441,77 +477,100 @@ export async function getAbsenceCandidateData(
   const selectedDate = parseDateInput(filters.date);
   const where = buildEmployeeWhere(filters);
 
-  const [employees, options, scheduledEmployees, employeesWithoutAttendance] =
-    await Promise.all([
-      prisma.employee.findMany({
-        where,
-        select: {
-          empId: true,
-          empNumber: true,
-          firstName: true,
-          middleName: true,
-          lastName: true,
-          status: true,
-          branch: {
-            select: {
-              name: true,
-            },
+  const [
+    employees,
+    options,
+    blockingExceptions,
+    scheduledEmployees,
+    employeesWithoutAttendance,
+  ] = await Promise.all([
+    prisma.employee.findMany({
+      where,
+      select: {
+        empId: true,
+        empNumber: true,
+        firstName: true,
+        middleName: true,
+        lastName: true,
+        status: true,
+        branchId: true,
+        branch: {
+          select: {
+            name: true,
           },
-          department: {
-            select: {
-              name: true,
-            },
+        },
+        department: {
+          select: {
+            name: true,
           },
-          schedule: {
-            select: {
-              scheduleCode: true,
-              name: true,
-              daysOfWeek: true,
-              shift: {
-                select: {
-                  startTime: true,
-                  endTime: true,
-                  isOvernight: true,
-                },
+        },
+        schedule: {
+          select: {
+            scheduleCode: true,
+            name: true,
+            daysOfWeek: true,
+            shift: {
+              select: {
+                startTime: true,
+                endTime: true,
+                isOvernight: true,
               },
             },
           },
         },
-        orderBy: [
-          {
-            lastName: "asc",
-          },
-          {
-            firstName: "asc",
-          },
-          {
-            empId: "asc",
-          },
-        ],
-      }),
-
-      getAbsenceCandidateOptions(),
-
-      prisma.employee.count({
-        where: {
-          scheduleId: {
-            not: null,
-          },
-          ...(filters.activeOnly ? { status: "ACTIVE" } : {}),
+      },
+      orderBy: [
+        {
+          lastName: "asc",
         },
-      }),
+        {
+          firstName: "asc",
+        },
+        {
+          empId: "asc",
+        },
+      ],
+    }),
 
-      prisma.employee.count({
-        where,
-      }),
-    ]);
+    getAbsenceCandidateOptions(),
 
-  const allCandidates = employees
-    .filter((employee) =>
-      isScheduleApplicableOnDate({
-        date: selectedDate,
-        daysOfWeek: employee.schedule?.daysOfWeek ?? null,
-      }),
+    getBlockingExceptionsForDate(filters.date),
+
+    prisma.employee.count({
+      where: {
+        scheduleId: {
+          not: null,
+        },
+        ...(filters.activeOnly ? { status: "ACTIVE" } : {}),
+      },
+    }),
+
+    prisma.employee.count({
+      where,
+    }),
+  ]);
+
+  const scheduledNoAttendanceEmployees = employees.filter((employee) =>
+    isScheduleApplicableOnDate({
+      date: selectedDate,
+      daysOfWeek: employee.schedule?.daysOfWeek ?? null,
+    }),
+  );
+
+  const excludedByException = scheduledNoAttendanceEmployees.filter((employee) =>
+    isBlockedByException({
+      employeeBranchId: employee.branchId,
+      exceptions: blockingExceptions,
+    }),
+  ).length;
+
+  const allCandidates = scheduledNoAttendanceEmployees
+    .filter(
+      (employee) =>
+        !isBlockedByException({
+          employeeBranchId: employee.branchId,
+          exceptions: blockingExceptions,
+        }),
     )
     .map(mapCandidate)
     .filter((record): record is AbsenceCandidateItem => record !== null);
@@ -529,12 +588,15 @@ export async function getAbsenceCandidateData(
     },
     options,
     records,
+    blockingExceptions: await mapBlockingExceptions(blockingExceptions),
     summary: {
       selectedDate: formatDate(selectedDate),
       matchingEmployees: employees.length,
       candidateAbsences: allCandidates.length,
       scheduledEmployees,
       employeesWithoutAttendance,
+      excludedByException,
+      activeBlockingExceptions: blockingExceptions.length,
     },
     pagination: {
       page: safePage,

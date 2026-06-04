@@ -4,6 +4,7 @@ export type AbsenceGenerationActionState = {
   generatedCount?: number;
   skippedCount?: number;
   checkedCount?: number;
+  skippedByExceptionCount?: number;
   fieldErrors?: Record<string, string[] | undefined>;
 };
 

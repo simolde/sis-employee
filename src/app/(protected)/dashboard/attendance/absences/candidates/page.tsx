@@ -2,8 +2,10 @@ import Link from "next/link";
 import {
   ArrowLeft,
   CalendarClock,
+  CalendarDays,
   RefreshCw,
   Search,
+  ShieldCheck,
   TimerOff,
   UsersRound,
 } from "lucide-react";
@@ -19,6 +21,7 @@ import type {
   AbsenceCandidateFilters,
   AbsenceCandidateOption,
   AbsenceCandidateOptions,
+  AbsenceCandidateResult,
 } from "@/features/attendance/absences/types/absence-candidate-types";
 
 type AbsenceCandidatePageProps = {
@@ -174,6 +177,71 @@ function AbsenceCandidateFiltersForm({
   );
 }
 
+function ExceptionWarningPanel({
+  result,
+}: {
+  result: AbsenceCandidateResult;
+}) {
+  if (result.blockingExceptions.length === 0) {
+    return (
+      <section className="starland-card p-5 print:hidden">
+        <div className="flex items-start gap-3">
+          <ShieldCheck className="mt-1 h-5 w-5 text-[var(--starland-success)]" />
+
+          <div>
+            <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+              No Blocking Exception for This Date
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              The exception calendar did not find an active holiday,
+              suspension, no-work day, rest day, or school event that blocks
+              ABSENT generation for this selected date.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="starland-card border-red-200 bg-red-50 p-5 print:hidden">
+      <div className="flex items-start gap-3">
+        <CalendarDays className="mt-1 h-5 w-5 text-red-600" />
+
+        <div>
+          <h2 className="text-lg font-extrabold text-red-800">
+            Exception Calendar Excluded Employees
+          </h2>
+
+          <p className="mt-2 text-sm font-semibold leading-6 text-red-700">
+            {result.summary.excludedByException} employee(s) were excluded from
+            ABSENT candidates because this date has active exception rule(s).
+          </p>
+
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
+            {result.blockingExceptions.map((exception) => (
+              <div
+                key={exception.exceptionId}
+                className="rounded-2xl border border-red-200 bg-white p-3"
+              >
+                <p className="text-sm font-bold text-red-800">
+                  {exception.title}
+                </p>
+
+                <p className="mt-1 text-xs font-semibold text-red-600">
+                  {exception.exceptionType.replaceAll("_", " ")} ·{" "}
+                  {exception.branchName}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default async function AbsenceCandidatePage({
   searchParams,
 }: AbsenceCandidatePageProps) {
@@ -198,8 +266,9 @@ export default async function AbsenceCandidatePage({
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
             Preview employees who are scheduled on the selected date but have no
-            attendance record. After review, HR/Admin may generate ABSENT
-            records from the current preview.
+            attendance record. The exception calendar now automatically excludes
+            holidays, suspensions, no-work days, rest days, and branch-specific
+            exception dates.
           </p>
         </div>
 
@@ -208,8 +277,16 @@ export default async function AbsenceCandidatePage({
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/dashboard/attendance/absences"
+              href="/dashboard/attendance/exceptions"
               className="starland-btn starland-btn-primary"
+            >
+              <CalendarDays className="h-4 w-4" aria-hidden="true" />
+              Exception Calendar
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/absences"
+              className="starland-btn starland-btn-soft"
             >
               <TimerOff className="h-4 w-4" aria-hidden="true" />
               ABSENT Records
@@ -253,9 +330,9 @@ export default async function AbsenceCandidatePage({
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Candidates are based on active employee profiles, assigned
-            schedules, schedule days, and missing attendance records for the
-            selected date.
+            Candidates are based on active employee profiles, assigned schedules,
+            schedule days, missing attendance records, and exception calendar
+            exclusions.
           </p>
         </div>
 
@@ -285,14 +362,18 @@ export default async function AbsenceCandidatePage({
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <CalendarClock className="h-7 w-7 text-[var(--starland-info)]" />
+            <CalendarDays className="h-7 w-7 text-[var(--starland-danger)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Matching Employees
+              Excluded by Exception
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {result.summary.matchingEmployees}
+              {result.summary.excludedByException}
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
+              Active rule(s): {result.summary.activeBlockingExceptions}
             </p>
           </article>
 
@@ -315,6 +396,8 @@ export default async function AbsenceCandidatePage({
         options={result.options}
       />
 
+      <ExceptionWarningPanel result={result} />
+
       <AbsenceGenerationPanel result={result} limit={generationLimit} />
 
       <section className="starland-card p-5 print:hidden">
@@ -325,23 +408,22 @@ export default async function AbsenceCandidatePage({
         <div className="mt-4 grid gap-4 md:grid-cols-4">
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              1. Preview Candidates
+              1. Encode Exceptions
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Check who has no attendance record for the selected scheduled
-              date.
+              Add holidays, suspensions, no-work dates, and rest days to the
+              exception calendar.
             </p>
           </div>
 
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              2. Review Exceptions
+              2. Preview Candidates
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Confirm approved leave, holidays, suspensions, and rest days are
-              excluded before generation.
+              The system excludes employees affected by active exception rules.
             </p>
           </div>
 
@@ -357,12 +439,11 @@ export default async function AbsenceCandidatePage({
 
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              4. Review Records
+              4. Rollback if Needed
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Open the ABSENT Records page to verify generated records and
-              export reports.
+              Use rollback only for wrongly generated automatic ABSENT records.
             </p>
           </div>
         </div>
