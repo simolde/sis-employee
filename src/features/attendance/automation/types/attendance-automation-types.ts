@@ -10,4 +10,14 @@ export type AttendanceAutomationStatus = {
   endpointPath: string;
   recommendedSchedule: string;
   batchLimit: number;
+
+  attendanceStatusCronSecretConfigured: boolean;
+  attendanceStatusCronActorEmail: string;
+  attendanceStatusCronActorFound: boolean;
+  attendanceStatusCronActorUsername: string;
+  attendanceStatusCronActorStatus: string;
+  attendanceStatusEndpointPath: string;
+  attendanceStatusBatchLimit: number;
+  attendanceStatusNormalRecords: number;
+  attendanceStatusNormalRecordsWithSchedule: number;
 };

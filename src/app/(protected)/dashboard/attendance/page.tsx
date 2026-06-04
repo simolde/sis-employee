@@ -9,6 +9,7 @@ import {
   History,
   Hourglass,
   MonitorSmartphone,
+  RefreshCw,
   type LucideIcon,
 } from "lucide-react";
 import { AttendanceDetailsModal } from "@/features/attendance/components/attendance-details-modal";
@@ -42,7 +43,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Attendance Actions",
     description:
-      "Open the attendance hub for quick access to manual input, review queue, reports, automation, audit trail, missing timeouts, and ODL attendance.",
+      "Open the attendance hub for quick access to manual input, review queue, reports, automation, audit trail, status recalculation, missing timeouts, and ODL attendance.",
     href: "/dashboard/attendance/actions",
     icon: Clock3,
     badge: "Hub",
@@ -70,6 +71,16 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
     tone: "warning",
   },
   {
+    title: "Status Recalculation",
+    description:
+      "Automatically recalculate normal attendance status from employee schedule, shift, and grace minutes.",
+    href: "/dashboard/attendance/status-recalculation",
+    icon: RefreshCw,
+    badge: "Auto Status",
+    buttonLabel: "Open Recalculation",
+    tone: "info",
+  },
+  {
     title: "Missing Timeouts",
     description:
       "Mark old time-in records without time-out as missing timeout without making them manual.",
@@ -82,7 +93,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Automation",
     description:
-      "Check cron setup and run missing-timeout automation manually when needed.",
+      "Check cron setup and run missing-timeout and status-recalculation automation manually when needed.",
     href: "/dashboard/attendance/automation",
     icon: Hourglass,
     badge: "Cron",
@@ -92,7 +103,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Audit Trail",
     description:
-      "Track manual changes, approvals, corrections, and missing-timeout automation logs.",
+      "Track manual changes, approvals, corrections, status recalculation, and missing-timeout automation logs.",
     href: "/dashboard/attendance/audit",
     icon: History,
     badge: "Audit",

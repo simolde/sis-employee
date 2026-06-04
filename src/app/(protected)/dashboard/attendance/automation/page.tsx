@@ -6,6 +6,7 @@ import {
   ClockAlert,
   FileSpreadsheet,
   Hourglass,
+  RefreshCw,
   ShieldCheck,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
@@ -30,8 +31,11 @@ export default async function AttendanceAutomationPage() {
 
   const status = await getAttendanceAutomationStatus();
 
-  const cronUrlExample =
+  const missingTimeoutCronUrlExample =
     "/api/cron/mark-missing-timeouts?secret=<MISSING_TIMEOUT_CRON_SECRET>&limit=200";
+
+  const attendanceStatusCronUrlExample =
+    "/api/cron/recalculate-attendance-statuses?secret=<ATTENDANCE_STATUS_CRON_SECRET>&limit=300";
 
   return (
     <section className="starland-page space-y-5">
@@ -46,15 +50,23 @@ export default async function AttendanceAutomationPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Check the automatic missing-timeout cron setup, actor account, and
-            current workload before configuring Hostinger cron jobs.
+            Check the automatic missing-timeout cron, attendance status
+            recalculation cron, actor accounts, and current automation workload.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Link
-            href="/dashboard/attendance/actions"
+            href="/dashboard/attendance/status-recalculation"
             className="starland-btn starland-btn-primary"
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            Status Recalculation
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/actions"
+            className="starland-btn starland-btn-soft"
           >
             <Clock3 className="h-4 w-4" aria-hidden="true" />
             Attendance Actions
@@ -81,7 +93,7 @@ export default async function AttendanceAutomationPage() {
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            The cron route marks old time-in records without time-out as
+            This cron marks old time-in records without time-out as
             MISSING_TIMEOUT. It does not make records manual and does not send
             normal records to HR review.
           </p>
@@ -93,7 +105,7 @@ export default async function AttendanceAutomationPage() {
 
             <div className="mt-3 flex items-center justify-between gap-3">
               <p className="text-sm font-bold text-[var(--starland-muted-text)]">
-                Cron Secret
+                Missing Timeout Secret
               </p>
 
               <StatusBadge ok={status.cronSecretConfigured} />
@@ -111,7 +123,7 @@ export default async function AttendanceAutomationPage() {
 
             <div className="mt-3 flex items-center justify-between gap-3">
               <p className="text-sm font-bold text-[var(--starland-muted-text)]">
-                Cron Actor
+                Missing Timeout Actor
               </p>
 
               <StatusBadge ok={status.cronActorFound} />
@@ -187,41 +199,149 @@ export default async function AttendanceAutomationPage() {
         eligibleMissingTimeouts={status.eligibleMissingTimeouts}
       />
 
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+            Status Recalculation Cron
+          </span>
+
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+            Automatic Schedule-Based Status Calculation
+          </h2>
+
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+            This cron recalculates normal RFID, biometric, and ODL attendance
+            records using each employee&apos;s assigned schedule and shift.
+            Manual records and pending review records are skipped.
+          </p>
+        </div>
+
+        <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <RefreshCw className="h-7 w-7 text-[var(--starland-main-green)]" />
+
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-sm font-bold text-[var(--starland-muted-text)]">
+                Status Cron Secret
+              </p>
+
+              <StatusBadge ok={status.attendanceStatusCronSecretConfigured} />
+            </div>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              Environment variable:
+              <br />
+              <code>ATTENDANCE_STATUS_CRON_SECRET</code>
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ClipboardCheck className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-sm font-bold text-[var(--starland-muted-text)]">
+                Status Cron Actor
+              </p>
+
+              <StatusBadge ok={status.attendanceStatusCronActorFound} />
+            </div>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              {status.attendanceStatusCronActorEmail}
+              <br />
+              User: {status.attendanceStatusCronActorUsername}
+              <br />
+              Status: {status.attendanceStatusCronActorStatus}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ShieldCheck className="h-7 w-7 text-[var(--starland-success)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Normal Records
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {status.attendanceStatusNormalRecords}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Clock3 className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              With Schedule
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {status.attendanceStatusNormalRecordsWithSchedule}
+            </p>
+          </article>
+        </div>
+
+        <div className="px-5 pb-5">
+          <Link
+            href="/dashboard/attendance/status-recalculation"
+            className="starland-btn starland-btn-primary"
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            Open Status Recalculation
+          </Link>
+        </div>
+      </section>
+
       <section className="starland-card p-5">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
           Hostinger Cron Setup
         </h2>
 
         <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-          Add this URL format to Hostinger cron. Replace the secret placeholder
-          with the exact value from your server environment. Do not expose the
-          secret in screenshots or commits.
+          Add these URL formats to Hostinger cron. Replace the secret
+          placeholders with the exact values from your server environment. Do
+          not expose secrets in screenshots or commits.
         </p>
 
-        <div className="mt-4 overflow-x-auto rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-          <code className="text-sm font-semibold text-[var(--starland-dark-text)]">
-            {cronUrlExample}
-          </code>
+        <div className="mt-4 space-y-4">
+          <div className="overflow-x-auto rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+              Missing Timeout Cron
+            </p>
+
+            <code className="text-sm font-semibold text-[var(--starland-dark-text)]">
+              {missingTimeoutCronUrlExample}
+            </code>
+          </div>
+
+          <div className="overflow-x-auto rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+              Attendance Status Recalculation Cron
+            </p>
+
+            <code className="text-sm font-semibold text-[var(--starland-dark-text)]">
+              {attendanceStatusCronUrlExample}
+            </code>
+          </div>
         </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-[var(--starland-border)] bg-white p-4">
             <p className="text-sm font-bold text-[var(--starland-dark-text)]">
-              Method
+              Missing Timeout Endpoint
             </p>
 
-            <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
-              GET or POST
+            <p className="mt-1 break-all text-sm text-[var(--starland-muted-text)]">
+              {status.endpointPath}
             </p>
           </div>
 
           <div className="rounded-2xl border border-[var(--starland-border)] bg-white p-4">
             <p className="text-sm font-bold text-[var(--starland-dark-text)]">
-              Endpoint
+              Status Recalculation Endpoint
             </p>
 
             <p className="mt-1 break-all text-sm text-[var(--starland-muted-text)]">
-              {status.endpointPath}
+              {status.attendanceStatusEndpointPath}
             </p>
           </div>
         </div>

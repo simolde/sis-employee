@@ -10,6 +10,7 @@ import {
   History,
   Hourglass,
   MonitorSmartphone,
+  RefreshCw,
   ShieldCheck,
   Timer,
   type LucideIcon,
@@ -78,18 +79,18 @@ export default async function AttendanceActionsPage() {
       tone: "warning",
     },
     {
-      title: "Missing Timeouts",
+      title: "Status Calculation",
       description:
-        "Old normal time-in records without time-out can be marked as missing timeout without becoming manual.",
-      icon: ClockAlert,
-      label: "Missing Timeout",
-      value: stats.missingTimeout,
-      tone: "danger",
+        "Normal punches are automatically recalculated from assigned schedule, shift start time, and grace minutes.",
+      icon: RefreshCw,
+      label: "Today",
+      value: stats.totalToday,
+      tone: "info",
     },
     {
       title: "Audit Trail",
       description:
-        "Manual input, corrections, approvals, and missing-timeout automation are logged for traceability.",
+        "Manual input, corrections, approvals, recalculation, and missing-timeout automation are logged for traceability.",
       icon: History,
       label: "Audit Logs",
       value: stats.attendanceAuditLogs,
@@ -132,6 +133,17 @@ export default async function AttendanceActionsPage() {
       statValue: stats.openReview,
     },
     {
+      title: "Status Recalculation",
+      description:
+        "Automatically recalculate normal attendance statuses using employee schedule and shift rules.",
+      href: "/dashboard/attendance/status-recalculation",
+      icon: RefreshCw,
+      badge: "Auto Status",
+      buttonLabel: "Open Recalculation",
+      statLabel: "Today",
+      statValue: stats.totalToday,
+    },
+    {
       title: "Missing Timeout Management",
       description:
         "Mark old normal records with time-in but no time-out as missing timeout.",
@@ -145,7 +157,7 @@ export default async function AttendanceActionsPage() {
     {
       title: "Attendance Automation",
       description:
-        "Check cron setup, actor account, secret configuration, and missing-timeout automation status.",
+        "Check cron setup, actor account, secret configuration, missing-timeout automation, and status recalculation automation.",
       href: "/dashboard/attendance/automation",
       icon: Hourglass,
       badge: "Cron",
@@ -156,7 +168,7 @@ export default async function AttendanceActionsPage() {
     {
       title: "Attendance Audit Trail",
       description:
-        "Track manual changes, approvals, status updates, and missing-timeout automation logs.",
+        "Track manual changes, approvals, status updates, recalculation, and missing-timeout automation logs.",
       href: "/dashboard/attendance/audit",
       icon: History,
       badge: "Audit",
@@ -202,7 +214,8 @@ export default async function AttendanceActionsPage() {
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
             Manage attendance records, manual corrections, missing timeouts, HR
-            review, automation, audit trail, and reports from one place.
+            review, automation, audit trail, status recalculation, and reports
+            from one place.
           </p>
         </div>
 
@@ -226,8 +239,9 @@ export default async function AttendanceActionsPage() {
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Use these live counts to quickly check today’s attendance, missing
-            timeouts, manual corrections, HR review workload, and audit logs.
+            Use these live counts to quickly check today&apos;s attendance,
+            missing timeouts, manual corrections, HR review workload, and audit
+            logs.
           </p>
         </div>
 
@@ -236,7 +250,7 @@ export default async function AttendanceActionsPage() {
             <Clock3 className="h-7 w-7 text-[var(--starland-info)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Today’s Attendance
+              Today&apos;s Attendance
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
