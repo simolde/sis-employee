@@ -17,4 +17,7 @@ export type AttendanceActionHubStats = {
   generatedAbsentAuditLogs: number;
   rollbackEligibleAbsent: number;
   absentRollbackAuditLogs: number;
+  activeAttendanceExceptions: number;
+  absenceBlockingExceptions: number;
+  todayBlockingExceptions: number;
 };

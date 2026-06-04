@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   CalendarClock,
+  CalendarDays,
   ClipboardCheck,
   ClipboardEdit,
   Clock3,
@@ -72,13 +73,13 @@ export default async function AttendanceActionsPage() {
       tone: "success",
     },
     {
-      title: "Absence Preview",
+      title: "Exception Calendar",
       description:
-        "Preview scheduled employees with no attendance record before generating ABSENT records.",
-      icon: TimerOff,
-      label: "Safe First",
-      value: "Preview",
-      tone: "danger",
+        "Active exception dates prevent wrong ABSENT generation during holidays, suspensions, no-work dates, and rest days.",
+      icon: CalendarDays,
+      label: "Blocking Today",
+      value: stats.todayBlockingExceptions,
+      tone: "info",
     },
     {
       title: "ABSENT Rollback",
@@ -113,6 +114,17 @@ export default async function AttendanceActionsPage() {
       statValue: stats.totalToday,
     },
     {
+      title: "Exception Calendar",
+      description:
+        "Encode holidays, class suspensions, no-work dates, rest days, and branch-specific exception dates.",
+      href: "/dashboard/attendance/exceptions",
+      icon: CalendarDays,
+      badge: "Exceptions",
+      buttonLabel: "Open Exceptions",
+      statLabel: "Active",
+      statValue: stats.activeAttendanceExceptions,
+    },
+    {
       title: "Schedule Assignment",
       description:
         "Bulk assign employee schedules by branch, department, designation, employee type, or current schedule.",
@@ -131,8 +143,8 @@ export default async function AttendanceActionsPage() {
       icon: TimerOff,
       badge: "Preview",
       buttonLabel: "Preview Absences",
-      statLabel: "Absent Today",
-      statValue: stats.absentToday,
+      statLabel: "Blocking Exceptions",
+      statValue: stats.absenceBlockingExceptions,
     },
     {
       title: "ABSENT Records",
@@ -214,7 +226,7 @@ export default async function AttendanceActionsPage() {
     {
       title: "Attendance Audit Trail",
       description:
-        "Track manual changes, approvals, status updates, recalculation, missing-timeout automation, ABSENT generation, and ABSENT rollback logs.",
+        "Track manual changes, approvals, status updates, recalculation, missing-timeout automation, ABSENT generation, ABSENT rollback, and exception logs.",
       href: "/dashboard/attendance/audit",
       icon: History,
       badge: "Audit",
@@ -259,10 +271,10 @@ export default async function AttendanceActionsPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Manage attendance records, employee schedule assignment, absence
-            preview, ABSENT records, ABSENT rollback, manual corrections,
-            missing timeouts, HR review, automation, audit trail, status
-            recalculation, and reports from one place.
+            Manage attendance records, employee schedule assignment, exception
+            calendar, absence preview, ABSENT records, ABSENT rollback, manual
+            corrections, missing timeouts, HR review, automation, audit trail,
+            status recalculation, and reports from one place.
           </p>
         </div>
 
@@ -282,13 +294,13 @@ export default async function AttendanceActionsPage() {
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Today and Review Status
+            Today, ABSENT, and Exception Status
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
             Use these live counts to quickly check today&apos;s attendance,
-            ABSENT records, rollback eligibility, missing timeouts, manual
-            corrections, HR review workload, and audit logs.
+            ABSENT records, exception dates, rollback eligibility, missing
+            timeouts, HR review workload, and audit logs.
           </p>
         </div>
 
@@ -344,6 +356,23 @@ export default async function AttendanceActionsPage() {
 
         <div className="grid gap-4 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-4">
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <CalendarDays className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Active Exceptions
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.activeAttendanceExceptions}
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
+              Blocking ABSENT: {stats.absenceBlockingExceptions} · Today:{" "}
+              {stats.todayBlockingExceptions}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <TimerOff className="h-7 w-7 text-[var(--starland-danger)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
@@ -376,18 +405,6 @@ export default async function AttendanceActionsPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ClipboardCheck className="h-7 w-7 text-[var(--starland-warning)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Open Review
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.openReview}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <History className="h-7 w-7 text-[var(--starland-info)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
@@ -412,14 +429,14 @@ export default async function AttendanceActionsPage() {
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Schedule First, Preview Absences, Track and Rollback if Needed
+            Encode Exceptions Before Generating ABSENT
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Make sure employees have the correct schedule assigned. Then preview
-            absence candidates, generate ABSENT records after HR confirmation,
-            review generated records, and rollback only automatic ABSENT records
-            when needed.
+            Encode holidays, class suspensions, no-work dates, rest days, and
+            branch-specific events first. Then preview absences, generate ABSENT
+            records after HR confirmation, review generated records, and
+            rollback only automatic ABSENT records when needed.
           </p>
         </div>
 

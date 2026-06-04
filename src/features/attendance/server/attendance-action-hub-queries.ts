@@ -41,6 +41,13 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     },
   };
 
+  const todayExceptionWhere = {
+    exceptionDate: {
+      gte: today.start,
+      lt: today.end,
+    },
+  };
+
   const reviewRequiredWhere = buildAttendanceReviewRequiredWhere();
 
   const [
@@ -62,6 +69,9 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     generatedAbsentAuditLogs,
     rollbackEligibleAbsent,
     absentRollbackAuditLogs,
+    activeAttendanceExceptions,
+    absenceBlockingExceptions,
+    todayBlockingExceptions,
   ] = await Promise.all([
     prisma.attendance.count({
       where: todayWhere,
@@ -194,6 +204,27 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
         action: "ATTENDANCE_ABSENT_AUTO_ROLLED_BACK",
       },
     }),
+
+    prisma.attendanceExceptionDate.count({
+      where: {
+        status: "ACTIVE",
+      },
+    }),
+
+    prisma.attendanceExceptionDate.count({
+      where: {
+        status: "ACTIVE",
+        affectsAbsenceGeneration: true,
+      },
+    }),
+
+    prisma.attendanceExceptionDate.count({
+      where: {
+        ...todayExceptionWhere,
+        status: "ACTIVE",
+        affectsAbsenceGeneration: true,
+      },
+    }),
   ]);
 
   return {
@@ -215,5 +246,8 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     generatedAbsentAuditLogs,
     rollbackEligibleAbsent,
     absentRollbackAuditLogs,
+    activeAttendanceExceptions,
+    absenceBlockingExceptions,
+    todayBlockingExceptions,
   };
 }

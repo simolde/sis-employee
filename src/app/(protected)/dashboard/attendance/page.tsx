@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import {
   BarChart3,
   CalendarClock,
+  CalendarDays,
   ClipboardCheck,
   ClipboardEdit,
   Clock3,
@@ -46,12 +47,22 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Attendance Actions",
     description:
-      "Open the attendance hub for quick access to manual input, review queue, reports, automation, audit trail, status recalculation, missing timeouts, absences, and ODL attendance.",
+      "Open the attendance hub for quick access to manual input, review queue, reports, automation, audit trail, status recalculation, missing timeouts, absences, exceptions, and ODL attendance.",
     href: "/dashboard/attendance/actions",
     icon: Clock3,
     badge: "Hub",
     buttonLabel: "Open Hub",
     tone: "success",
+  },
+  {
+    title: "Exception Calendar",
+    description:
+      "Encode holidays, class suspensions, no-work dates, rest days, and branch-specific exception dates.",
+    href: "/dashboard/attendance/exceptions",
+    icon: CalendarDays,
+    badge: "Exceptions",
+    buttonLabel: "Open Exceptions",
+    tone: "info",
   },
   {
     title: "Schedule Assignment",
@@ -146,7 +157,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Audit Trail",
     description:
-      "Track manual changes, approvals, corrections, status recalculation, missing-timeout automation, ABSENT generation, and rollback logs.",
+      "Track manual changes, approvals, corrections, status recalculation, missing-timeout automation, ABSENT generation, rollback, and exception logs.",
     href: "/dashboard/attendance/audit",
     icon: History,
     badge: "Audit",
