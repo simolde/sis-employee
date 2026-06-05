@@ -2,10 +2,12 @@ export type AbsenceGenerationActionState = {
   ok: boolean;
   message: string;
   generatedCount?: number;
+  generatedAbsentCount?: number;
+  generatedExcusedCount?: number;
   skippedCount?: number;
   checkedCount?: number;
   skippedByExceptionCount?: number;
-  skippedByApprovedLeaveCount?: number;
+  approvedLeaveCandidateCount?: number;
   fieldErrors?: Record<string, string[] | undefined>;
 };
 
