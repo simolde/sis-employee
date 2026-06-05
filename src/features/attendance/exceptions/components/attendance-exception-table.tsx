@@ -1,4 +1,5 @@
-import { Archive } from "lucide-react";
+import Link from "next/link";
+import { Archive, Edit3 } from "lucide-react";
 import { archiveAttendanceExceptionAction } from "../server/attendance-exception-actions";
 import type { AttendanceExceptionResult } from "../types/attendance-exception-types";
 
@@ -108,27 +109,33 @@ export function AttendanceExceptionTable({
                   <td>{record.createdAt}</td>
 
                   <td className="print:hidden">
-                    {record.status === "ACTIVE" ? (
-                      <form action={archiveAttendanceExceptionAction}>
-                        <input
-                          type="hidden"
-                          name="exceptionId"
-                          value={record.exceptionId}
-                        />
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/dashboard/attendance/exceptions/${record.exceptionId}/edit`}
+                        className="starland-btn starland-btn-soft starland-btn-sm"
+                      >
+                        <Edit3 className="h-4 w-4" aria-hidden="true" />
+                        Edit
+                      </Link>
 
-                        <button
-                          type="submit"
-                          className="starland-btn starland-btn-soft starland-btn-sm"
-                        >
-                          <Archive className="h-4 w-4" aria-hidden="true" />
-                          Archive
-                        </button>
-                      </form>
-                    ) : (
-                      <span className="text-sm font-semibold text-[var(--starland-muted-text)]">
-                        —
-                      </span>
-                    )}
+                      {record.status === "ACTIVE" ? (
+                        <form action={archiveAttendanceExceptionAction}>
+                          <input
+                            type="hidden"
+                            name="exceptionId"
+                            value={record.exceptionId}
+                          />
+
+                          <button
+                            type="submit"
+                            className="starland-btn starland-btn-soft starland-btn-sm"
+                          >
+                            <Archive className="h-4 w-4" aria-hidden="true" />
+                            Archive
+                          </button>
+                        </form>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))

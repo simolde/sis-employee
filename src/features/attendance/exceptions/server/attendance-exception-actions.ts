@@ -58,6 +58,16 @@ function parseExceptionType(value: string): AttendanceExceptionType | null {
   return null;
 }
 
+function parseRecordStatus(value: string): "ACTIVE" | "ARCHIVED" | null {
+  const normalized = value.trim().toUpperCase();
+
+  if (normalized === "ACTIVE" || normalized === "ARCHIVED") {
+    return normalized;
+  }
+
+  return null;
+}
+
 function buildExceptionAuditValue(input: {
   exceptionId: number;
   exceptionDate: Date;
@@ -180,6 +190,139 @@ export async function createAttendanceExceptionAction(
   return {
     ok: true,
     message: "Attendance exception created successfully.",
+  };
+}
+
+export async function updateAttendanceExceptionAction(
+  _previousState: AttendanceExceptionActionState,
+  formData: FormData,
+): Promise<AttendanceExceptionActionState> {
+  const session = await getCurrentSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  if (!canManageEmployees(session.role)) {
+    return {
+      ok: false,
+      message: "You do not have permission to update attendance exceptions.",
+    };
+  }
+
+  const exceptionId = parsePositiveId(formDataString(formData, "exceptionId"));
+  const exceptionDate = parseDateInput(formDataString(formData, "exceptionDate"));
+  const branchId = parsePositiveId(formDataString(formData, "branchId"));
+  const exceptionType = parseExceptionType(
+    formDataString(formData, "exceptionType"),
+  );
+  const title = formDataString(formData, "title");
+  const description = formDataString(formData, "description");
+  const status = parseRecordStatus(formDataString(formData, "status"));
+  const affectsAbsenceGeneration =
+    formData.get("affectsAbsenceGeneration") === "on";
+
+  const fieldErrors: Record<string, string[] | undefined> = {};
+
+  if (!exceptionId) {
+    fieldErrors.exceptionId = ["Exception record is invalid."];
+  }
+
+  if (!exceptionDate) {
+    fieldErrors.exceptionDate = ["Exception date is required."];
+  }
+
+  if (!exceptionType) {
+    fieldErrors.exceptionType = ["Exception type is required."];
+  }
+
+  if (!title) {
+    fieldErrors.title = ["Title is required."];
+  }
+
+  if (!status) {
+    fieldErrors.status = ["Status is required."];
+  }
+
+  if (
+    Object.keys(fieldErrors).length > 0 ||
+    !exceptionId ||
+    !exceptionDate ||
+    !exceptionType ||
+    !status
+  ) {
+    return {
+      ok: false,
+      message: "Please fix the highlighted fields.",
+      fieldErrors,
+    };
+  }
+
+  const existing = await prisma.attendanceExceptionDate.findUnique({
+    where: {
+      exceptionId,
+    },
+    select: {
+      exceptionId: true,
+      exceptionDate: true,
+      branchId: true,
+      exceptionType: true,
+      title: true,
+      description: true,
+      affectsAbsenceGeneration: true,
+      status: true,
+    },
+  });
+
+  if (!existing) {
+    return {
+      ok: false,
+      message: "Attendance exception was not found.",
+    };
+  }
+
+  const updated = await prisma.attendanceExceptionDate.update({
+    where: {
+      exceptionId,
+    },
+    data: {
+      exceptionDate,
+      branchId,
+      exceptionType,
+      title,
+      description: description || null,
+      affectsAbsenceGeneration,
+      status,
+    },
+    select: {
+      exceptionId: true,
+      exceptionDate: true,
+      branchId: true,
+      exceptionType: true,
+      title: true,
+      description: true,
+      affectsAbsenceGeneration: true,
+      status: true,
+    },
+  });
+
+  await prisma.activityLog.create({
+    data: {
+      actorUserId: session.userId,
+      action: "ATTENDANCE_EXCEPTION_UPDATED",
+      entityType: "attendance_exception",
+      entityId: String(exceptionId),
+      oldValue: buildExceptionAuditValue(existing),
+      newValue: buildExceptionAuditValue(updated),
+    },
+  });
+
+  revalidateExceptionPages();
+  revalidatePath(`/dashboard/attendance/exceptions/${exceptionId}/edit`);
+
+  return {
+    ok: true,
+    message: "Attendance exception updated successfully.",
   };
 }
 
