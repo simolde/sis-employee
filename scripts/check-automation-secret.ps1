@@ -14,7 +14,7 @@ function Get-SecretFingerprint {
 
         return (
             [System.BitConverter]::ToString($hash)
-        ).Replace("-", "").Substring(0, 12).ToLowerInvariant()
+        ).Replace("-", "").ToLowerInvariant().Substring(0, 12)
     }
     finally {
         $sha256.Dispose()
@@ -27,66 +27,37 @@ function Remove-SurroundingQuotes {
         [string]$Value
     )
 
-    $trimmedValue = $Value.Trim()
+    $trimmed = $Value.Trim()
 
-    if ($trimmedValue.Length -ge 2) {
-        $firstCharacter = $trimmedValue.Substring(0, 1)
-        $lastCharacter = $trimmedValue.Substring(
-            $trimmedValue.Length - 1,
-            1
-        )
-
-        if (
-            ($firstCharacter -eq '"' -and $lastCharacter -eq '"') -or
-            ($firstCharacter -eq "'" -and $lastCharacter -eq "'")
-        ) {
-            return $trimmedValue.Substring(
-                1,
-                $trimmedValue.Length - 2
-            )
-        }
+    if ($trimmed.Length -lt 2) {
+        return $trimmed
     }
 
-    return $trimmedValue
+    $first = $trimmed.Substring(0, 1)
+    $last = $trimmed.Substring($trimmed.Length - 1, 1)
+
+    $hasDoubleQuotes =
+        $first -eq '"' -and $last -eq '"'
+
+    $hasSingleQuotes =
+        $first -eq "'" -and $last -eq "'"
+
+    if ($hasDoubleQuotes -or $hasSingleQuotes) {
+        return $trimmed.Substring(
+            1,
+            $trimmed.Length - 2
+        )
+    }
+
+    return $trimmed
 }
 
-function Add-SecretResult {
-    param(
-        [Parameter(Mandatory = $true)]
-        [System.Collections.Generic.List[object]]$Results,
-
-        [Parameter(Mandatory = $true)]
-        [string]$Source,
-
-        [Parameter(Mandatory = $true)]
-        [string]$Name,
-
-        [Parameter(Mandatory = $true)]
-        [string]$Value,
-
-        [Parameter(Mandatory = $true)]
-        [int]$Priority
-    )
-
-    $Results.Add(
-        [PSCustomObject]@{
-            Priority    = $Priority
-            Source      = $Source
-            Name        = $Name
-            Length      = $Value.Length
-            Fingerprint = Get-SecretFingerprint -Value $Value
-        }
-    )
-}
-
-$results = New-Object "System.Collections.Generic.List[object]"
+$results = @()
 
 $secretNames = @(
     "ATTENDANCE_AUTOMATION_SECRET",
     "CRON_SECRET"
 )
-
-$priority = 1
 
 foreach ($secretName in $secretNames) {
     $processValue = [Environment]::GetEnvironmentVariable(
@@ -95,16 +66,17 @@ foreach ($secretName in $secretNames) {
     )
 
     if (-not [string]::IsNullOrWhiteSpace($processValue)) {
-        Add-SecretResult `
-            -Results $results `
-            -Source "process.env" `
-            -Name $secretName `
-            -Value $processValue.Trim() `
-            -Priority $priority
+        $normalizedValue = $processValue.Trim()
+
+        $results += [PSCustomObject]@{
+            Priority    = 0
+            Source      = "process.env"
+            Name        = $secretName
+            Length      = $normalizedValue.Length
+            Fingerprint = Get-SecretFingerprint -Value $normalizedValue
+        }
     }
 }
-
-$priority++
 
 $environmentFiles = @(
     ".env.development.local",
@@ -112,6 +84,8 @@ $environmentFiles = @(
     ".env.development",
     ".env"
 )
+
+$priority = 1
 
 foreach ($environmentFile in $environmentFiles) {
     if (-not (Test-Path $environmentFile)) {
@@ -122,19 +96,21 @@ foreach ($environmentFile in $environmentFiles) {
     foreach ($line in Get-Content $environmentFile) {
         if (
             $line -match
-            '^\s*(ATTENDANCE_AUTOMATION_SECRET|CRON_SECRET)\s*=\s*(.*)$'
+            "^\s*(ATTENDANCE_AUTOMATION_SECRET|CRON_SECRET)\s*=\s*(.*)$"
         ) {
             $name = $Matches[1]
-            $rawValue = $Matches[2]
-            $value = Remove-SurroundingQuotes -Value $rawValue
+
+            $value = Remove-SurroundingQuotes `
+                -Value $Matches[2]
 
             if (-not [string]::IsNullOrWhiteSpace($value)) {
-                Add-SecretResult `
-                    -Results $results `
-                    -Source $environmentFile `
-                    -Name $name `
-                    -Value $value `
-                    -Priority $priority
+                $results += [PSCustomObject]@{
+                    Priority    = $priority
+                    Source      = $environmentFile
+                    Name        = $name
+                    Length      = $value.Length
+                    Fingerprint = Get-SecretFingerprint -Value $value
+                }
             }
         }
     }
@@ -152,45 +128,18 @@ if ($results.Count -eq 0) {
     exit 1
 }
 
-$sortedResults = $results |
-    Sort-Object Priority, Name
-
-$sortedResults |
+$results |
+    Sort-Object Priority, Name |
     Format-Table Source, Name, Length, Fingerprint -AutoSize
 
 Write-Host ""
-Write-Host "Important:" -ForegroundColor Yellow
-Write-Host (
-    "Next.js uses process.env first, then .env.development.local, " +
-    ".env.local, .env.development, and .env."
-)
-Write-Host (
-    "The API route prefers ATTENDANCE_AUTOMATION_SECRET over CRON_SECRET."
-)
+Write-Host "Resolution order:" -ForegroundColor Yellow
+Write-Host "1. Process environment"
+Write-Host "2. .env.development.local"
+Write-Host "3. .env.local"
+Write-Host "4. .env.development"
+Write-Host "5. .env"
 Write-Host ""
-
-$attendanceSecrets = $sortedResults |
-    Where-Object {
-        $_.Name -eq "ATTENDANCE_AUTOMATION_SECRET"
-    }
-
-$cronSecrets = $sortedResults |
-    Where-Object {
-        $_.Name -eq "CRON_SECRET"
-    }
-
-if ($attendanceSecrets.Count -gt 1) {
-    Write-Host (
-        "Multiple ATTENDANCE_AUTOMATION_SECRET declarations were found."
-    ) -ForegroundColor Yellow
-}
-
-if ($cronSecrets.Count -gt 1) {
-    Write-Host (
-        "Multiple CRON_SECRET declarations were found."
-    ) -ForegroundColor Yellow
-}
-
 Write-Host (
-    "Compare the API response expectedFingerprint with the table above."
+    "ATTENDANCE_AUTOMATION_SECRET takes priority over CRON_SECRET."
 ) -ForegroundColor Green
