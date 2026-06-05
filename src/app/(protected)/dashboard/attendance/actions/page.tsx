@@ -21,10 +21,15 @@ import {
   TimerOff,
   type LucideIcon,
 } from "lucide-react";
-import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import {
+  AttendanceActionCard,
+  type AttendanceActionCardTone,
+} from "@/features/attendance/components/attendance-action-card";
+import { getApprovedLeaveExcusedSyncOverview } from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-overview";
 import { getAttendanceActionHubStats } from "@/features/attendance/server/attendance-action-hub-queries";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
 
-type AttendanceActionCard = {
+type ActionCardDefinition = {
   title: string;
   description: string;
   href: string;
@@ -33,337 +38,348 @@ type AttendanceActionCard = {
   buttonLabel: string;
   statLabel: string;
   statValue: number;
-  tone: "success" | "warning" | "info" | "danger";
+  tone: AttendanceActionCardTone;
 };
 
-type AttendancePolicyCard = {
-  title: string;
+type SummaryCardDefinition = {
+  label: string;
+  value: number;
   description: string;
   icon: LucideIcon;
-  label: string;
-  value: string | number;
-  tone: "success" | "warning" | "info" | "danger";
+  tone: AttendanceActionCardTone;
 };
 
-function iconToneClass(
-  tone: AttendancePolicyCard["tone"],
+function summaryIconClass(
+  tone: AttendanceActionCardTone,
 ): string {
-  if (tone === "warning") {
-    return "text-[var(--starland-warning)]";
+  switch (tone) {
+    case "warning":
+      return "text-[var(--starland-warning)]";
+
+    case "info":
+      return "text-[var(--starland-info)]";
+
+    case "danger":
+      return "text-[var(--starland-danger)]";
+
+    default:
+      return "text-[var(--starland-success)]";
   }
-
-  if (tone === "info") {
-    return "text-[var(--starland-info)]";
-  }
-
-  if (tone === "danger") {
-    return "text-[var(--starland-danger)]";
-  }
-
-  return "text-[var(--starland-success)]";
-}
-
-function badgeToneClass(
-  tone: AttendanceActionCard["tone"],
-): string {
-  if (tone === "warning") {
-    return "starland-badge-warning";
-  }
-
-  if (tone === "danger") {
-    return "starland-badge-danger";
-  }
-
-  if (tone === "info") {
-    return "starland-badge-info";
-  }
-
-  return "starland-badge-success";
 }
 
 export default async function AttendanceActionsPage() {
   await requireCanManageEmployees();
 
-  const stats =
-    await getAttendanceActionHubStats();
+  const [stats, approvedLeaveSync] =
+    await Promise.all([
+      getAttendanceActionHubStats(),
+      getApprovedLeaveExcusedSyncOverview(),
+    ]);
 
-  const policyCards: AttendancePolicyCard[] = [
+  const summaryCards: SummaryCardDefinition[] = [
     {
-      title: "Normal Attendance",
-      description:
-        "RFID, biometric, kiosk, and ODL punches do not require HR review unless manually changed.",
-      icon: ShieldCheck,
-      label: "No Review",
+      label: "Attendance Today",
       value: stats.totalToday,
+      description:
+        "All attendance records for today.",
+      icon: Clock3,
+      tone: "info",
+    },
+    {
+      label: "On Time Today",
+      value: stats.onTimeToday,
+      description:
+        "Employees currently marked ON TIME.",
+      icon: ShieldCheck,
       tone: "success",
     },
     {
-      title: "Approved Leave",
+      label: "Late Today",
+      value: stats.lateToday,
       description:
-        "Approved leave automatically creates EXCUSED attendance when attendance generation runs.",
+        "Employees currently marked LATE.",
+      icon: Timer,
+      tone: "warning",
+    },
+    {
+      label: "EXCUSED Today",
+      value: stats.excusedToday,
+      description:
+        "Approved-leave or manual EXCUSED records.",
       icon: CalendarCheck,
-      label: "EXCUSED",
-      value: stats.excusedTotal,
+      tone: "success",
+    },
+    {
+      label: "Missing EXCUSED",
+      value:
+        approvedLeaveSync.missingExcusedCandidates,
+      description: `${approvedLeaveSync.dateFrom} through ${approvedLeaveSync.dateTo}.`,
+      icon: RefreshCw,
+      tone: "warning",
+    },
+    {
+      label: "Stale EXCUSED",
+      value:
+        stats.excusedReconciliationEligible,
+      description:
+        "Automatic EXCUSED records eligible for reconciliation.",
+      icon: ShieldAlert,
+      tone: "warning",
+    },
+    {
+      label: "Open Review",
+      value: stats.openReview,
+      description:
+        "Manual changes awaiting HR action.",
+      icon: ClipboardCheck,
+      tone: "warning",
+    },
+    {
+      label: "Absent Today",
+      value: stats.absentToday,
+      description:
+        "Attendance records currently marked ABSENT.",
+      icon: TimerOff,
+      tone: "danger",
+    },
+  ];
+
+  const actionCards: ActionCardDefinition[] = [
+    {
+      title: "Approved Leave Sync",
+      description:
+        "Find approved-leave workdays without attendance and generate the missing automatic EXCUSED records.",
+      href: "/dashboard/attendance/excused/sync",
+      icon: RefreshCw,
+      badge: "Live Sync",
+      buttonLabel: "Open Approved Leave Sync",
+      statLabel: "Missing EXCUSED",
+      statValue:
+        approvedLeaveSync.missingExcusedCandidates,
+      tone: "warning",
+    },
+    {
+      title: "Attendance List",
+      description:
+        "View all RFID, biometric, kiosk, ODL, automatic, and manual attendance records.",
+      href: "/dashboard/attendance",
+      icon: Clock3,
+      badge: "Records",
+      buttonLabel: "Open Attendance",
+      statLabel: "Today",
+      statValue: stats.totalToday,
+      tone: "success",
+    },
+    {
+      title: "EXCUSED Records",
+      description:
+        "Review automatic approved-leave EXCUSED records and manual EXCUSED corrections.",
+      href: "/dashboard/attendance/excused",
+      icon: CalendarCheck,
+      badge: "EXCUSED",
+      buttonLabel: "View EXCUSED Records",
+      statLabel: "Total EXCUSED",
+      statValue: stats.excusedTotal,
       tone: "success",
     },
     {
       title: "EXCUSED Reconciliation",
       description:
-        "Automatic EXCUSED records without valid approved leave can be reviewed and safely rolled back.",
+        "Find stale automatic EXCUSED records and safely rollback verified records.",
+      href: "/dashboard/attendance/excused/reconciliation",
       icon: ShieldAlert,
-      label: "Eligible",
-      value:
+      badge: "Reconcile",
+      buttonLabel: "Open Reconciliation",
+      statLabel: "Rollback Eligible",
+      statValue:
         stats.excusedReconciliationEligible,
       tone: "warning",
     },
     {
-      title: "EXCUSED Audit",
+      title: "EXCUSED Automation Audit",
       description:
-        "Automatic EXCUSED generation and rollback actions are permanently recorded in the attendance audit trail.",
+        "Review approved-leave generation and reconciliation rollback activity.",
+      href: "/dashboard/attendance/excused/audit",
       icon: FileClock,
-      label: "Logs",
-      value: stats.excusedAutomationAuditLogs,
+      badge: "EXCUSED Logs",
+      buttonLabel: "Open EXCUSED Audit",
+      statLabel: "Automation Logs",
+      statValue:
+        stats.excusedAutomationAuditLogs,
       tone: "info",
     },
+    {
+      title: "Exception Calendar",
+      description:
+        "Manage holidays, suspensions, no-work dates, rest days, and branch-specific exceptions.",
+      href: "/dashboard/attendance/exceptions",
+      icon: CalendarDays,
+      badge: "Exceptions",
+      buttonLabel: "Open Exceptions",
+      statLabel: "Active Exceptions",
+      statValue:
+        stats.activeAttendanceExceptions,
+      tone: "info",
+    },
+    {
+      title: "Exception Audit",
+      description:
+        "Review exception create, update, and archive activity logs.",
+      href: "/dashboard/attendance/exceptions/audit",
+      icon: FileClock,
+      badge: "Exception Logs",
+      buttonLabel: "Open Exception Audit",
+      statLabel: "Audit Logs",
+      statValue: stats.exceptionAuditLogs,
+      tone: "info",
+    },
+    {
+      title: "Schedule Assignment",
+      description:
+        "Bulk assign employee schedules before automatic status and absence processing.",
+      href: "/dashboard/attendance/schedule-assignment",
+      icon: CalendarClock,
+      badge: "Schedules",
+      buttonLabel: "Assign Schedules",
+      statLabel: "Attendance Today",
+      statValue: stats.totalToday,
+      tone: "info",
+    },
+    {
+      title: "Attendance Generation",
+      description:
+        "Preview scheduled employees and safely generate automatic EXCUSED or ABSENT records.",
+      href: "/dashboard/attendance/absences/candidates",
+      icon: ClipboardCheck,
+      badge: "Generate",
+      buttonLabel: "Preview Generation",
+      statLabel: "EXCUSED Today",
+      statValue: stats.excusedToday,
+      tone: "success",
+    },
+    {
+      title: "ABSENT Records",
+      description:
+        "Review automatic and manual ABSENT records with filters, printing, and export.",
+      href: "/dashboard/attendance/absences",
+      icon: TimerOff,
+      badge: "ABSENT",
+      buttonLabel: "View ABSENT Records",
+      statLabel: "Total ABSENT",
+      statValue: stats.absentTotal,
+      tone: "danger",
+    },
+    {
+      title: "Rollback ABSENT",
+      description:
+        "Rollback wrongly generated automatic ABSENT records without punch data.",
+      href: "/dashboard/attendance/absences/rollback",
+      icon: RotateCcw,
+      badge: "Rollback",
+      buttonLabel: "Open Rollback",
+      statLabel: "Rollback Eligible",
+      statValue:
+        stats.rollbackEligibleAbsent,
+      tone: "danger",
+    },
+    {
+      title: "Manual Attendance Input",
+      description:
+        "Create or correct attendance manually. Manual changes require HR review.",
+      href: "/dashboard/attendance/manual",
+      icon: ClipboardEdit,
+      badge: "Manual",
+      buttonLabel: "Manual Input",
+      statLabel: "Manual Today",
+      statValue: stats.manualToday,
+      tone: "warning",
+    },
+    {
+      title: "Attendance Review Queue",
+      description:
+        "Review manual attendance, edits, and corrections while excluding normal punches.",
+      href: "/dashboard/attendance/review",
+      icon: ClipboardCheck,
+      badge: "HR Review",
+      buttonLabel: "Open Review Queue",
+      statLabel: "Open Review",
+      statValue: stats.openReview,
+      tone: "warning",
+    },
+    {
+      title: "Status Recalculation",
+      description:
+        "Recalculate attendance status using employee schedules, shifts, and grace minutes.",
+      href: "/dashboard/attendance/status-recalculation",
+      icon: RefreshCw,
+      badge: "Auto Status",
+      buttonLabel: "Open Recalculation",
+      statLabel: "Attendance Today",
+      statValue: stats.totalToday,
+      tone: "info",
+    },
+    {
+      title: "Missing Timeout Management",
+      description:
+        "Manage attendance records with time-in but no recorded time-out.",
+      href: "/dashboard/attendance/missing-timeouts",
+      icon: ClockAlert,
+      badge: "Timeout",
+      buttonLabel: "Open Missing Timeouts",
+      statLabel: "Missing Timeout",
+      statValue: stats.missingTimeout,
+      tone: "danger",
+    },
+    {
+      title: "Attendance Automation",
+      description:
+        "Review and run attendance automation processes and scheduled operations.",
+      href: "/dashboard/attendance/automation",
+      icon: Hourglass,
+      badge: "Automation",
+      buttonLabel: "Open Automation",
+      statLabel: "Missing EXCUSED",
+      statValue:
+        approvedLeaveSync.missingExcusedCandidates,
+      tone: "info",
+    },
+    {
+      title: "Attendance Audit Trail",
+      description:
+        "Track attendance changes, approvals, generation, recalculation, and rollback.",
+      href: "/dashboard/attendance/audit",
+      icon: History,
+      badge: "Audit",
+      buttonLabel: "Open Audit Trail",
+      statLabel: "Audit Logs",
+      statValue: stats.attendanceAuditLogs,
+      tone: "info",
+    },
+    {
+      title: "Attendance Reports",
+      description:
+        "Generate filtered attendance reports with printing and CSV export.",
+      href: "/dashboard/attendance/reports",
+      icon: FileSpreadsheet,
+      badge: "Reports",
+      buttonLabel: "Open Reports",
+      statLabel: "Pending Review",
+      statValue: stats.pendingReview,
+      tone: "info",
+    },
+    {
+      title: "ODL Time In / Out",
+      description:
+        "Open employee online distance learning time-in and time-out.",
+      href: "/dashboard/attendance/odl",
+      icon: MonitorSmartphone,
+      badge: "ODL",
+      buttonLabel: "Open ODL Attendance",
+      statLabel: "WEB Today",
+      statValue: stats.webToday,
+      tone: "success",
+    },
   ];
-
-  const attendanceActionCards: AttendanceActionCard[] =
-    [
-      {
-        title: "Attendance List",
-        description:
-          "View all RFID, biometric, kiosk, ODL, automatic, and manual attendance records.",
-        href: "/dashboard/attendance",
-        icon: Clock3,
-        badge: "Records",
-        buttonLabel: "Open Attendance",
-        statLabel: "Today",
-        statValue: stats.totalToday,
-        tone: "success",
-      },
-      {
-        title: "EXCUSED Records",
-        description:
-          "Review automatic EXCUSED records from approved leave and manual EXCUSED corrections.",
-        href: "/dashboard/attendance/excused",
-        icon: CalendarCheck,
-        badge: "EXCUSED",
-        buttonLabel:
-          "View EXCUSED Records",
-        statLabel: "Total EXCUSED",
-        statValue: stats.excusedTotal,
-        tone: "success",
-      },
-      {
-        title: "EXCUSED Reconciliation",
-        description:
-          "Find stale automatic EXCUSED records and safely rollback records with verified generation provenance.",
-        href: "/dashboard/attendance/excused/reconciliation",
-        icon: ShieldAlert,
-        badge: "Reconcile",
-        buttonLabel:
-          "Open Reconciliation",
-        statLabel: "Rollback Eligible",
-        statValue:
-          stats.excusedReconciliationEligible,
-        tone: "warning",
-      },
-      {
-        title: "EXCUSED Automation Audit",
-        description:
-          "Review approved-leave EXCUSED generation and reconciliation rollback activity.",
-        href: "/dashboard/attendance/excused/audit",
-        icon: FileClock,
-        badge: "EXCUSED Logs",
-        buttonLabel:
-          "Open EXCUSED Audit",
-        statLabel: "Automation Logs",
-        statValue:
-          stats.excusedAutomationAuditLogs,
-        tone: "info",
-      },
-      {
-        title: "Exception Calendar",
-        description:
-          "Manage holidays, suspensions, no-work dates, rest days, and branch-specific exceptions.",
-        href: "/dashboard/attendance/exceptions",
-        icon: CalendarDays,
-        badge: "Exceptions",
-        buttonLabel: "Open Exceptions",
-        statLabel: "Active",
-        statValue:
-          stats.activeAttendanceExceptions,
-        tone: "info",
-      },
-      {
-        title: "Exception Audit",
-        description:
-          "Review exception create, update, and archive logs with filters, print, and CSV export.",
-        href: "/dashboard/attendance/exceptions/audit",
-        icon: FileClock,
-        badge: "Exception Logs",
-        buttonLabel:
-          "Open Exception Audit",
-        statLabel: "Total Logs",
-        statValue: stats.exceptionAuditLogs,
-        tone: "info",
-      },
-      {
-        title: "Schedule Assignment",
-        description:
-          "Bulk assign schedules by branch, department, designation, employee type, or current schedule.",
-        href: "/dashboard/attendance/schedule-assignment",
-        icon: CalendarClock,
-        badge: "Schedules",
-        buttonLabel:
-          "Assign Schedules",
-        statLabel: "Attendance Today",
-        statValue: stats.totalToday,
-        tone: "info",
-      },
-      {
-        title: "Attendance Generation",
-        description:
-          "Preview scheduled employees and generate EXCUSED or ABSENT records safely.",
-        href: "/dashboard/attendance/absences/candidates",
-        icon: ClipboardCheck,
-        badge: "Generate",
-        buttonLabel:
-          "Preview Generation",
-        statLabel: "EXCUSED Today",
-        statValue: stats.excusedToday,
-        tone: "success",
-      },
-      {
-        title: "ABSENT Records",
-        description:
-          "Review generated and manual ABSENT records with filters, print, CSV export, and detail links.",
-        href: "/dashboard/attendance/absences",
-        icon: TimerOff,
-        badge: "ABSENT",
-        buttonLabel:
-          "View ABSENT Records",
-        statLabel: "Total ABSENT",
-        statValue: stats.absentTotal,
-        tone: "danger",
-      },
-      {
-        title: "Rollback ABSENT",
-        description:
-          "Rollback wrongly generated automatic ABSENT records while protecting manual and punched records.",
-        href: "/dashboard/attendance/absences/rollback",
-        icon: RotateCcw,
-        badge: "Rollback",
-        buttonLabel: "Open Rollback",
-        statLabel: "Eligible",
-        statValue:
-          stats.rollbackEligibleAbsent,
-        tone: "danger",
-      },
-      {
-        title: "Status Recalculation",
-        description:
-          "Recalculate normal attendance status using assigned schedules and shift rules.",
-        href: "/dashboard/attendance/status-recalculation",
-        icon: RefreshCw,
-        badge: "Auto Status",
-        buttonLabel:
-          "Open Recalculation",
-        statLabel: "Attendance Today",
-        statValue: stats.totalToday,
-        tone: "info",
-      },
-      {
-        title: "Manual Attendance Input",
-        description:
-          "Create or correct attendance manually. Manual changes are marked for HR review.",
-        href: "/dashboard/attendance/manual",
-        icon: ClipboardEdit,
-        badge: "Manual",
-        buttonLabel: "Manual Input",
-        statLabel: "Manual Today",
-        statValue: stats.manualToday,
-        tone: "warning",
-      },
-      {
-        title: "Attendance Review Queue",
-        description:
-          "Review manual attendance, edits, and corrections. Normal punches are excluded.",
-        href: "/dashboard/attendance/review",
-        icon: ClipboardCheck,
-        badge: "HR Review",
-        buttonLabel:
-          "Open Review Queue",
-        statLabel: "Open Review",
-        statValue: stats.openReview,
-        tone: "warning",
-      },
-      {
-        title: "Missing Timeout Management",
-        description:
-          "Manage old normal records with time-in but without a recorded time-out.",
-        href: "/dashboard/attendance/missing-timeouts",
-        icon: ClockAlert,
-        badge: "Timeout",
-        buttonLabel:
-          "Open Missing Timeouts",
-        statLabel: "Missing Timeout",
-        statValue: stats.missingTimeout,
-        tone: "danger",
-      },
-      {
-        title: "Attendance Automation",
-        description:
-          "Check cron setup and run attendance automation processes manually.",
-        href: "/dashboard/attendance/automation",
-        icon: Hourglass,
-        badge: "Cron",
-        buttonLabel:
-          "Open Automation",
-        statLabel: "Missing Timeout",
-        statValue: stats.missingTimeout,
-        tone: "info",
-      },
-      {
-        title: "Attendance Audit Trail",
-        description:
-          "Track attendance changes, approvals, EXCUSED generation, reconciliation, ABSENT generation, and rollback.",
-        href: "/dashboard/attendance/audit",
-        icon: History,
-        badge: "Attendance Audit",
-        buttonLabel:
-          "Open Audit Trail",
-        statLabel: "Audit Logs",
-        statValue:
-          stats.attendanceAuditLogs,
-        tone: "info",
-      },
-      {
-        title: "Attendance Reports",
-        description:
-          "Generate filtered attendance reports with print and CSV export.",
-        href: "/dashboard/attendance/reports",
-        icon: FileSpreadsheet,
-        badge: "Reports",
-        buttonLabel: "Open Reports",
-        statLabel: "Pending Review",
-        statValue: stats.pendingReview,
-        tone: "info",
-      },
-      {
-        title: "ODL Time In / Out",
-        description:
-          "Open the online distance learning employee time-in and time-out page.",
-        href: "/dashboard/attendance/odl",
-        icon: MonitorSmartphone,
-        badge: "ODL",
-        buttonLabel:
-          "Open ODL Attendance",
-        statLabel: "WEB Today",
-        statValue: stats.webToday,
-        tone: "success",
-      },
-    ];
 
   return (
     <section className="starland-page space-y-5">
@@ -378,11 +394,11 @@ export default async function AttendanceActionsPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Manage attendance records, schedules,
-            approved-leave EXCUSED records,
-            reconciliation, EXCUSED audit history,
-            exceptions, ABSENT records, reviews,
-            automation, reports, and audit trails.
+            Manage attendance, approved-leave
+            synchronization, EXCUSED records,
+            schedules, exceptions, ABSENT records,
+            reviews, automation, reports, and audit
+            trails.
           </p>
         </div>
 
@@ -405,253 +421,43 @@ export default async function AttendanceActionsPage() {
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Attendance, EXCUSED Automation, and
-            Review Status
+            Attendance and Approved-Leave Sync
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            These live counts show normal
-            attendance, approved-leave EXCUSED
-            records, stale EXCUSED records,
-            automation audit history, ABSENT
-            records, and review activity.
+            Missing EXCUSED records are evaluated
+            from approved leave within the current
+            thirty-day past and future monitoring
+            window.
           </p>
         </div>
 
         <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <Clock3 className="h-7 w-7 text-[var(--starland-info)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Today&apos;s Attendance
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.totalToday}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ShieldCheck className="h-7 w-7 text-[var(--starland-success)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              On Time Today
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.onTimeToday}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <Timer className="h-7 w-7 text-[var(--starland-warning)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Late Today
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.lateToday}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <CalendarCheck className="h-7 w-7 text-[var(--starland-success)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              EXCUSED Today
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.excusedToday}
-            </p>
-          </article>
-        </div>
-
-        <div className="grid gap-4 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-4">
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <FileClock className="h-7 w-7 text-[var(--starland-info)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              EXCUSED Automation Logs
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {
-                stats.excusedAutomationAuditLogs
-              }
-            </p>
-
-            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Generated:{" "}
-              {stats.generatedExcusedAuditLogs} ·
-              Rolled back:{" "}
-              {stats.excusedRollbackAuditLogs}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ShieldAlert className="h-7 w-7 text-[var(--starland-warning)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Stale EXCUSED Eligible
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {
-                stats.excusedReconciliationEligible
-              }
-            </p>
-
-            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Checked:{" "}
-              {stats.excusedAutomaticChecked} ·
-              Leave protected:{" "}
-              {
-                stats.excusedProtectedByApprovedLeave
-              }
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ShieldAlert className="h-7 w-7 text-[var(--starland-danger)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Missing Provenance
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {
-                stats.excusedMissingGenerationProvenance
-              }
-            </p>
-
-            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Protected from automatic deletion
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <TimerOff className="h-7 w-7 text-[var(--starland-danger)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Absent Today
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.absentToday}
-            </p>
-          </article>
-        </div>
-
-        <div className="grid gap-4 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-4">
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <CalendarCheck className="h-7 w-7 text-[var(--starland-success)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Total EXCUSED
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.excusedTotal}
-            </p>
-
-            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Auto: {stats.automaticExcused} ·
-              Manual: {stats.manualExcused}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <TimerOff className="h-7 w-7 text-[var(--starland-danger)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Total ABSENT
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.absentTotal}
-            </p>
-
-            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Auto: {stats.automaticAbsent} ·
-              Manual: {stats.manualAbsent}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ClipboardCheck className="h-7 w-7 text-[var(--starland-warning)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Open Review
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.openReview}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <History className="h-7 w-7 text-[var(--starland-info)]" />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Attendance Audit Logs
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {stats.attendanceAuditLogs}
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section className="starland-card overflow-hidden">
-        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
-          <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-            Attendance Policy
-          </span>
-
-          <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            EXCUSED Generation and Rollback Are
-            Fully Audited
-          </h2>
-
-          <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Automatic EXCUSED records remain
-            protected while approved leave covers
-            the attendance date. Generation and
-            rollback actions remain available in
-            the dedicated EXCUSED automation audit
-            page.
-          </p>
-        </div>
-
-        <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
-          {policyCards.map((card) => {
+          {summaryCards.map((card) => {
             const Icon = card.icon;
 
             return (
               <article
-                key={card.title}
+                key={card.label}
                 className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4"
               >
                 <Icon
                   className={[
                     "h-7 w-7",
-                    iconToneClass(card.tone),
+                    summaryIconClass(card.tone),
                   ].join(" ")}
                   aria-hidden="true"
                 />
 
                 <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-                  {card.title}
+                  {card.label}
                 </p>
 
-                <p className="mt-1 text-lg font-extrabold text-[var(--starland-dark-text)]">
-                  {card.label}: {card.value}
+                <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+                  {card.value}
                 </p>
 
-                <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+                <p className="mt-2 text-xs font-semibold leading-5 text-[var(--starland-muted-text)]">
                   {card.description}
                 </p>
               </article>
@@ -661,70 +467,12 @@ export default async function AttendanceActionsPage() {
       </section>
 
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {attendanceActionCards.map(
-          (card) => {
-            const Icon = card.icon;
-
-            return (
-              <article
-                key={card.href}
-                className="starland-card flex flex-col justify-between p-5"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--starland-light-bg)]">
-                      <Icon
-                        className={[
-                          "h-6 w-6",
-                          iconToneClass(card.tone),
-                        ].join(" ")}
-                        aria-hidden="true"
-                      />
-                    </div>
-
-                    <span
-                      className={[
-                        "starland-badge",
-                        badgeToneClass(
-                          card.tone,
-                        ),
-                      ].join(" ")}
-                    >
-                      {card.badge}
-                    </span>
-                  </div>
-
-                  <h2 className="mt-5 text-lg font-extrabold text-[var(--starland-dark-text)]">
-                    {card.title}
-                  </h2>
-
-                  <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-                    {card.description}
-                  </p>
-
-                  <div className="mt-4 rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-3">
-                    <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
-                      {card.statLabel}
-                    </p>
-
-                    <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
-                      {card.statValue}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5">
-                  <Link
-                    href={card.href}
-                    className="starland-btn starland-btn-primary"
-                  >
-                    {card.buttonLabel}
-                  </Link>
-                </div>
-              </article>
-            );
-          },
-        )}
+        {actionCards.map((card) => (
+          <AttendanceActionCard
+            key={card.href}
+            {...card}
+          />
+        ))}
       </section>
     </section>
   );

@@ -3,23 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/server/session";
-import { createExcusedAttendanceForApprovedLeave } from "@/features/attendance/absences/server/approved-leave-excused-service";
-import { prisma } from "@/lib/db/prisma";
 import { canManageEmployees } from "@/lib/security/roles";
-import {
-  getApprovedLeaveExcusedSyncCandidateSeeds,
-  isApprovedLeaveSyncScheduleDay,
-  parseApprovedLeaveExcusedSyncSearchParams,
-  parseApprovedLeaveSyncDate,
-} from "./approved-leave-excused-sync-queries";
+import { runApprovedLeaveExcusedSync } from "./approved-leave-excused-sync-service";
+import { parseApprovedLeaveExcusedSyncSearchParams } from "./approved-leave-excused-sync-queries";
 import type { ApprovedLeaveExcusedSyncActionState } from "../types/approved-leave-excused-sync-types";
 
 function formDataToSearchParams(
   formData: FormData,
-): Record<
-  string,
-  string | string[] | undefined
-> {
+): Record<string, string | string[] | undefined> {
   const output: Record<
     string,
     string | string[] | undefined
@@ -99,9 +90,7 @@ export async function syncApprovedLeaveExcusedRecordsAction(
       formDataToSearchParams(formData),
     );
 
-  const limit = parseLimit(
-    formData.get("limit"),
-  );
+  const limit = parseLimit(formData.get("limit"));
 
   const confirmed =
     formData.get("confirmSync") === "on";
@@ -119,163 +108,12 @@ export async function syncApprovedLeaveExcusedRecordsAction(
     };
   }
 
-  const candidateSeeds =
-    await getApprovedLeaveExcusedSyncCandidateSeeds(
-      filters,
-      Math.min(limit * 10, 5000),
-    );
-
-  const result = await prisma.$transaction(
-    async (tx) => {
-      let checkedCount = 0;
-      let generatedCount = 0;
-      let existingAttendanceCount = 0;
-      let noApprovedLeaveCount = 0;
-      let exceptionProtectedCount = 0;
-      let notScheduledCount = 0;
-      let skippedCount = 0;
-
-      for (const candidate of candidateSeeds) {
-        if (generatedCount >= limit) {
-          break;
-        }
-
-        checkedCount += 1;
-
-        const attendanceDate =
-          parseApprovedLeaveSyncDate(
-            candidate.attendanceDateInput,
-          );
-
-        if (!attendanceDate) {
-          skippedCount += 1;
-          continue;
-        }
-
-        const employee =
-          await tx.employee.findUnique({
-            where: {
-              empId: candidate.empId,
-            },
-            select: {
-              empId: true,
-              empNumber: true,
-              status: true,
-              branchId: true,
-              scheduleId: true,
-              schedule: {
-                select: {
-                  daysOfWeek: true,
-                },
-              },
-            },
-          });
-
-        if (
-          !employee ||
-          employee.status !== "ACTIVE" ||
-          !employee.scheduleId ||
-          !employee.schedule ||
-          !isApprovedLeaveSyncScheduleDay({
-            date: attendanceDate,
-            daysOfWeek:
-              employee.schedule.daysOfWeek,
-          })
-        ) {
-          notScheduledCount += 1;
-          continue;
-        }
-
-        const blockingException =
-          await tx.attendanceExceptionDate.findFirst({
-            where: {
-              exceptionDate: attendanceDate,
-              status: "ACTIVE",
-              affectsAbsenceGeneration: true,
-              OR: [
-                {
-                  branchId: null,
-                },
-                {
-                  branchId:
-                    employee.branchId,
-                },
-              ],
-            },
-            select: {
-              exceptionId: true,
-            },
-          });
-
-        if (blockingException) {
-          exceptionProtectedCount += 1;
-          continue;
-        }
-
-        const syncResult =
-          await createExcusedAttendanceForApprovedLeave(
-            {
-              tx,
-              employee: {
-                empId: employee.empId,
-                empNumber:
-                  employee.empNumber,
-                scheduleId:
-                  employee.scheduleId,
-              },
-              attDate: attendanceDate,
-              actorUserId:
-                session.userId,
-            },
-          );
-
-        if (syncResult.created) {
-          generatedCount += 1;
-          continue;
-        }
-
-        if (
-          syncResult.reason ===
-          "ATTENDANCE_ALREADY_EXISTS"
-        ) {
-          existingAttendanceCount += 1;
-          continue;
-        }
-
-        if (
-          syncResult.reason ===
-          "NO_APPROVED_LEAVE"
-        ) {
-          noApprovedLeaveCount += 1;
-          continue;
-        }
-
-        if (
-          syncResult.reason ===
-          "NO_ASSIGNED_SCHEDULE"
-        ) {
-          notScheduledCount += 1;
-          continue;
-        }
-
-        skippedCount += 1;
-      }
-
-      return {
-        checkedCount,
-        generatedCount,
-        existingAttendanceCount,
-        noApprovedLeaveCount,
-        exceptionProtectedCount,
-        notScheduledCount,
-        skippedCount,
-      };
-    },
-    {
-      maxWait: 10_000,
-      timeout: 60_000,
-    },
-  );
+  const result = await runApprovedLeaveExcusedSync({
+    filters,
+    actorUserId: session.userId,
+    limit,
+    generationSource: "APPROVED_LEAVE_SYNC",
+  });
 
   revalidateExcusedSyncPages();
 
@@ -289,12 +127,11 @@ export async function syncApprovedLeaveExcusedRecordsAction(
       result.noApprovedLeaveCount,
     exceptionProtectedCount:
       result.exceptionProtectedCount,
-    notScheduledCount:
-      result.notScheduledCount,
+    notScheduledCount: result.notScheduledCount,
     skippedCount: result.skippedCount,
     message:
       result.generatedCount > 0
-        ? `${result.generatedCount} missing EXCUSED record(s) generated from approved leave. ${result.existingAttendanceCount} record(s) already had attendance, ${result.exceptionProtectedCount} were protected by exception dates, and ${result.noApprovedLeaveCount} no longer had approved leave.`
-        : `No EXCUSED records were generated. Existing attendance, schedule rules, exception dates, and current leave approval were rechecked before every attempted record.`,
+        ? `${result.generatedCount} missing EXCUSED record(s) generated. ${result.existingAttendanceCount} already had attendance, ${result.exceptionProtectedCount} were protected by exception dates, and ${result.noApprovedLeaveCount} no longer had approved leave.`
+        : "No EXCUSED records were generated. Existing attendance, approved leave, schedules, and exception dates were rechecked.",
   };
 }
