@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  CalendarCheck,
   CalendarClock,
   CalendarDays,
   RefreshCw,
@@ -25,15 +26,25 @@ import type {
 } from "@/features/attendance/absences/types/absence-candidate-types";
 
 type AbsenceCandidatePageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: Promise<
+    Record<string, string | string[] | undefined>
+  >;
 };
 
-function OptionList({ options }: { options: AbsenceCandidateOption[] }) {
+function OptionList({
+  options,
+}: {
+  options: AbsenceCandidateOption[];
+}) {
   return (
     <>
       <option value="">All</option>
+
       {options.map((option) => (
-        <option key={option.id} value={option.id}>
+        <option
+          key={option.id}
+          value={option.id}
+        >
           {option.label}
         </option>
       ))}
@@ -81,10 +92,19 @@ function AbsenceCandidateFiltersForm({
             id="activeOnly"
             name="activeOnly"
             className="starland-input mt-2"
-            defaultValue={filters.activeOnly ? "true" : "false"}
+            defaultValue={
+              filters.activeOnly
+                ? "true"
+                : "false"
+            }
           >
-            <option value="true">Active only</option>
-            <option value="false">All statuses</option>
+            <option value="true">
+              Active only
+            </option>
+
+            <option value="false">
+              All statuses
+            </option>
           </select>
         </div>
 
@@ -119,7 +139,9 @@ function AbsenceCandidateFiltersForm({
             className="starland-input mt-2"
             defaultValue={filters.branchId}
           >
-            <OptionList options={options.branches} />
+            <OptionList
+              options={options.branches}
+            />
           </select>
         </div>
 
@@ -135,9 +157,13 @@ function AbsenceCandidateFiltersForm({
             id="departmentId"
             name="departmentId"
             className="starland-input mt-2"
-            defaultValue={filters.departmentId}
+            defaultValue={
+              filters.departmentId
+            }
           >
-            <OptionList options={options.departments} />
+            <OptionList
+              options={options.departments}
+            />
           </select>
         </div>
 
@@ -155,13 +181,21 @@ function AbsenceCandidateFiltersForm({
             className="starland-input mt-2"
             defaultValue={filters.scheduleId}
           >
-            <OptionList options={options.schedules} />
+            <OptionList
+              options={options.schedules}
+            />
           </select>
         </div>
 
         <div className="flex items-end gap-2 xl:col-span-4">
-          <button type="submit" className="starland-btn starland-btn-primary">
-            <Search className="h-4 w-4" aria-hidden="true" />
+          <button
+            type="submit"
+            className="starland-btn starland-btn-primary"
+          >
+            <Search
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
             Preview Absences
           </button>
 
@@ -194,9 +228,9 @@ function ExceptionWarningPanel({
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              The exception calendar did not find an active holiday,
-              suspension, no-work day, rest day, or school event that blocks
-              ABSENT generation for this selected date.
+              The exception calendar did not find an
+              active rule that blocks ABSENT
+              generation for the selected date.
             </p>
           </div>
         </div>
@@ -209,33 +243,133 @@ function ExceptionWarningPanel({
       <div className="flex items-start gap-3">
         <CalendarDays className="mt-1 h-5 w-5 text-red-600" />
 
-        <div>
+        <div className="min-w-0 flex-1">
           <h2 className="text-lg font-extrabold text-red-800">
-            Exception Calendar Excluded Employees
+            Exception Calendar Exclusions
           </h2>
 
           <p className="mt-2 text-sm font-semibold leading-6 text-red-700">
-            {result.summary.excludedByException} employee(s) were excluded from
-            ABSENT candidates because this date has active exception rule(s).
+            {result.summary.excludedByException}{" "}
+            employee(s) were excluded because the
+            selected date has active exception
+            rules.
           </p>
 
           <div className="mt-3 grid gap-2 md:grid-cols-2">
-            {result.blockingExceptions.map((exception) => (
-              <div
-                key={exception.exceptionId}
-                className="rounded-2xl border border-red-200 bg-white p-3"
+            {result.blockingExceptions.map(
+              (exception) => (
+                <div
+                  key={exception.exceptionId}
+                  className="rounded-2xl border border-red-200 bg-white p-3"
+                >
+                  <p className="text-sm font-bold text-red-800">
+                    {exception.title}
+                  </p>
+
+                  <p className="mt-1 text-xs font-semibold text-red-600">
+                    {exception.exceptionType.replaceAll(
+                      "_",
+                      " ",
+                    )}{" "}
+                    · {exception.branchName}
+                  </p>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ApprovedLeaveExclusionPanel({
+  result,
+}: {
+  result: AbsenceCandidateResult;
+}) {
+  if (
+    result.approvedLeaveExclusions.length === 0
+  ) {
+    return (
+      <section className="starland-card p-5 print:hidden">
+        <div className="flex items-start gap-3">
+          <CalendarCheck className="mt-1 h-5 w-5 text-[var(--starland-success)]" />
+
+          <div>
+            <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+              No Approved Leave Exclusions
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              No scheduled employee in the current
+              result has approved leave covering the
+              selected attendance date.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const visibleLeaves =
+    result.approvedLeaveExclusions.slice(0, 12);
+
+  const hiddenLeaveCount =
+    result.approvedLeaveExclusions.length -
+    visibleLeaves.length;
+
+  return (
+    <section className="starland-card border-amber-200 bg-amber-50 p-5 print:hidden">
+      <div className="flex items-start gap-3">
+        <CalendarCheck className="mt-1 h-5 w-5 text-amber-700" />
+
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg font-extrabold text-amber-900">
+            Approved Leave Exclusions
+          </h2>
+
+          <p className="mt-2 text-sm font-semibold leading-6 text-amber-800">
+            {
+              result.summary
+                .excludedByApprovedLeave
+            }{" "}
+            employee(s) were automatically excluded
+            because they have approved leave
+            covering the selected date.
+          </p>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {visibleLeaves.map((leave) => (
+              <article
+                key={`${leave.leaveId}-${leave.empId}`}
+                className="rounded-2xl border border-amber-200 bg-white p-4"
               >
-                <p className="text-sm font-bold text-red-800">
-                  {exception.title}
+                <p className="font-bold text-[var(--starland-dark-text)]">
+                  {leave.employeeName}
                 </p>
 
-                <p className="mt-1 text-xs font-semibold text-red-600">
-                  {exception.exceptionType.replaceAll("_", " ")} ·{" "}
-                  {exception.branchName}
+                <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
+                  {leave.empNumber}
                 </p>
-              </div>
+
+                <p className="mt-3 text-sm font-bold text-amber-800">
+                  {leave.leaveTypeName}
+                </p>
+
+                <p className="mt-1 text-xs font-semibold text-amber-700">
+                  {leave.dateFrom} – {leave.dateTo}
+                </p>
+              </article>
             ))}
           </div>
+
+          {hiddenLeaveCount > 0 ? (
+            <p className="mt-3 text-sm font-semibold text-amber-800">
+              Plus {hiddenLeaveCount} additional
+              approved leave record(s).
+            </p>
+          ) : null}
         </div>
       </div>
     </section>
@@ -247,9 +381,17 @@ export default async function AbsenceCandidatePage({
 }: AbsenceCandidatePageProps) {
   await requireCanManageEmployees();
 
-  const resolvedSearchParams = await searchParams;
-  const filters = parseAbsenceCandidateSearchParams(resolvedSearchParams);
-  const result = await getAbsenceCandidateData(filters);
+  const resolvedSearchParams =
+    await searchParams;
+
+  const filters =
+    parseAbsenceCandidateSearchParams(
+      resolvedSearchParams,
+    );
+
+  const result =
+    await getAbsenceCandidateData(filters);
+
   const generationLimit = 500;
 
   return (
@@ -265,22 +407,38 @@ export default async function AbsenceCandidatePage({
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Preview employees who are scheduled on the selected date but have no
-            attendance record. The exception calendar now automatically excludes
-            holidays, suspensions, no-work days, rest days, and branch-specific
-            exception dates.
+            Preview scheduled employees without
+            attendance. Active exception dates and
+            approved leave are automatically
+            excluded before ABSENT generation.
           </p>
         </div>
 
         <div className="flex flex-col gap-2 sm:items-end">
-          <AbsenceCandidatesActions result={result} />
+          <AbsenceCandidatesActions
+            result={result}
+          />
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/dashboard/attendance/exceptions"
+              href="/dashboard/leaves"
               className="starland-btn starland-btn-primary"
             >
-              <CalendarDays className="h-4 w-4" aria-hidden="true" />
+              <CalendarCheck
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+              Approved Leaves
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/exceptions"
+              className="starland-btn starland-btn-soft"
+            >
+              <CalendarDays
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
               Exception Calendar
             </Link>
 
@@ -288,7 +446,10 @@ export default async function AbsenceCandidatePage({
               href="/dashboard/attendance/absences"
               className="starland-btn starland-btn-soft"
             >
-              <TimerOff className="h-4 w-4" aria-hidden="true" />
+              <TimerOff
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
               ABSENT Records
             </Link>
 
@@ -296,7 +457,10 @@ export default async function AbsenceCandidatePage({
               href="/dashboard/attendance/schedule-assignment"
               className="starland-btn starland-btn-soft"
             >
-              <CalendarClock className="h-4 w-4" aria-hidden="true" />
+              <CalendarClock
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
               Assign Schedules
             </Link>
 
@@ -304,7 +468,10 @@ export default async function AbsenceCandidatePage({
               href="/dashboard/attendance/status-recalculation"
               className="starland-btn starland-btn-soft"
             >
-              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              <RefreshCw
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
               Status Recalculation
             </Link>
 
@@ -312,7 +479,10 @@ export default async function AbsenceCandidatePage({
               href="/dashboard/attendance/actions"
               className="starland-btn starland-btn-soft"
             >
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              <ArrowLeft
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
               Attendance Actions
             </Link>
           </div>
@@ -322,7 +492,8 @@ export default async function AbsenceCandidatePage({
       <section className="starland-card overflow-hidden print:shadow-none">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-            Selected Date: {result.summary.selectedDate}
+            Selected Date:{" "}
+            {result.summary.selectedDate}
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
@@ -330,13 +501,14 @@ export default async function AbsenceCandidatePage({
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Candidates are based on active employee profiles, assigned schedules,
-            schedule days, missing attendance records, and exception calendar
-            exclusions.
+            Candidates are calculated from employee
+            schedules, schedule days, missing
+            attendance records, exception calendar
+            rules, and approved leave applications.
           </p>
         </div>
 
-        <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-5">
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <UsersRound className="h-7 w-7 text-[var(--starland-info)]" />
 
@@ -357,23 +529,56 @@ export default async function AbsenceCandidatePage({
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {result.summary.employeesWithoutAttendance}
+              {
+                result.summary
+                  .employeesWithoutAttendance
+              }
             </p>
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <CalendarDays className="h-7 w-7 text-[var(--starland-danger)]" />
+            <CalendarDays className="h-7 w-7 text-[var(--starland-info)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Excluded by Exception
+              Exception Excluded
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {result.summary.excludedByException}
+              {
+                result.summary
+                  .excludedByException
+              }
             </p>
 
             <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Active rule(s): {result.summary.activeBlockingExceptions}
+              Active rules:{" "}
+              {
+                result.summary
+                  .activeBlockingExceptions
+              }
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <CalendarCheck className="h-7 w-7 text-[var(--starland-warning)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Approved Leave
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {
+                result.summary
+                  .excludedByApprovedLeave
+              }
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
+              Leave records:{" "}
+              {
+                result.summary
+                  .activeApprovedLeaves
+              }
             </p>
           </article>
 
@@ -385,7 +590,10 @@ export default async function AbsenceCandidatePage({
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {result.summary.candidateAbsences}
+              {
+                result.summary
+                  .candidateAbsences
+              }
             </p>
           </article>
         </div>
@@ -398,52 +606,73 @@ export default async function AbsenceCandidatePage({
 
       <ExceptionWarningPanel result={result} />
 
-      <AbsenceGenerationPanel result={result} limit={generationLimit} />
+      <ApprovedLeaveExclusionPanel
+        result={result}
+      />
+
+      <AbsenceGenerationPanel
+        result={result}
+        limit={generationLimit}
+      />
 
       <section className="starland-card p-5 print:hidden">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
           Safe Absence Workflow
         </h2>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-4">
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              1. Encode Exceptions
+              1. Assign Schedules
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Add holidays, suspensions, no-work dates, and rest days to the
-              exception calendar.
+              Employees need the correct active
+              schedule before absence calculation.
             </p>
           </div>
 
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              2. Preview Candidates
+              2. Approve Leaves
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              The system excludes employees affected by active exception rules.
+              Approved leave automatically excludes
+              the employee from ABSENT generation.
             </p>
           </div>
 
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              3. Generate ABSENT
+              3. Encode Exceptions
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Generate normal ABSENT records only after HR/Admin confirmation.
+              Add holidays, suspensions, no-work
+              dates, and branch exceptions.
             </p>
           </div>
 
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              4. Rollback if Needed
+              4. Generate ABSENT
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Use rollback only for wrongly generated automatic ABSENT records.
+              Generate only the remaining verified
+              absence candidates.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <p className="font-bold text-[var(--starland-dark-text)]">
+              5. Rollback if Needed
+            </p>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              Rollback only wrongly generated
+              automatic ABSENT records.
             </p>
           </div>
         </div>

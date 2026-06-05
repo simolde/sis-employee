@@ -40,11 +40,22 @@ export type AbsenceCandidateBlockingException = {
   branchName: string;
 };
 
+export type AbsenceCandidateApprovedLeave = {
+  leaveId: number;
+  empId: number;
+  empNumber: string;
+  employeeName: string;
+  leaveTypeName: string;
+  dateFrom: string;
+  dateTo: string;
+};
+
 export type AbsenceCandidateResult = {
   filters: AbsenceCandidateFilters;
   options: AbsenceCandidateOptions;
   records: AbsenceCandidateItem[];
   blockingExceptions: AbsenceCandidateBlockingException[];
+  approvedLeaveExclusions: AbsenceCandidateApprovedLeave[];
   summary: {
     selectedDate: string;
     matchingEmployees: number;
@@ -52,7 +63,9 @@ export type AbsenceCandidateResult = {
     scheduledEmployees: number;
     employeesWithoutAttendance: number;
     excludedByException: number;
+    excludedByApprovedLeave: number;
     activeBlockingExceptions: number;
+    activeApprovedLeaves: number;
   };
   pagination: {
     page: number;

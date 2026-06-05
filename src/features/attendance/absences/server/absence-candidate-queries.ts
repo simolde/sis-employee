@@ -2,6 +2,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { formatFullName } from "@/lib/utils/formatting";
 import type {
+  AbsenceCandidateApprovedLeave,
   AbsenceCandidateBlockingException,
   AbsenceCandidateFilters,
   AbsenceCandidateItem,
@@ -12,13 +13,48 @@ import type {
 const DEFAULT_PAGE_SIZE = 20;
 
 const weekdayTokens = [
-  { index: 0, short: "SUN", long: "SUNDAY", numberTokens: ["0", "7"] },
-  { index: 1, short: "MON", long: "MONDAY", numberTokens: ["1"] },
-  { index: 2, short: "TUE", long: "TUESDAY", numberTokens: ["2"] },
-  { index: 3, short: "WED", long: "WEDNESDAY", numberTokens: ["3"] },
-  { index: 4, short: "THU", long: "THURSDAY", numberTokens: ["4"] },
-  { index: 5, short: "FRI", long: "FRIDAY", numberTokens: ["5"] },
-  { index: 6, short: "SAT", long: "SATURDAY", numberTokens: ["6"] },
+  {
+    index: 0,
+    short: "SUN",
+    long: "SUNDAY",
+    numberTokens: ["0", "7"],
+  },
+  {
+    index: 1,
+    short: "MON",
+    long: "MONDAY",
+    numberTokens: ["1"],
+  },
+  {
+    index: 2,
+    short: "TUE",
+    long: "TUESDAY",
+    numberTokens: ["2"],
+  },
+  {
+    index: 3,
+    short: "WED",
+    long: "WEDNESDAY",
+    numberTokens: ["3"],
+  },
+  {
+    index: 4,
+    short: "THU",
+    long: "THURSDAY",
+    numberTokens: ["4"],
+  },
+  {
+    index: 5,
+    short: "FRI",
+    long: "FRIDAY",
+    numberTokens: ["5"],
+  },
+  {
+    index: 6,
+    short: "SAT",
+    long: "SATURDAY",
+    numberTokens: ["6"],
+  },
 ];
 
 type AbsenceBlockingExceptionRecord = {
@@ -26,6 +62,40 @@ type AbsenceBlockingExceptionRecord = {
   branchId: number | null;
   exceptionType: string;
   title: string;
+};
+
+type AbsenceCandidateEmployeeRecord = {
+  empId: number;
+  empNumber: string;
+  firstName: string;
+  middleName: string | null;
+  lastName: string;
+  status: string;
+  branchId: number;
+  branch: {
+    name: string;
+  };
+  department: {
+    name: string;
+  } | null;
+  schedule: {
+    scheduleCode: string;
+    name: string;
+    daysOfWeek: string | null;
+    shift: {
+      startTime: string;
+      endTime: string;
+      isOvernight: boolean;
+    };
+  } | null;
+  leaves: Array<{
+    leaveId: number;
+    dateFrom: Date;
+    dateTo: Date;
+    leaveType: {
+      name: string;
+    };
+  }>;
 };
 
 function singleSearchParam(
@@ -65,7 +135,9 @@ function normalizeActiveOnly(value: string): boolean {
 
 function getManilaDateInputValue(offsetDays = 0): string {
   const now = new Date();
-  const targetDate = new Date(now.getTime() + offsetDays * 24 * 60 * 60 * 1000);
+  const targetDate = new Date(
+    now.getTime() + offsetDays * 24 * 60 * 60 * 1000,
+  );
 
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Manila",
@@ -83,7 +155,9 @@ function getManilaDateInputValue(offsetDays = 0): string {
 
 function parseDateInput(value: string): Date {
   const fallbackDate = getManilaDateInputValue(-1);
-  const dateValue = /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : fallbackDate;
+  const dateValue = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? value
+    : fallbackDate;
 
   return new Date(`${dateValue}T00:00:00.000Z`);
 }
@@ -170,8 +244,15 @@ function isBlockedByException(input: {
 }): boolean {
   return input.exceptions.some(
     (exception) =>
-      exception.branchId === null || exception.branchId === input.employeeBranchId,
+      exception.branchId === null ||
+      exception.branchId === input.employeeBranchId,
   );
+}
+
+function hasApprovedLeave(
+  employee: AbsenceCandidateEmployeeRecord,
+): boolean {
+  return employee.leaves.length > 0;
 }
 
 function buildEmployeeWhere(
@@ -285,30 +366,9 @@ function buildEmployeeWhere(
   };
 }
 
-function mapCandidate(input: {
-  empId: number;
-  empNumber: string;
-  firstName: string;
-  middleName: string | null;
-  lastName: string;
-  status: string;
-  branch: {
-    name: string;
-  };
-  department: {
-    name: string;
-  } | null;
-  schedule: {
-    scheduleCode: string;
-    name: string;
-    daysOfWeek: string | null;
-    shift: {
-      startTime: string;
-      endTime: string;
-      isOvernight: boolean;
-    };
-  } | null;
-}): AbsenceCandidateItem | null {
+function mapCandidate(
+  input: AbsenceCandidateEmployeeRecord,
+): AbsenceCandidateItem | null {
   if (!input.schedule) {
     return null;
   }
@@ -333,6 +393,28 @@ function mapCandidate(input: {
     }),
     expectedStatus: "ABSENT",
   };
+}
+
+function mapApprovedLeaveExclusions(
+  employees: AbsenceCandidateEmployeeRecord[],
+): AbsenceCandidateApprovedLeave[] {
+  return employees.flatMap((employee) => {
+    const employeeName = formatFullName({
+      firstName: employee.firstName,
+      middleName: employee.middleName,
+      lastName: employee.lastName,
+    });
+
+    return employee.leaves.map((leave) => ({
+      leaveId: leave.leaveId,
+      empId: employee.empId,
+      empNumber: employee.empNumber,
+      employeeName,
+      leaveTypeName: leave.leaveType.name,
+      dateFrom: formatDate(leave.dateFrom),
+      dateTo: formatDate(leave.dateTo),
+    }));
+  });
 }
 
 async function getBlockingExceptionsForDate(
@@ -395,7 +477,8 @@ async function mapBlockingExceptions(
     branchName:
       exception.branchId === null
         ? "All branches"
-        : branchMap.get(exception.branchId) ?? `Branch #${exception.branchId}`,
+        : branchMap.get(exception.branchId) ??
+          `Branch #${exception.branchId}`,
   }));
 }
 
@@ -403,7 +486,10 @@ export function parseAbsenceCandidateSearchParams(
   searchParams: Record<string, string | string[] | undefined>,
 ): AbsenceCandidateFilters {
   return {
-    date: singleSearchParam(searchParams.date, getManilaDateInputValue(-1)),
+    date: singleSearchParam(
+      searchParams.date,
+      getManilaDateInputValue(-1),
+    ),
     q: singleSearchParam(searchParams.q).trim(),
     branchId: singleSearchParam(searchParams.branchId),
     departmentId: singleSearchParam(searchParams.departmentId),
@@ -411,7 +497,10 @@ export function parseAbsenceCandidateSearchParams(
     activeOnly: normalizeActiveOnly(
       singleSearchParam(searchParams.activeOnly, "true"),
     ),
-    page: parsePositiveInteger(singleSearchParam(searchParams.page), 1),
+    page: parsePositiveInteger(
+      singleSearchParam(searchParams.page),
+      1,
+    ),
     pageSize: DEFAULT_PAGE_SIZE,
   };
 }
@@ -518,6 +607,30 @@ export async function getAbsenceCandidateData(
             },
           },
         },
+        leaves: {
+          where: {
+            status: "APPROVED",
+            dateFrom: {
+              lte: selectedDate,
+            },
+            dateTo: {
+              gte: selectedDate,
+            },
+          },
+          select: {
+            leaveId: true,
+            dateFrom: true,
+            dateTo: true,
+            leaveType: {
+              select: {
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            dateFrom: "asc",
+          },
+        },
       },
       orderBy: [
         {
@@ -541,7 +654,11 @@ export async function getAbsenceCandidateData(
         scheduleId: {
           not: null,
         },
-        ...(filters.activeOnly ? { status: "ACTIVE" } : {}),
+        ...(filters.activeOnly
+          ? {
+              status: "ACTIVE",
+            }
+          : {}),
       },
     }),
 
@@ -557,29 +674,52 @@ export async function getAbsenceCandidateData(
     }),
   );
 
-  const excludedByException = scheduledNoAttendanceEmployees.filter((employee) =>
-    isBlockedByException({
-      employeeBranchId: employee.branchId,
-      exceptions: blockingExceptions,
-    }),
-  ).length;
+  const exceptionExcludedEmployees =
+    scheduledNoAttendanceEmployees.filter((employee) =>
+      isBlockedByException({
+        employeeBranchId: employee.branchId,
+        exceptions: blockingExceptions,
+      }),
+    );
 
-  const allCandidates = scheduledNoAttendanceEmployees
-    .filter(
+  const employeesAfterExceptionProtection =
+    scheduledNoAttendanceEmployees.filter(
       (employee) =>
         !isBlockedByException({
           employeeBranchId: employee.branchId,
           exceptions: blockingExceptions,
         }),
-    )
+    );
+
+  const approvedLeaveExcludedEmployees =
+    employeesAfterExceptionProtection.filter(hasApprovedLeave);
+
+  const eligibleEmployees =
+    employeesAfterExceptionProtection.filter(
+      (employee) => !hasApprovedLeave(employee),
+    );
+
+  const allCandidates = eligibleEmployees
     .map(mapCandidate)
-    .filter((record): record is AbsenceCandidateItem => record !== null);
+    .filter(
+      (record): record is AbsenceCandidateItem => record !== null,
+    );
+
+  const approvedLeaveExclusions = mapApprovedLeaveExclusions(
+    approvedLeaveExcludedEmployees,
+  );
 
   const totalItems = allCandidates.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / filters.pageSize));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(totalItems / filters.pageSize),
+  );
   const safePage = Math.min(filters.page, totalPages);
   const startIndex = (safePage - 1) * filters.pageSize;
-  const records = allCandidates.slice(startIndex, startIndex + filters.pageSize);
+  const records = allCandidates.slice(
+    startIndex,
+    startIndex + filters.pageSize,
+  );
 
   return {
     filters: {
@@ -588,15 +728,20 @@ export async function getAbsenceCandidateData(
     },
     options,
     records,
-    blockingExceptions: await mapBlockingExceptions(blockingExceptions),
+    blockingExceptions:
+      await mapBlockingExceptions(blockingExceptions),
+    approvedLeaveExclusions,
     summary: {
       selectedDate: formatDate(selectedDate),
       matchingEmployees: employees.length,
       candidateAbsences: allCandidates.length,
       scheduledEmployees,
       employeesWithoutAttendance,
-      excludedByException,
+      excludedByException: exceptionExcludedEmployees.length,
+      excludedByApprovedLeave:
+        approvedLeaveExcludedEmployees.length,
       activeBlockingExceptions: blockingExceptions.length,
+      activeApprovedLeaves: approvedLeaveExclusions.length,
     },
     pagination: {
       page: safePage,

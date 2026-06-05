@@ -38,6 +38,9 @@ type AbsenceGenerationEmployee = {
       isOvernight: boolean;
     };
   } | null;
+  leaves: Array<{
+    leaveId: number;
+  }>;
 };
 
 type AbsenceBlockingExceptionRecord = {
@@ -46,16 +49,54 @@ type AbsenceBlockingExceptionRecord = {
 };
 
 const weekdayTokens = [
-  { index: 0, short: "SUN", long: "SUNDAY", numberTokens: ["0", "7"] },
-  { index: 1, short: "MON", long: "MONDAY", numberTokens: ["1"] },
-  { index: 2, short: "TUE", long: "TUESDAY", numberTokens: ["2"] },
-  { index: 3, short: "WED", long: "WEDNESDAY", numberTokens: ["3"] },
-  { index: 4, short: "THU", long: "THURSDAY", numberTokens: ["4"] },
-  { index: 5, short: "FRI", long: "FRIDAY", numberTokens: ["5"] },
-  { index: 6, short: "SAT", long: "SATURDAY", numberTokens: ["6"] },
+  {
+    index: 0,
+    short: "SUN",
+    long: "SUNDAY",
+    numberTokens: ["0", "7"],
+  },
+  {
+    index: 1,
+    short: "MON",
+    long: "MONDAY",
+    numberTokens: ["1"],
+  },
+  {
+    index: 2,
+    short: "TUE",
+    long: "TUESDAY",
+    numberTokens: ["2"],
+  },
+  {
+    index: 3,
+    short: "WED",
+    long: "WEDNESDAY",
+    numberTokens: ["3"],
+  },
+  {
+    index: 4,
+    short: "THU",
+    long: "THURSDAY",
+    numberTokens: ["4"],
+  },
+  {
+    index: 5,
+    short: "FRI",
+    long: "FRIDAY",
+    numberTokens: ["5"],
+  },
+  {
+    index: 6,
+    short: "SAT",
+    long: "SATURDAY",
+    numberTokens: ["6"],
+  },
 ];
 
-function formDataString(formData: FormData, key: string): string {
+function formDataString(
+  formData: FormData,
+  key: string,
+): string {
   const value = formData.get(key);
 
   return typeof value === "string" ? value.trim() : "";
@@ -71,7 +112,9 @@ function parsePositiveId(value: string): number | null {
   return parsed;
 }
 
-function parseLimit(value: FormDataEntryValue | null): number {
+function parseLimit(
+  value: FormDataEntryValue | null,
+): number {
   if (typeof value !== "string") {
     return 500;
   }
@@ -113,14 +156,20 @@ function getDateRange(date: Date): {
   };
 }
 
-function parseFilters(formData: FormData): AbsenceGenerationFilters {
+function parseFilters(
+  formData: FormData,
+): AbsenceGenerationFilters {
   return {
     date: formDataString(formData, "date"),
     q: formDataString(formData, "q"),
     branchId: formDataString(formData, "branchId"),
-    departmentId: formDataString(formData, "departmentId"),
+    departmentId: formDataString(
+      formData,
+      "departmentId",
+    ),
     scheduleId: formDataString(formData, "scheduleId"),
-    activeOnly: formDataString(formData, "activeOnly") !== "false",
+    activeOnly:
+      formDataString(formData, "activeOnly") !== "false",
   };
 }
 
@@ -133,7 +182,9 @@ function isScheduleApplicableOnDate(input: {
   }
 
   const dayIndex = input.date.getUTCDay();
-  const day = weekdayTokens.find((item) => item.index === dayIndex);
+  const day = weekdayTokens.find(
+    (item) => item.index === dayIndex,
+  );
 
   if (!day) {
     return false;
@@ -159,8 +210,15 @@ function isBlockedByException(input: {
 }): boolean {
   return input.exceptions.some(
     (exception) =>
-      exception.branchId === null || exception.branchId === input.employeeBranchId,
+      exception.branchId === null ||
+      exception.branchId === input.employeeBranchId,
   );
+}
+
+function hasApprovedLeave(
+  employee: AbsenceGenerationEmployee,
+): boolean {
+  return employee.leaves.length > 0;
 }
 
 function buildEmployeeWhere(input: {
@@ -175,9 +233,15 @@ function buildEmployeeWhere(input: {
     },
   ];
 
-  const branchId = parsePositiveId(input.filters.branchId);
-  const departmentId = parsePositiveId(input.filters.departmentId);
-  const scheduleId = parsePositiveId(input.filters.scheduleId);
+  const branchId = parsePositiveId(
+    input.filters.branchId,
+  );
+  const departmentId = parsePositiveId(
+    input.filters.departmentId,
+  );
+  const scheduleId = parsePositiveId(
+    input.filters.scheduleId,
+  );
   const dateRange = getDateRange(input.attDate);
 
   if (input.filters.activeOnly) {
@@ -297,6 +361,8 @@ function buildAbsenceAuditValue(input: {
     isManual: false,
     generatedById: input.actorUserId,
     generationSource: "ABSENCE_CANDIDATES",
+    approvedLeaveChecked: true,
+    exceptionCalendarChecked: true,
   };
 }
 
@@ -326,10 +392,15 @@ function revalidateAbsencePages() {
   revalidatePath("/dashboard/attendance");
   revalidatePath("/dashboard/attendance/actions");
   revalidatePath("/dashboard/attendance/absences");
-  revalidatePath("/dashboard/attendance/absences/candidates");
-  revalidatePath("/dashboard/attendance/absences/rollback");
+  revalidatePath(
+    "/dashboard/attendance/absences/candidates",
+  );
+  revalidatePath(
+    "/dashboard/attendance/absences/rollback",
+  );
   revalidatePath("/dashboard/attendance/reports");
   revalidatePath("/dashboard/attendance/audit");
+  revalidatePath("/dashboard/leaves");
 }
 
 export async function generateAbsentRecordsAction(
@@ -345,21 +416,25 @@ export async function generateAbsentRecordsAction(
   if (!canManageEmployees(session.role)) {
     return {
       ok: false,
-      message: "You do not have permission to generate ABSENT records.",
+      message:
+        "You do not have permission to generate ABSENT records.",
     };
   }
 
   const filters = parseFilters(formData);
   const attDate = parseDateInput(filters.date);
   const limit = parseLimit(formData.get("limit"));
-  const confirmGenerate = formData.get("confirmGenerate") === "on";
+  const confirmGenerate =
+    formData.get("confirmGenerate") === "on";
 
   if (!attDate) {
     return {
       ok: false,
       message: "Please select a valid attendance date.",
       fieldErrors: {
-        date: ["A valid attendance date is required."],
+        date: [
+          "A valid attendance date is required.",
+        ],
       },
     };
   }
@@ -368,9 +443,11 @@ export async function generateAbsentRecordsAction(
     return {
       ok: false,
       message:
-        "Please confirm that you already reviewed leave, holiday, suspension, and rest day exceptions.",
+        "Please confirm that you reviewed the remaining absence candidates.",
       fieldErrors: {
-        confirmGenerate: ["Confirmation is required before generating ABSENT."],
+        confirmGenerate: [
+          "Confirmation is required before generating ABSENT.",
+        ],
       },
     };
   }
@@ -380,155 +457,228 @@ export async function generateAbsentRecordsAction(
     attDate,
   });
 
-  const result = await prisma.$transaction(async (tx) => {
-    const blockingExceptions = await getBlockingExceptionsForDate({
-      tx,
-      attDate,
-    });
+  const result = await prisma.$transaction(
+    async (tx) => {
+      const blockingExceptions =
+        await getBlockingExceptionsForDate({
+          tx,
+          attDate,
+        });
 
-    const employees = await tx.employee.findMany({
-      where,
-      select: {
-        empId: true,
-        empNumber: true,
-        firstName: true,
-        middleName: true,
-        lastName: true,
-        status: true,
-        branchId: true,
-        departmentId: true,
-        scheduleId: true,
-        schedule: {
-          select: {
-            scheduleId: true,
-            scheduleCode: true,
-            name: true,
-            daysOfWeek: true,
-            shift: {
-              select: {
-                startTime: true,
-                endTime: true,
-                isOvernight: true,
+      const employees = await tx.employee.findMany({
+        where,
+        select: {
+          empId: true,
+          empNumber: true,
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          status: true,
+          branchId: true,
+          departmentId: true,
+          scheduleId: true,
+          schedule: {
+            select: {
+              scheduleId: true,
+              scheduleCode: true,
+              name: true,
+              daysOfWeek: true,
+              shift: {
+                select: {
+                  startTime: true,
+                  endTime: true,
+                  isOvernight: true,
+                },
               },
             },
           },
+          leaves: {
+            where: {
+              status: "APPROVED",
+              dateFrom: {
+                lte: attDate,
+              },
+              dateTo: {
+                gte: attDate,
+              },
+            },
+            select: {
+              leaveId: true,
+            },
+          },
         },
-      },
-      orderBy: [
-        {
-          lastName: "asc",
-        },
-        {
-          firstName: "asc",
-        },
-        {
-          empId: "asc",
-        },
-      ],
-      take: limit * 3,
-    });
+        orderBy: [
+          {
+            lastName: "asc",
+          },
+          {
+            firstName: "asc",
+          },
+          {
+            empId: "asc",
+          },
+        ],
+        take: Math.min(limit * 10, 5000),
+      });
 
-    const scheduledCandidates = employees.filter(
-      (employee) =>
-        employee.scheduleId &&
-        employee.schedule &&
-        isScheduleApplicableOnDate({
-          date: attDate,
-          daysOfWeek: employee.schedule.daysOfWeek,
-        }),
-    );
-
-    const skippedByExceptionCount = scheduledCandidates.filter((employee) =>
-      isBlockedByException({
-        employeeBranchId: employee.branchId,
-        exceptions: blockingExceptions,
-      }),
-    ).length;
-
-    const candidates = scheduledCandidates
-      .filter(
+      const scheduledCandidates = employees.filter(
         (employee) =>
-          !isBlockedByException({
+          employee.scheduleId &&
+          employee.schedule &&
+          isScheduleApplicableOnDate({
+            date: attDate,
+            daysOfWeek:
+              employee.schedule.daysOfWeek,
+          }),
+      );
+
+      const exceptionExcludedCandidates =
+        scheduledCandidates.filter((employee) =>
+          isBlockedByException({
             employeeBranchId: employee.branchId,
             exceptions: blockingExceptions,
           }),
-      )
-      .slice(0, limit);
+        );
 
-    let generatedCount = 0;
-    let skippedCount = 0;
+      const candidatesAfterExceptionProtection =
+        scheduledCandidates.filter(
+          (employee) =>
+            !isBlockedByException({
+              employeeBranchId: employee.branchId,
+              exceptions: blockingExceptions,
+            }),
+        );
 
-    const dateRange = getDateRange(attDate);
+      const approvedLeaveExcludedCandidates =
+        candidatesAfterExceptionProtection.filter(
+          hasApprovedLeave,
+        );
 
-    for (const employee of candidates) {
-      if (!employee.scheduleId) {
-        skippedCount += 1;
-        continue;
-      }
+      const candidates =
+        candidatesAfterExceptionProtection
+          .filter(
+            (employee) =>
+              !hasApprovedLeave(employee),
+          )
+          .slice(0, limit);
 
-      const existingAttendance = await tx.attendance.findFirst({
-        where: {
-          empId: employee.empId,
-          attDate: {
-            gte: dateRange.start,
-            lt: dateRange.end,
-          },
-        },
-        select: {
-          attendanceId: true,
-        },
-      });
+      let generatedCount = 0;
+      let skippedCount = 0;
 
-      if (existingAttendance) {
-        skippedCount += 1;
-        continue;
-      }
+      for (const employee of candidates) {
+        if (!employee.scheduleId) {
+          skippedCount += 1;
+          continue;
+        }
 
-      const attendance = await tx.attendance.create({
-        data: {
-          empId: employee.empId,
-          scheduleId: employee.scheduleId,
-          attDate,
-          timeIn: null,
-          timeOut: null,
-          status: "ABSENT",
-          totalMinutes: null,
-          isManual: false,
-          updatedById: session.userId,
-        },
-        select: {
-          attendanceId: true,
-        },
-      });
+        const existingAttendance =
+          await tx.attendance.findUnique({
+            where: {
+              empId_attDate: {
+                empId: employee.empId,
+                attDate,
+              },
+            },
+            select: {
+              attendanceId: true,
+            },
+          });
 
-      await tx.activityLog.create({
-        data: {
-          actorUserId: session.userId,
-          action: "ATTENDANCE_ABSENT_AUTO_GENERATED",
-          entityType: "attendance",
-          entityId: String(attendance.attendanceId),
-          oldValue: {
-            attendanceExisted: false,
-          },
-          newValue: buildAbsenceAuditValue({
-            attendanceId: attendance.attendanceId,
-            employee,
-            attDate,
+        if (existingAttendance) {
+          skippedCount += 1;
+          continue;
+        }
+
+        const activeApprovedLeave =
+          await tx.leave.findFirst({
+            where: {
+              empId: employee.empId,
+              status: "APPROVED",
+              dateFrom: {
+                lte: attDate,
+              },
+              dateTo: {
+                gte: attDate,
+              },
+            },
+            select: {
+              leaveId: true,
+            },
+          });
+
+        if (activeApprovedLeave) {
+          skippedCount += 1;
+          continue;
+        }
+
+        const activeBlockingException =
+          blockingExceptions.some(
+            (exception) =>
+              exception.branchId === null ||
+              exception.branchId ===
+                employee.branchId,
+          );
+
+        if (activeBlockingException) {
+          skippedCount += 1;
+          continue;
+        }
+
+        const attendance =
+          await tx.attendance.create({
+            data: {
+              empId: employee.empId,
+              scheduleId: employee.scheduleId,
+              attDate,
+              timeIn: null,
+              timeOut: null,
+              status: "ABSENT",
+              totalMinutes: null,
+              isManual: false,
+              createdById: session.userId,
+              updatedById: session.userId,
+            },
+            select: {
+              attendanceId: true,
+            },
+          });
+
+        await tx.activityLog.create({
+          data: {
             actorUserId: session.userId,
-          }),
-        },
-      });
+            action:
+              "ATTENDANCE_ABSENT_AUTO_GENERATED",
+            entityType: "attendance",
+            entityId: String(
+              attendance.attendanceId,
+            ),
+            oldValue: {
+              attendanceExisted: false,
+            },
+            newValue: buildAbsenceAuditValue({
+              attendanceId:
+                attendance.attendanceId,
+              employee,
+              attDate,
+              actorUserId: session.userId,
+            }),
+          },
+        });
 
-      generatedCount += 1;
-    }
+        generatedCount += 1;
+      }
 
-    return {
-      checkedCount: candidates.length,
-      generatedCount,
-      skippedCount,
-      skippedByExceptionCount,
-    };
-  });
+      return {
+        checkedCount: candidates.length,
+        generatedCount,
+        skippedCount,
+        skippedByExceptionCount:
+          exceptionExcludedCandidates.length,
+        skippedByApprovedLeaveCount:
+          approvedLeaveExcludedCandidates.length,
+      };
+    },
+  );
 
   revalidateAbsencePages();
 
@@ -537,10 +687,13 @@ export async function generateAbsentRecordsAction(
     checkedCount: result.checkedCount,
     generatedCount: result.generatedCount,
     skippedCount: result.skippedCount,
-    skippedByExceptionCount: result.skippedByExceptionCount,
+    skippedByExceptionCount:
+      result.skippedByExceptionCount,
+    skippedByApprovedLeaveCount:
+      result.skippedByApprovedLeaveCount,
     message:
       result.generatedCount > 0
-        ? `${result.generatedCount} ABSENT record(s) generated. ${result.skippedByExceptionCount} candidate(s) excluded by exception calendar. ${result.skippedCount} candidate(s) skipped.`
-        : `No ABSENT records generated. ${result.skippedByExceptionCount} candidate(s) excluded by exception calendar. ${result.checkedCount} candidate(s) checked.`,
+        ? `${result.generatedCount} ABSENT record(s) generated. ${result.skippedByExceptionCount} employee(s) excluded by the exception calendar. ${result.skippedByApprovedLeaveCount} employee(s) excluded by approved leave. ${result.skippedCount} record(s) skipped during final validation.`
+        : `No ABSENT records were generated. ${result.skippedByExceptionCount} employee(s) were excluded by the exception calendar and ${result.skippedByApprovedLeaveCount} employee(s) were excluded by approved leave.`,
   };
 }
