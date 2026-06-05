@@ -21,6 +21,10 @@ type AttendanceAutomationHealthSummaryProps = {
   data: AttendanceAutomationHealthData;
 };
 
+type HealthStatusIconProps = {
+  status: AttendanceAutomationHealthStatus;
+};
+
 function statusContainerClass(
   status: AttendanceAutomationHealthStatus,
 ): string {
@@ -42,47 +46,69 @@ function statusContainerClass(
   }
 }
 
-function statusIcon(
-  status: AttendanceAutomationHealthStatus,
-) {
+function HealthStatusIcon({
+  status,
+}: HealthStatusIconProps) {
+  const className =
+    "mt-0.5 h-7 w-7 shrink-0";
+
   switch (status) {
     case "HEALTHY":
-      return CheckCircle2;
+      return (
+        <CheckCircle2
+          className={className}
+          aria-hidden="true"
+        />
+      );
 
     case "DEGRADED":
-      return ShieldAlert;
+      return (
+        <ShieldAlert
+          className={className}
+          aria-hidden="true"
+        />
+      );
 
     case "STALE":
-      return TimerOff;
+      return (
+        <TimerOff
+          className={className}
+          aria-hidden="true"
+        />
+      );
 
     case "NO_RUNS":
-      return CircleAlert;
+      return (
+        <CircleAlert
+          className={className}
+          aria-hidden="true"
+        />
+      );
 
     case "NOT_CONFIGURED":
-      return KeyRound;
+      return (
+        <KeyRound
+          className={className}
+          aria-hidden="true"
+        />
+      );
   }
 }
 
 export function AttendanceAutomationHealthSummary({
   data,
 }: AttendanceAutomationHealthSummaryProps) {
-  const StatusIcon =
-    statusIcon(data.status);
-
   return (
     <div className="space-y-5">
       <section
         className={[
           "rounded-2xl border p-5",
-          statusContainerClass(
-            data.status,
-          ),
+          statusContainerClass(data.status),
         ].join(" ")}
       >
         <div className="flex items-start gap-3">
-          <StatusIcon
-            className="mt-0.5 h-7 w-7 shrink-0"
-            aria-hidden="true"
+          <HealthStatusIcon
+            status={data.status}
           />
 
           <div>
@@ -103,7 +129,10 @@ export function AttendanceAutomationHealthSummary({
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article className="starland-card p-4">
-          <Activity className="h-7 w-7 text-[var(--starland-info)]" />
+          <Activity
+            className="h-7 w-7 text-[var(--starland-info)]"
+            aria-hidden="true"
+          />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Runs in 30 Days
@@ -115,22 +144,25 @@ export function AttendanceAutomationHealthSummary({
         </article>
 
         <article className="starland-card p-4">
-          <CheckCircle2 className="h-7 w-7 text-[var(--starland-success)]" />
+          <CheckCircle2
+            className="h-7 w-7 text-[var(--starland-success)]"
+            aria-hidden="true"
+          />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Completed Runs
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              data.summary
-                .completedRuns
-            }
+            {data.summary.completedRuns}
           </p>
         </article>
 
         <article className="starland-card p-4">
-          <TriangleAlert className="h-7 w-7 text-[var(--starland-danger)]" />
+          <TriangleAlert
+            className="h-7 w-7 text-[var(--starland-danger)]"
+            aria-hidden="true"
+          />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Failed Runs
@@ -142,7 +174,10 @@ export function AttendanceAutomationHealthSummary({
         </article>
 
         <article className="starland-card p-4">
-          <RefreshCw className="h-7 w-7 text-[var(--starland-main-green)]" />
+          <RefreshCw
+            className="h-7 w-7 text-[var(--starland-main-green)]"
+            aria-hidden="true"
+          />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Success Rate
@@ -156,22 +191,25 @@ export function AttendanceAutomationHealthSummary({
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article className="starland-card p-4">
-          <CalendarCheck className="h-7 w-7 text-[var(--starland-success)]" />
+          <CalendarCheck
+            className="h-7 w-7 text-[var(--starland-success)]"
+            aria-hidden="true"
+          />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             EXCUSED Generated
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              data.summary
-                .generatedRecords
-            }
+            {data.summary.generatedRecords}
           </p>
         </article>
 
         <article className="starland-card p-4">
-          <CloudCog className="h-7 w-7 text-[var(--starland-info)]" />
+          <CloudCog
+            className="h-7 w-7 text-[var(--starland-info)]"
+            aria-hidden="true"
+          />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             API / System Runs
@@ -183,22 +221,25 @@ export function AttendanceAutomationHealthSummary({
         </article>
 
         <article className="starland-card p-4">
-          <LayoutDashboard className="h-7 w-7 text-[var(--starland-main-green)]" />
+          <LayoutDashboard
+            className="h-7 w-7 text-[var(--starland-main-green)]"
+            aria-hidden="true"
+          />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Dashboard Runs
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              data.summary
-                .dashboardRuns
-            }
+            {data.summary.dashboardRuns}
           </p>
         </article>
 
         <article className="starland-card p-4">
-          <RotateCcw className="h-7 w-7 text-[var(--starland-warning)]" />
+          <RotateCcw
+            className="h-7 w-7 text-[var(--starland-warning)]"
+            aria-hidden="true"
+          />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Retry Runs
@@ -212,7 +253,10 @@ export function AttendanceAutomationHealthSummary({
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article className="starland-card p-4">
-          <Activity className="h-7 w-7 text-[var(--starland-info)]" />
+          <Activity
+            className="h-7 w-7 text-[var(--starland-info)]"
+            aria-hidden="true"
+          />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Runs Today
@@ -224,32 +268,32 @@ export function AttendanceAutomationHealthSummary({
         </article>
 
         <article className="starland-card p-4">
-          <ShieldAlert className="h-7 w-7 text-[var(--starland-danger)]" />
+          <ShieldAlert
+            className="h-7 w-7 text-[var(--starland-danger)]"
+            aria-hidden="true"
+          />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Failures in 24 Hours
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              data.summary
-                .failuresLast24Hours
-            }
+            {data.summary.failuresLast24Hours}
           </p>
         </article>
 
         <article className="starland-card p-4">
-          <CircleAlert className="h-7 w-7 text-[var(--starland-warning)]" />
+          <CircleAlert
+            className="h-7 w-7 text-[var(--starland-warning)]"
+            aria-hidden="true"
+          />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
             Unknown Status
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              data.summary
-                .unknownRuns
-            }
+            {data.summary.unknownRuns}
           </p>
         </article>
 
@@ -261,6 +305,7 @@ export function AttendanceAutomationHealthSummary({
                 ? "text-[var(--starland-success)]"
                 : "text-[var(--starland-danger)]",
             ].join(" ")}
+            aria-hidden="true"
           />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
