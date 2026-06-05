@@ -12,6 +12,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { ApprovedLeaveAutomationRetryPanel } from "@/features/attendance/automation/history/components/approved-leave-automation-retry-panel";
 import { getApprovedLeaveAutomationHistoryDetail } from "@/features/attendance/automation/history/server/approved-leave-automation-history-queries";
 import type {
   ApprovedLeaveAutomationExecutionMode,
@@ -24,16 +25,81 @@ type ApprovedLeaveAutomationHistoryDetailPageProps = {
   }>;
 };
 
+type AutomationAuditMetadata = {
+  failureMessage: string | null;
+  attemptedGeneratedCount: number;
+  committedChanges: boolean | null;
+};
+
 function parseActivityLogId(
   value: string,
 ): number | null {
   const parsed = Number(value);
 
-  if (!Number.isInteger(parsed) || parsed <= 0) {
+  if (
+    !Number.isInteger(parsed) ||
+    parsed <= 0
+  ) {
     return null;
   }
 
   return parsed;
+}
+
+function readAutomationAuditMetadata(
+  newValueText: string,
+): AutomationAuditMetadata {
+  try {
+    const parsed: unknown =
+      JSON.parse(newValueText);
+
+    if (
+      typeof parsed !== "object" ||
+      parsed === null ||
+      Array.isArray(parsed)
+    ) {
+      return {
+        failureMessage: null,
+        attemptedGeneratedCount: 0,
+        committedChanges: null,
+      };
+    }
+
+    const object = parsed as Record<
+      string,
+      unknown
+    >;
+
+    return {
+      failureMessage:
+        typeof object.failureMessage ===
+          "string" &&
+        object.failureMessage.trim()
+          ? object.failureMessage.trim()
+          : null,
+
+      attemptedGeneratedCount:
+        typeof object.attemptedGeneratedCount ===
+          "number" &&
+        Number.isFinite(
+          object.attemptedGeneratedCount,
+        )
+          ? object.attemptedGeneratedCount
+          : 0,
+
+      committedChanges:
+        typeof object.committedChanges ===
+        "boolean"
+          ? object.committedChanges
+          : null,
+    };
+  } catch {
+    return {
+      failureMessage: null,
+      attemptedGeneratedCount: 0,
+      committedChanges: null,
+    };
+  }
 }
 
 function ExecutionBadge({
@@ -168,6 +234,11 @@ export default async function ApprovedLeaveAutomationHistoryDetailPage({
     notFound();
   }
 
+  const metadata =
+    readAutomationAuditMetadata(
+      detail.newValueText,
+    );
+
   return (
     <section className="starland-page space-y-5">
       <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
@@ -210,6 +281,49 @@ export default async function ApprovedLeaveAutomationHistoryDetailPage({
         </div>
       </div>
 
+      {detail.status === "FAILED" ? (
+        <section className="rounded-2xl border border-red-200 bg-red-50 p-5">
+          <div className="flex items-start gap-3">
+            <TriangleAlert
+              className="mt-0.5 h-6 w-6 shrink-0 text-red-700"
+              aria-hidden="true"
+            />
+
+            <div>
+              <h2 className="text-lg font-extrabold text-red-800">
+                Automation Transaction Failed
+              </h2>
+
+              <p className="mt-2 text-sm leading-6 text-red-700">
+                {metadata.failureMessage ??
+                  "The automation failed before the transaction could complete."}
+              </p>
+
+              <p className="mt-2 text-xs font-semibold text-red-700">
+                Attempted generated records:{" "}
+                {
+                  metadata.attemptedGeneratedCount
+                }
+                . Committed generated records:{" "}
+                {detail.generatedCount}.
+              </p>
+
+              <p className="mt-1 text-xs font-semibold text-red-700">
+                The transaction was rolled back, so
+                attempted records were not saved.
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <ApprovedLeaveAutomationRetryPanel
+        activityLogId={
+          detail.activityLogId
+        }
+        status={detail.status}
+      />
+
       <section className="starland-card overflow-hidden print:shadow-none">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <div className="flex flex-wrap gap-2">
@@ -231,8 +345,8 @@ export default async function ApprovedLeaveAutomationHistoryDetailPage({
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
             This record contains the execution
             settings, processing totals, duration,
-            audit actor, and original activity-log
-            values for the automation run.
+            audit actor, commit status, and original
+            activity-log values.
           </p>
         </div>
 
@@ -253,7 +367,7 @@ export default async function ApprovedLeaveAutomationHistoryDetailPage({
             <CalendarCheck className="h-6 w-6 text-[var(--starland-success)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Generated
+              Committed Generated
             </p>
 
             <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
@@ -337,21 +451,26 @@ export default async function ApprovedLeaveAutomationHistoryDetailPage({
 
             <div>
               <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
-                Created
-              </dt>
-
-              <dd className="mt-1 font-bold text-[var(--starland-dark-text)]">
-                {detail.createdAt}
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
                 Processing Limit
               </dt>
 
               <dd className="mt-1 font-bold text-[var(--starland-dark-text)]">
                 {detail.limit}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Changes Committed
+              </dt>
+
+              <dd className="mt-1 font-bold text-[var(--starland-dark-text)]">
+                {metadata.committedChanges ===
+                null
+                  ? "UNKNOWN"
+                  : metadata.committedChanges
+                    ? "YES"
+                    : "NO"}
               </dd>
             </div>
           </dl>

@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/server/session";
-import { runApprovedLeaveExcusedSync } from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-service";
+import {
+  ApprovedLeaveExcusedAutomationExecutionError,
+  runApprovedLeaveExcusedSync,
+} from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-service";
 import { parseApprovedLeaveSyncDate } from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-queries";
 import type { ApprovedLeaveExcusedSyncFilters } from "@/features/attendance/excused/sync/types/approved-leave-excused-sync-types";
 import { canManageEmployees } from "@/lib/security/roles";
@@ -48,7 +51,8 @@ function getInclusiveDateRangeDays(
 
   return (
     Math.floor(
-      (dateTo.getTime() - dateFrom.getTime()) /
+      (dateTo.getTime() -
+        dateFrom.getTime()) /
         millisecondsPerDay,
     ) + 1
   );
@@ -159,7 +163,8 @@ export async function runApprovedLeaveExcusedAutomationAction(
   if (
     dateFrom &&
     dateTo &&
-    dateFrom.getTime() > dateTo.getTime()
+    dateFrom.getTime() >
+      dateTo.getTime()
   ) {
     fieldErrors.dateTo = [
       "The end date must be on or after the start date.",
@@ -196,7 +201,8 @@ export async function runApprovedLeaveExcusedAutomationAction(
   }
 
   if (
-    Object.keys(fieldErrors).length > 0 ||
+    Object.keys(fieldErrors).length >
+      0 ||
     !dateFrom ||
     !dateTo ||
     !limit
@@ -226,35 +232,67 @@ export async function runApprovedLeaveExcusedAutomationAction(
       pageSize: 20,
     };
 
-  const result =
-    await runApprovedLeaveExcusedSync({
-      filters,
-      actorUserId: session.userId,
-      limit,
-      generationSource:
-        "APPROVED_LEAVE_AUTOMATION",
-      automationExecutionMode: "DASHBOARD",
-    });
+  try {
+    const result =
+      await runApprovedLeaveExcusedSync({
+        filters,
+        actorUserId: session.userId,
+        limit,
+        generationSource:
+          "APPROVED_LEAVE_AUTOMATION",
+        automationExecutionMode:
+          "DASHBOARD",
+      });
 
-  revalidateApprovedLeaveAutomationPages();
+    revalidateApprovedLeaveAutomationPages();
 
-  return {
-    ok: true,
-    checkedCount: result.checkedCount,
-    generatedCount: result.generatedCount,
-    existingAttendanceCount:
-      result.existingAttendanceCount,
-    noApprovedLeaveCount:
-      result.noApprovedLeaveCount,
-    exceptionProtectedCount:
-      result.exceptionProtectedCount,
-    notScheduledCount:
-      result.notScheduledCount,
-    skippedCount: result.skippedCount,
-    runAuditLogId: result.runAuditLogId,
-    message:
-      result.generatedCount > 0
-        ? `${result.generatedCount} missing EXCUSED record(s) were generated. Automation run log #${result.runAuditLogId ?? "—"} was recorded.`
-        : `No EXCUSED records were generated. Automation run log #${result.runAuditLogId ?? "—"} was still recorded for traceability.`,
-  };
+    return {
+      ok: true,
+      checkedCount:
+        result.checkedCount,
+      generatedCount:
+        result.generatedCount,
+      existingAttendanceCount:
+        result.existingAttendanceCount,
+      noApprovedLeaveCount:
+        result.noApprovedLeaveCount,
+      exceptionProtectedCount:
+        result.exceptionProtectedCount,
+      notScheduledCount:
+        result.notScheduledCount,
+      skippedCount:
+        result.skippedCount,
+      runAuditLogId:
+        result.runAuditLogId,
+      message:
+        result.generatedCount > 0
+          ? `${result.generatedCount} missing EXCUSED record(s) were generated. Automation run #${result.runAuditLogId ?? "—"} was recorded.`
+          : `No EXCUSED records were generated. Automation run #${result.runAuditLogId ?? "—"} was recorded for traceability.`,
+    };
+  } catch (error) {
+    revalidateApprovedLeaveAutomationPages();
+
+    if (
+      error instanceof
+      ApprovedLeaveExcusedAutomationExecutionError
+    ) {
+      return {
+        ok: false,
+        message: error.message,
+        runAuditLogId:
+          error.runAuditLogId,
+      };
+    }
+
+    console.error(
+      "Dashboard approved-leave automation failed:",
+      error,
+    );
+
+    return {
+      ok: false,
+      message:
+        "Approved-leave EXCUSED automation failed unexpectedly.",
+    };
+  }
 }

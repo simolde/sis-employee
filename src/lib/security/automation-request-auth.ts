@@ -50,13 +50,13 @@ function normalizeSecret(
 }
 
 function getConfiguredSecret(): ConfiguredSecret | null {
-  const attendanceSecret = normalizeSecret(
+  const attendanceAutomationSecret = normalizeSecret(
     process.env.ATTENDANCE_AUTOMATION_SECRET,
   );
 
-  if (attendanceSecret) {
+  if (attendanceAutomationSecret) {
     return {
-      secret: attendanceSecret,
+      secret: attendanceAutomationSecret,
       source: "ATTENDANCE_AUTOMATION_SECRET",
     };
   }
@@ -103,15 +103,15 @@ function getReceivedSecret(
     };
   }
 
-  const attendanceHeader = normalizeSecret(
+  const attendanceAutomationHeader = normalizeSecret(
     request.headers.get(
       "x-attendance-automation-secret",
     ),
   );
 
-  if (attendanceHeader) {
+  if (attendanceAutomationHeader) {
     return {
-      secret: attendanceHeader,
+      secret: attendanceAutomationHeader,
       source: "x-attendance-automation-secret",
     };
   }

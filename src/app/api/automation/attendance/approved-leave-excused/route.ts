@@ -3,6 +3,7 @@ import {
   NextResponse,
 } from "next/server";
 import { runApprovedLeaveExcusedAutomation } from "@/features/attendance/automation/server/approved-leave-excused-automation-runner";
+import { ApprovedLeaveExcusedAutomationExecutionError } from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-service";
 import { authorizeAutomationRequest } from "@/lib/security/automation-request-auth";
 
 export const runtime = "nodejs";
@@ -65,14 +66,13 @@ async function handleAutomationRequest(
         ok: false,
         message:
           "Attendance automation secret is not configured.",
-        ...(
-          process.env.NODE_ENV !== "production"
-            ? {
-                diagnostics:
-                  authorization.diagnostics,
-              }
-            : {}
-        ),
+        ...(process.env.NODE_ENV !==
+        "production"
+          ? {
+              diagnostics:
+                authorization.diagnostics,
+            }
+          : {}),
       },
       503,
     );
@@ -84,14 +84,13 @@ async function handleAutomationRequest(
         ok: false,
         message:
           "Unauthorized automation request.",
-        ...(
-          process.env.NODE_ENV !== "production"
-            ? {
-                diagnostics:
-                  authorization.diagnostics,
-              }
-            : {}
-        ),
+        ...(process.env.NODE_ENV !==
+        "production"
+          ? {
+              diagnostics:
+                authorization.diagnostics,
+            }
+          : {}),
       },
       401,
     );
@@ -124,8 +123,28 @@ async function handleAutomationRequest(
       result,
     });
   } catch (error) {
+    if (
+      error instanceof
+      ApprovedLeaveExcusedAutomationExecutionError
+    ) {
+      console.error(
+        "Approved-leave EXCUSED automation failed:",
+        error,
+      );
+
+      return jsonResponse(
+        {
+          ok: false,
+          message: error.message,
+          runAuditLogId:
+            error.runAuditLogId,
+        },
+        500,
+      );
+    }
+
     console.error(
-      "Approved-leave EXCUSED automation failed:",
+      "Approved-leave EXCUSED automation failed unexpectedly:",
       error,
     );
 
@@ -133,7 +152,8 @@ async function handleAutomationRequest(
       {
         ok: false,
         message:
-          "Approved-leave EXCUSED automation failed.",
+          "Approved-leave EXCUSED automation failed unexpectedly.",
+        runAuditLogId: null,
       },
       500,
     );
