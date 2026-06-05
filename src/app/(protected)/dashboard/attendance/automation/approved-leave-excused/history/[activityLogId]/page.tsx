@@ -12,8 +12,12 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { ApprovedLeaveAutomationRelatedRuns } from "@/features/attendance/automation/history/components/approved-leave-automation-related-runs";
 import { ApprovedLeaveAutomationRetryPanel } from "@/features/attendance/automation/history/components/approved-leave-automation-retry-panel";
-import { getApprovedLeaveAutomationHistoryDetail } from "@/features/attendance/automation/history/server/approved-leave-automation-history-queries";
+import {
+  getApprovedLeaveAutomationHistoryDetail,
+  getApprovedLeaveAutomationRelatedRuns,
+} from "@/features/attendance/automation/history/server/approved-leave-automation-history-queries";
 import type {
   ApprovedLeaveAutomationExecutionMode,
   ApprovedLeaveAutomationRunStatus,
@@ -225,12 +229,18 @@ export default async function ApprovedLeaveAutomationHistoryDetailPage({
     notFound();
   }
 
-  const detail =
-    await getApprovedLeaveAutomationHistoryDetail(
-      activityLogId,
-    );
+  const [detail, relatedRuns] =
+    await Promise.all([
+      getApprovedLeaveAutomationHistoryDetail(
+        activityLogId,
+      ),
 
-  if (!detail) {
+      getApprovedLeaveAutomationRelatedRuns(
+        activityLogId,
+      ),
+    ]);
+
+  if (!detail || !relatedRuns) {
     notFound();
   }
 
@@ -301,16 +311,13 @@ export default async function ApprovedLeaveAutomationHistoryDetailPage({
 
               <p className="mt-2 text-xs font-semibold text-red-700">
                 Attempted generated records:{" "}
-                {
-                  metadata.attemptedGeneratedCount
-                }
-                . Committed generated records:{" "}
-                {detail.generatedCount}.
+                {metadata.attemptedGeneratedCount}. Committed generated
+                records: {detail.generatedCount}.
               </p>
 
               <p className="mt-1 text-xs font-semibold text-red-700">
-                The transaction was rolled back, so
-                attempted records were not saved.
+                The transaction was rolled back, so attempted records were not
+                saved.
               </p>
             </div>
           </div>
@@ -336,6 +343,12 @@ export default async function ApprovedLeaveAutomationHistoryDetailPage({
             <StatusBadge
               status={detail.status}
             />
+
+            {detail.retryOfRunAuditLogId ? (
+              <span className="starland-badge starland-badge-warning">
+                RETRY OF #{detail.retryOfRunAuditLogId}
+              </span>
+            ) : null}
           </div>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
@@ -343,10 +356,8 @@ export default async function ApprovedLeaveAutomationHistoryDetailPage({
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            This record contains the execution
-            settings, processing totals, duration,
-            audit actor, commit status, and original
-            activity-log values.
+            This record contains execution settings, processing totals,
+            duration, audit actor, commit status, and retry lineage.
           </p>
         </div>
 
@@ -461,6 +472,18 @@ export default async function ApprovedLeaveAutomationHistoryDetailPage({
 
             <div>
               <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Retry Of Run
+              </dt>
+
+              <dd className="mt-1 font-bold text-[var(--starland-dark-text)]">
+                {detail.retryOfRunAuditLogId
+                  ? `#${detail.retryOfRunAuditLogId}`
+                  : "Original run"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
                 Changes Committed
               </dt>
 
@@ -562,9 +585,18 @@ export default async function ApprovedLeaveAutomationHistoryDetailPage({
 
         <MetricCard
           label="Not Scheduled"
-          value={detail.notScheduledCount}
+          value={
+            detail.notScheduledCount
+          }
         />
       </section>
+
+      <ApprovedLeaveAutomationRelatedRuns
+        currentRunId={
+          detail.activityLogId
+        }
+        relatedRuns={relatedRuns}
+      />
 
       <section className="grid gap-5 xl:grid-cols-2">
         <JsonValueCard

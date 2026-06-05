@@ -19,6 +19,7 @@ export type RunApprovedLeaveExcusedSyncInput = {
   limit?: number;
   generationSource?: ApprovedLeaveExcusedGenerationSource;
   automationExecutionMode?: ApprovedLeaveAutomationExecutionMode;
+  retryOfRunAuditLogId?: number | null;
 };
 
 export type RunApprovedLeaveExcusedSyncResult =
@@ -77,6 +78,20 @@ function normalizeLimit(
   return Math.min(value, 500);
 }
 
+function normalizeRetryRunId(
+  value: number | null | undefined,
+): number | null {
+  if (
+    typeof value !== "number" ||
+    !Number.isInteger(value) ||
+    value <= 0
+  ) {
+    return null;
+  }
+
+  return value;
+}
+
 function getExecutionMode(input: {
   actorUserId: number | null;
   automationExecutionMode:
@@ -114,6 +129,7 @@ async function recordFailedRun(input: {
   limit: number;
   startedAt: Date;
   progress: ApprovedLeaveExcusedAutomationRunCounts;
+  retryOfRunAuditLogId: number | null;
   error: unknown;
 }): Promise<number | null> {
   try {
@@ -128,11 +144,6 @@ async function recordFailedRun(input: {
         startedAt: input.startedAt,
         completedAt: new Date(),
 
-        /*
-         * The main transaction was rolled back.
-         * Therefore, committed generated records
-         * must be reported as zero.
-         */
         result: {
           ...input.progress,
           generatedCount: 0,
@@ -143,6 +154,9 @@ async function recordFailedRun(input: {
 
         failureMessage:
           getFailureMessage(input.error),
+
+        retryOfRunAuditLogId:
+          input.retryOfRunAuditLogId,
       });
 
     return record.activityLogId;
@@ -163,6 +177,7 @@ async function recordCompletedRun(input: {
   limit: number;
   startedAt: Date;
   result: ApprovedLeaveExcusedAutomationRunCounts;
+  retryOfRunAuditLogId: number | null;
 }): Promise<number | null> {
   try {
     const record =
@@ -176,18 +191,18 @@ async function recordCompletedRun(input: {
         startedAt: input.startedAt,
         completedAt: new Date(),
         result: input.result,
+
         attemptedGeneratedCount:
           input.result.generatedCount,
+
         failureMessage: null,
+
+        retryOfRunAuditLogId:
+          input.retryOfRunAuditLogId,
       });
 
     return record.activityLogId;
   } catch (auditError) {
-    /*
-     * The attendance transaction already committed.
-     * A run-history logging failure must not report
-     * the attendance operation itself as failed.
-     */
     console.error(
       "Unable to record completed approved-leave automation run:",
       auditError,
@@ -203,6 +218,7 @@ export async function runApprovedLeaveExcusedSync({
   limit: requestedLimit,
   generationSource = "APPROVED_LEAVE_SYNC",
   automationExecutionMode,
+  retryOfRunAuditLogId,
 }: RunApprovedLeaveExcusedSyncInput): Promise<RunApprovedLeaveExcusedSyncResult> {
   const limit = normalizeLimit(
     requestedLimit,
@@ -220,6 +236,11 @@ export async function runApprovedLeaveExcusedSync({
     actorUserId,
     automationExecutionMode,
   });
+
+  const normalizedRetryRunId =
+    normalizeRetryRunId(
+      retryOfRunAuditLogId,
+    );
 
   let result: ApprovedLeaveExcusedAutomationRunCounts;
 
@@ -377,6 +398,8 @@ export async function runApprovedLeaveExcusedSync({
             limit,
             startedAt,
             progress,
+            retryOfRunAuditLogId:
+              normalizedRetryRunId,
             error,
           })
         : null;
@@ -403,6 +426,8 @@ export async function runApprovedLeaveExcusedSync({
           limit,
           startedAt,
           result,
+          retryOfRunAuditLogId:
+            normalizedRetryRunId,
         })
       : null;
 

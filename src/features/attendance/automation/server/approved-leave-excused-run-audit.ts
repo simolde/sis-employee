@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
+import type { ApprovedLeaveExcusedSyncFilters } from "@/features/attendance/excused/sync/types/approved-leave-excused-sync-types";
 import {
   APPROVED_LEAVE_EXCUSED_AUTOMATION_RUN_ACTION,
   type ApprovedLeaveAutomationExecutionMode,
 } from "../history/types/approved-leave-automation-history-types";
-import type { ApprovedLeaveExcusedSyncFilters } from "@/features/attendance/excused/sync/types/approved-leave-excused-sync-types";
 
 export type ApprovedLeaveExcusedAutomationRunStatus =
   | "COMPLETED"
@@ -32,6 +32,7 @@ type RecordApprovedLeaveExcusedAutomationRunInput = {
   result: ApprovedLeaveExcusedAutomationRunCounts;
   attemptedGeneratedCount?: number;
   failureMessage?: string | null;
+  retryOfRunAuditLogId?: number | null;
 };
 
 export type RecordedApprovedLeaveExcusedAutomationRun = {
@@ -51,6 +52,20 @@ function normalizeFailureMessage(
   return normalized.slice(0, 1000);
 }
 
+function normalizeRetryRunId(
+  value: number | null | undefined,
+): number | null {
+  if (
+    typeof value !== "number" ||
+    !Number.isInteger(value) ||
+    value <= 0
+  ) {
+    return null;
+  }
+
+  return value;
+}
+
 function buildAutomationRunValue(
   input: RecordApprovedLeaveExcusedAutomationRunInput & {
     runKey: string;
@@ -68,47 +83,49 @@ function buildAutomationRunValue(
     status: input.status,
     actorUserId: input.actorUserId,
 
-    attendanceDateFrom:
-      input.filters.dateFrom,
-    attendanceDateTo:
-      input.filters.dateTo,
+    retryOfRunAuditLogId: normalizeRetryRunId(
+      input.retryOfRunAuditLogId,
+    ),
+
+    attendanceDateFrom: input.filters.dateFrom,
+    attendanceDateTo: input.filters.dateTo,
     employeeSearch: input.filters.q,
     branchId: input.filters.branchId,
-    departmentId:
-      input.filters.departmentId,
+    departmentId: input.filters.departmentId,
 
     limit: input.limit,
 
-    checkedCount:
-      input.result.checkedCount,
-    generatedCount:
-      input.result.generatedCount,
+    checkedCount: input.result.checkedCount,
+    generatedCount: input.result.generatedCount,
+
     attemptedGeneratedCount:
       input.attemptedGeneratedCount ??
       input.result.generatedCount,
+
     existingAttendanceCount:
       input.result.existingAttendanceCount,
+
     noApprovedLeaveCount:
       input.result.noApprovedLeaveCount,
+
     exceptionProtectedCount:
       input.result.exceptionProtectedCount,
+
     notScheduledCount:
       input.result.notScheduledCount,
-    skippedCount:
-      input.result.skippedCount,
 
-    startedAt:
-      input.startedAt.toISOString(),
-    completedAt:
-      input.completedAt.toISOString(),
+    skippedCount: input.result.skippedCount,
+
+    startedAt: input.startedAt.toISOString(),
+    completedAt: input.completedAt.toISOString(),
     durationMs,
 
     committedChanges:
       input.status === "COMPLETED",
-    failureMessage:
-      normalizeFailureMessage(
-        input.failureMessage,
-      ),
+
+    failureMessage: normalizeFailureMessage(
+      input.failureMessage,
+    ),
   };
 }
 
@@ -127,8 +144,7 @@ export async function recordApprovedLeaveExcusedAutomationRun(
         actorUserId: input.actorUserId,
         action:
           APPROVED_LEAVE_EXCUSED_AUTOMATION_RUN_ACTION,
-        entityType:
-          "attendance_automation_run",
+        entityType: "attendance_automation_run",
         entityId: runKey,
         oldValue: {
           runExisted: false,

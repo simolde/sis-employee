@@ -8,10 +8,12 @@ import {
   type ApprovedLeaveAutomationHistoryFilters,
   type ApprovedLeaveAutomationHistoryItem,
   type ApprovedLeaveAutomationHistoryResult,
+  type ApprovedLeaveAutomationRelatedRuns,
   type ApprovedLeaveAutomationRunStatus,
 } from "../types/approved-leave-automation-history-types";
 
 const DEFAULT_PAGE_SIZE = 20;
+const RELATED_RUN_SCAN_LIMIT = 1000;
 
 type AutomationRunLogRecord = {
   activityLogId: number;
@@ -41,17 +43,25 @@ function parsePositiveInteger(
 ): number {
   const parsed = Number(value);
 
-  if (!Number.isInteger(parsed) || parsed <= 0) {
+  if (
+    !Number.isInteger(parsed) ||
+    parsed <= 0
+  ) {
     return fallback;
   }
 
   return parsed;
 }
 
-function parsePositiveId(value: string): number | null {
+function parsePositiveId(
+  value: string,
+): number | null {
   const parsed = Number(value);
 
-  if (!Number.isInteger(parsed) || parsed <= 0) {
+  if (
+    !Number.isInteger(parsed) ||
+    parsed <= 0
+  ) {
     return null;
   }
 
@@ -61,7 +71,8 @@ function parsePositiveId(value: string): number | null {
 function normalizeExecutionMode(
   value: string,
 ): ApprovedLeaveAutomationExecutionModeFilter {
-  const normalized = value.trim().toUpperCase();
+  const normalized =
+    value.trim().toUpperCase();
 
   if (
     normalized === "DASHBOARD" ||
@@ -83,24 +94,28 @@ function getManilaDateInputValue(
       offsetDays * 24 * 60 * 60 * 1000,
   );
 
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Manila",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(targetDate);
+  const parts =
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Manila",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(targetDate);
 
   const year =
-    parts.find((part) => part.type === "year")
-      ?.value ?? "";
+    parts.find(
+      (part) => part.type === "year",
+    )?.value ?? "";
 
   const month =
-    parts.find((part) => part.type === "month")
-      ?.value ?? "";
+    parts.find(
+      (part) => part.type === "month",
+    )?.value ?? "";
 
   const day =
-    parts.find((part) => part.type === "day")
-      ?.value ?? "";
+    parts.find(
+      (part) => part.type === "day",
+    )?.value ?? "";
 
   return `${year}-${month}-${day}`;
 }
@@ -124,7 +139,8 @@ function dateInputToStartDate(
 function dateInputToEndDate(
   value: string,
 ): Date | undefined {
-  const start = dateInputToStartDate(value);
+  const start =
+    dateInputToStartDate(value);
 
   if (!start) {
     return undefined;
@@ -223,12 +239,28 @@ function readNumber(
     : fallback;
 }
 
+function readNullablePositiveInteger(
+  object: Prisma.JsonObject,
+  key: string,
+): number | null {
+  const value = object[key];
+
+  if (
+    typeof value !== "number" ||
+    !Number.isInteger(value) ||
+    value <= 0
+  ) {
+    return null;
+  }
+
+  return value;
+}
+
 function normalizeRunStatus(
   value: string,
 ): ApprovedLeaveAutomationRunStatus {
-  const normalized = value
-    .trim()
-    .toUpperCase();
+  const normalized =
+    value.trim().toUpperCase();
 
   if (normalized === "COMPLETED") {
     return "COMPLETED";
@@ -257,7 +289,11 @@ function safeJsonText(
   }
 
   try {
-    return JSON.stringify(value, null, 2);
+    return JSON.stringify(
+      value,
+      null,
+      2,
+    );
   } catch {
     return String(value);
   }
@@ -271,16 +307,21 @@ function buildHistoryWhere(
       {
         action:
           APPROVED_LEAVE_EXCUSED_AUTOMATION_RUN_ACTION,
+
         entityType:
           "attendance_automation_run",
       },
     ];
 
   const dateFrom =
-    dateInputToStartDate(filters.dateFrom);
+    dateInputToStartDate(
+      filters.dateFrom,
+    );
 
   const dateTo =
-    dateInputToEndDate(filters.dateTo);
+    dateInputToEndDate(
+      filters.dateTo,
+    );
 
   if (dateFrom || dateTo) {
     andConditions.push({
@@ -290,6 +331,7 @@ function buildHistoryWhere(
               gte: dateFrom,
             }
           : {}),
+
         ...(dateTo
           ? {
               lt: dateTo,
@@ -302,7 +344,8 @@ function buildHistoryWhere(
   if (filters.executionMode) {
     andConditions.push({
       entityId: {
-        startsWith: `${filters.executionMode}:`,
+        startsWith:
+          `${filters.executionMode}:`,
       },
     });
   }
@@ -318,6 +361,7 @@ function buildHistoryWhere(
             contains: filters.q,
           },
         },
+
         {
           action: {
             contains: filters.q,
@@ -369,14 +413,19 @@ function mapHistoryItem(
 
   const durationMs = Math.max(
     0,
-    readNumber(object, "durationMs"),
+    readNumber(
+      object,
+      "durationMs",
+    ),
   );
 
   return {
     activityLogId:
       input.activityLogId,
+
     runKey,
     executionMode,
+
     status: normalizeRunStatus(
       readString(
         object,
@@ -384,79 +433,124 @@ function mapHistoryItem(
         "UNKNOWN",
       ),
     ),
-    actorUserId: input.actorUserId,
-    attendanceDateFrom: readString(
-      object,
-      "attendanceDateFrom",
-      "—",
-    ),
-    attendanceDateTo: readString(
-      object,
-      "attendanceDateTo",
-      "—",
-    ),
-    employeeSearch: readString(
-      object,
-      "employeeSearch",
-      "",
-    ),
-    branchId: readString(
-      object,
-      "branchId",
-      "",
-    ),
-    departmentId: readString(
-      object,
-      "departmentId",
-      "",
-    ),
-    limit: readNumber(
-      object,
-      "limit",
-    ),
-    checkedCount: readNumber(
-      object,
-      "checkedCount",
-    ),
-    generatedCount: readNumber(
-      object,
-      "generatedCount",
-    ),
+
+    actorUserId:
+      input.actorUserId,
+
+    retryOfRunAuditLogId:
+      readNullablePositiveInteger(
+        object,
+        "retryOfRunAuditLogId",
+      ),
+
+    attendanceDateFrom:
+      readString(
+        object,
+        "attendanceDateFrom",
+        "—",
+      ),
+
+    attendanceDateTo:
+      readString(
+        object,
+        "attendanceDateTo",
+        "—",
+      ),
+
+    employeeSearch:
+      readString(
+        object,
+        "employeeSearch",
+        "",
+      ),
+
+    branchId:
+      readString(
+        object,
+        "branchId",
+        "",
+      ),
+
+    departmentId:
+      readString(
+        object,
+        "departmentId",
+        "",
+      ),
+
+    limit:
+      readNumber(
+        object,
+        "limit",
+      ),
+
+    checkedCount:
+      readNumber(
+        object,
+        "checkedCount",
+      ),
+
+    generatedCount:
+      readNumber(
+        object,
+        "generatedCount",
+      ),
+
     existingAttendanceCount:
       readNumber(
         object,
         "existingAttendanceCount",
       ),
+
     noApprovedLeaveCount:
       readNumber(
         object,
         "noApprovedLeaveCount",
       ),
+
     exceptionProtectedCount:
       readNumber(
         object,
         "exceptionProtectedCount",
       ),
-    notScheduledCount: readNumber(
-      object,
-      "notScheduledCount",
-    ),
-    skippedCount: readNumber(
-      object,
-      "skippedCount",
-    ),
-    startedAt: formatDateTime(
-      readString(object, "startedAt"),
-    ),
-    completedAt: formatDateTime(
-      readString(object, "completedAt"),
-    ),
+
+    notScheduledCount:
+      readNumber(
+        object,
+        "notScheduledCount",
+      ),
+
+    skippedCount:
+      readNumber(
+        object,
+        "skippedCount",
+      ),
+
+    startedAt:
+      formatDateTime(
+        readString(
+          object,
+          "startedAt",
+        ),
+      ),
+
+    completedAt:
+      formatDateTime(
+        readString(
+          object,
+          "completedAt",
+        ),
+      ),
+
     durationMs,
+
     durationLabel:
       formatDuration(durationMs),
-    createdAt: formatDateTime(
-      input.createdAt,
-    ),
+
+    createdAt:
+      formatDateTime(
+        input.createdAt,
+      ),
   };
 }
 
@@ -470,27 +564,36 @@ export function parseApprovedLeaveAutomationHistorySearchParams(
     q: singleSearchParam(
       searchParams.q,
     ).trim(),
+
     executionMode:
       normalizeExecutionMode(
         singleSearchParam(
           searchParams.executionMode,
         ),
       ),
-    dateFrom: singleSearchParam(
-      searchParams.dateFrom,
-      getManilaDateInputValue(-30),
-    ),
-    dateTo: singleSearchParam(
-      searchParams.dateTo,
-      getManilaDateInputValue(),
-    ),
-    page: parsePositiveInteger(
+
+    dateFrom:
       singleSearchParam(
-        searchParams.page,
+        searchParams.dateFrom,
+        getManilaDateInputValue(-30),
       ),
-      1,
-    ),
-    pageSize: DEFAULT_PAGE_SIZE,
+
+    dateTo:
+      singleSearchParam(
+        searchParams.dateTo,
+        getManilaDateInputValue(),
+      ),
+
+    page:
+      parsePositiveInteger(
+        singleSearchParam(
+          searchParams.page,
+        ),
+        1,
+      ),
+
+    pageSize:
+      DEFAULT_PAGE_SIZE,
   };
 }
 
@@ -514,6 +617,7 @@ export async function getApprovedLeaveAutomationHistory(
       where: {
         action:
           APPROVED_LEAVE_EXCUSED_AUTOMATION_RUN_ACTION,
+
         entityType:
           "attendance_automation_run",
       },
@@ -523,8 +627,10 @@ export async function getApprovedLeaveAutomationHistory(
       where: {
         action:
           APPROVED_LEAVE_EXCUSED_AUTOMATION_RUN_ACTION,
+
         entityType:
           "attendance_automation_run",
+
         entityId: {
           startsWith: "DASHBOARD:",
         },
@@ -535,8 +641,10 @@ export async function getApprovedLeaveAutomationHistory(
       where: {
         action:
           APPROVED_LEAVE_EXCUSED_AUTOMATION_RUN_ACTION,
+
         entityType:
           "attendance_automation_run",
+
         entityId: {
           startsWith: "API:",
         },
@@ -547,7 +655,8 @@ export async function getApprovedLeaveAutomationHistory(
   const totalPages = Math.max(
     1,
     Math.ceil(
-      totalItems / filters.pageSize,
+      totalItems /
+        filters.pageSize,
     ),
   );
 
@@ -559,6 +668,7 @@ export async function getApprovedLeaveAutomationHistory(
   const records =
     await prisma.activityLog.findMany({
       where,
+
       select: {
         activityLogId: true,
         actorUserId: true,
@@ -569,6 +679,7 @@ export async function getApprovedLeaveAutomationHistory(
         newValue: true,
         createdAt: true,
       },
+
       orderBy: [
         {
           createdAt: "desc",
@@ -577,10 +688,13 @@ export async function getApprovedLeaveAutomationHistory(
           activityLogId: "desc",
         },
       ],
+
       skip:
         (safePage - 1) *
         filters.pageSize,
-      take: filters.pageSize,
+
+      take:
+        filters.pageSize,
     });
 
   const mappedRecords =
@@ -591,22 +705,31 @@ export async function getApprovedLeaveAutomationHistory(
       ...filters,
       page: safePage,
     },
-    records: mappedRecords,
+
+    records:
+      mappedRecords,
+
     summary: {
       totalRuns,
-      matchingRuns: totalItems,
+      matchingRuns:
+        totalItems,
       dashboardRuns,
       apiRuns,
+
       completedRunsOnPage:
         mappedRecords.filter(
           (record) =>
-            record.status === "COMPLETED",
+            record.status ===
+            "COMPLETED",
         ).length,
+
       failedRunsOnPage:
         mappedRecords.filter(
           (record) =>
-            record.status === "FAILED",
+            record.status ===
+            "FAILED",
         ).length,
+
       generatedRecordsOnPage:
         mappedRecords.reduce(
           (total, record) =>
@@ -614,15 +737,19 @@ export async function getApprovedLeaveAutomationHistory(
             record.generatedCount,
           0,
         ),
+
       currentPageRecords:
         mappedRecords.length,
     },
+
     pagination: {
       page: safePage,
-      pageSize: filters.pageSize,
+      pageSize:
+        filters.pageSize,
       totalItems,
       totalPages,
-      hasPreviousPage: safePage > 1,
+      hasPreviousPage:
+        safePage > 1,
       hasNextPage:
         safePage < totalPages,
     },
@@ -643,11 +770,14 @@ export async function getApprovedLeaveAutomationHistoryDetail(
     await prisma.activityLog.findFirst({
       where: {
         activityLogId,
+
         action:
           APPROVED_LEAVE_EXCUSED_AUTOMATION_RUN_ACTION,
+
         entityType:
           "attendance_automation_run",
       },
+
       select: {
         activityLogId: true,
         actorUserId: true,
@@ -666,13 +796,106 @@ export async function getApprovedLeaveAutomationHistoryDetail(
 
   return {
     ...mapHistoryItem(record),
-    action: record.action,
-    entityType: record.entityType,
-    oldValueText: safeJsonText(
-      record.oldValue,
-    ),
-    newValueText: safeJsonText(
-      record.newValue,
-    ),
+
+    action:
+      record.action,
+
+    entityType:
+      record.entityType,
+
+    oldValueText:
+      safeJsonText(
+        record.oldValue,
+      ),
+
+    newValueText:
+      safeJsonText(
+        record.newValue,
+      ),
+  };
+}
+
+export async function getApprovedLeaveAutomationRelatedRuns(
+  activityLogId: number,
+): Promise<ApprovedLeaveAutomationRelatedRuns | null> {
+  const currentRun =
+    await getApprovedLeaveAutomationHistoryDetail(
+      activityLogId,
+    );
+
+  if (!currentRun) {
+    return null;
+  }
+
+  const [
+    parentRun,
+    totalRunCount,
+    runRecords,
+  ] = await Promise.all([
+    currentRun.retryOfRunAuditLogId
+      ? getApprovedLeaveAutomationHistoryDetail(
+          currentRun.retryOfRunAuditLogId,
+        )
+      : Promise.resolve(null),
+
+    prisma.activityLog.count({
+      where: {
+        action:
+          APPROVED_LEAVE_EXCUSED_AUTOMATION_RUN_ACTION,
+
+        entityType:
+          "attendance_automation_run",
+      },
+    }),
+
+    prisma.activityLog.findMany({
+      where: {
+        action:
+          APPROVED_LEAVE_EXCUSED_AUTOMATION_RUN_ACTION,
+
+        entityType:
+          "attendance_automation_run",
+      },
+
+      select: {
+        activityLogId: true,
+        actorUserId: true,
+        action: true,
+        entityType: true,
+        entityId: true,
+        oldValue: true,
+        newValue: true,
+        createdAt: true,
+      },
+
+      orderBy: {
+        activityLogId: "desc",
+      },
+
+      take:
+        RELATED_RUN_SCAN_LIMIT,
+    }),
+  ]);
+
+  const retryRuns =
+    runRecords
+      .map(mapHistoryItem)
+      .filter(
+        (record) =>
+          record.retryOfRunAuditLogId ===
+          activityLogId,
+      )
+      .sort(
+        (left, right) =>
+          left.activityLogId -
+          right.activityLogId,
+      );
+
+  return {
+    parentRun,
+    retryRuns,
+    isPartial:
+      totalRunCount >
+      runRecords.length,
   };
 }

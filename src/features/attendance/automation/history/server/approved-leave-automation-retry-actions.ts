@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/server/session";
-import { getApprovedLeaveAutomationHistoryDetail } from "./approved-leave-automation-history-queries";
 import {
   ApprovedLeaveExcusedAutomationExecutionError,
   runApprovedLeaveExcusedSync,
 } from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-service";
 import type { ApprovedLeaveExcusedSyncFilters } from "@/features/attendance/excused/sync/types/approved-leave-excused-sync-types";
 import { canManageEmployees } from "@/lib/security/roles";
+import { getApprovedLeaveAutomationHistoryDetail } from "./approved-leave-automation-history-queries";
 import type { ApprovedLeaveAutomationRetryActionState } from "../types/approved-leave-automation-retry-types";
 
 function parsePositiveInteger(
@@ -49,27 +49,35 @@ function revalidateRetryPages(
 ) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/attendance");
+
   revalidatePath(
     "/dashboard/attendance/actions",
   );
+
   revalidatePath(
     "/dashboard/attendance/automation",
   );
+
   revalidatePath(
     "/dashboard/attendance/automation/approved-leave-excused",
   );
+
   revalidatePath(
     "/dashboard/attendance/automation/approved-leave-excused/history",
   );
+
   revalidatePath(
     `/dashboard/attendance/automation/approved-leave-excused/history/${originalRunAuditLogId}`,
   );
+
   revalidatePath(
     "/dashboard/attendance/excused",
   );
+
   revalidatePath(
     "/dashboard/attendance/excused/audit",
   );
+
   revalidatePath(
     "/dashboard/attendance/audit",
   );
@@ -170,36 +178,56 @@ export async function retryApprovedLeaveAutomationAction(
       await runApprovedLeaveExcusedSync({
         filters,
         actorUserId: session.userId,
+
         limit: normalizeLimit(
           originalRun.limit,
         ),
+
         generationSource:
           "APPROVED_LEAVE_AUTOMATION",
+
         automationExecutionMode:
           "DASHBOARD",
+
+        retryOfRunAuditLogId:
+          originalRunAuditLogId,
       });
 
     revalidateRetryPages(
       originalRunAuditLogId,
     );
 
+    if (result.runAuditLogId) {
+      revalidatePath(
+        `/dashboard/attendance/automation/approved-leave-excused/history/${result.runAuditLogId}`,
+      );
+    }
+
     return {
       ok: true,
+
       message:
         result.generatedCount > 0
           ? `Retry completed and generated ${result.generatedCount} EXCUSED record(s). New run #${result.runAuditLogId ?? "—"} was recorded.`
           : `Retry completed without generating new attendance. New run #${result.runAuditLogId ?? "—"} was recorded.`,
+
       originalRunAuditLogId,
+
       runAuditLogId:
         result.runAuditLogId,
+
       checkedCount:
         result.checkedCount,
+
       generatedCount:
         result.generatedCount,
+
       existingAttendanceCount:
         result.existingAttendanceCount,
+
       exceptionProtectedCount:
         result.exceptionProtectedCount,
+
       notScheduledCount:
         result.notScheduledCount,
     };
@@ -212,13 +240,22 @@ export async function retryApprovedLeaveAutomationAction(
       error instanceof
       ApprovedLeaveExcusedAutomationExecutionError
     ) {
+      if (error.runAuditLogId) {
+        revalidatePath(
+          `/dashboard/attendance/automation/approved-leave-excused/history/${error.runAuditLogId}`,
+        );
+      }
+
       return {
         ok: false,
+
         message:
           error.runAuditLogId
             ? `The retry also failed. New failed run #${error.runAuditLogId} was recorded.`
             : error.message,
+
         originalRunAuditLogId,
+
         runAuditLogId:
           error.runAuditLogId,
       };

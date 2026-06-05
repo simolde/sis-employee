@@ -29,11 +29,15 @@ export type ApprovedLeaveAutomationHistoryItem = {
   executionMode: ApprovedLeaveAutomationExecutionMode;
   status: ApprovedLeaveAutomationRunStatus;
   actorUserId: number | null;
+
+  retryOfRunAuditLogId: number | null;
+
   attendanceDateFrom: string;
   attendanceDateTo: string;
   employeeSearch: string;
   branchId: string;
   departmentId: string;
+
   limit: number;
   checkedCount: number;
   generatedCount: number;
@@ -42,6 +46,7 @@ export type ApprovedLeaveAutomationHistoryItem = {
   exceptionProtectedCount: number;
   notScheduledCount: number;
   skippedCount: number;
+
   startedAt: string;
   completedAt: string;
   durationMs: number;
@@ -56,6 +61,12 @@ export type ApprovedLeaveAutomationHistoryDetail =
     oldValueText: string;
     newValueText: string;
   };
+
+export type ApprovedLeaveAutomationRelatedRuns = {
+  parentRun: ApprovedLeaveAutomationHistoryDetail | null;
+  retryRuns: ApprovedLeaveAutomationHistoryItem[];
+  isPartial: boolean;
+};
 
 export type ApprovedLeaveAutomationHistoryResult = {
   filters: ApprovedLeaveAutomationHistoryFilters;
