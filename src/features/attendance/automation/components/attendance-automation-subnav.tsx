@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   CalendarCheck,
   Gauge,
   History,
@@ -23,6 +24,12 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       label: "Automation Overview",
       href: "/dashboard/attendance/automation",
       icon: Gauge,
+      exact: true,
+    },
+    {
+      label: "Automation Health",
+      href: "/dashboard/attendance/automation/health",
+      icon: Activity,
       exact: true,
     },
     {
