@@ -1,5 +1,11 @@
 import type { Prisma } from "@/generated/prisma/client";
 
+export type ApprovedLeaveExcusedGenerationSource =
+  | "APPROVED_LEAVE"
+  | "APPROVED_LEAVE_SYNC"
+  | "APPROVED_LEAVE_AUTOMATION"
+  | "ABSENCE_CANDIDATES";
+
 export type ApprovedLeaveExcusedEmployee = {
   empId: number;
   empNumber: string;
@@ -26,7 +32,8 @@ type CreateApprovedLeaveExcusedInput = {
   tx: Prisma.TransactionClient;
   employee: ApprovedLeaveExcusedEmployee;
   attDate: Date;
-  actorUserId: number;
+  actorUserId: number | null;
+  generationSource?: ApprovedLeaveExcusedGenerationSource;
 };
 
 function buildExcusedAuditValue(input: {
@@ -41,7 +48,8 @@ function buildExcusedAuditValue(input: {
       name: string;
     };
   };
-  actorUserId: number;
+  actorUserId: number | null;
+  generationSource: ApprovedLeaveExcusedGenerationSource;
 }): Prisma.InputJsonObject {
   return {
     attendanceId: input.attendanceId,
@@ -59,7 +67,7 @@ function buildExcusedAuditValue(input: {
     leaveDateFrom: input.leave.dateFrom.toISOString(),
     leaveDateTo: input.leave.dateTo.toISOString(),
     generatedById: input.actorUserId,
-    generationSource: "APPROVED_LEAVE",
+    generationSource: input.generationSource,
   };
 }
 
@@ -68,6 +76,7 @@ export async function createExcusedAttendanceForApprovedLeave({
   employee,
   attDate,
   actorUserId,
+  generationSource = "APPROVED_LEAVE",
 }: CreateApprovedLeaveExcusedInput): Promise<ApprovedLeaveExcusedCreationResult> {
   if (!employee.scheduleId) {
     return {
@@ -167,6 +176,7 @@ export async function createExcusedAttendanceForApprovedLeave({
         attDate,
         leave: approvedLeave,
         actorUserId,
+        generationSource,
       }),
     },
   });

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   CalendarCheck,
   FileClock,
+  RefreshCw,
   ShieldAlert,
   type LucideIcon,
 } from "lucide-react";
@@ -22,6 +23,12 @@ const navigationItems: ExcusedNavigationItem[] = [
     href: "/dashboard/attendance/excused",
     icon: CalendarCheck,
     exact: true,
+  },
+  {
+    label: "Approved Leave Sync",
+    href: "/dashboard/attendance/excused/sync",
+    icon: RefreshCw,
+    exact: false,
   },
   {
     label: "Reconciliation",
@@ -45,7 +52,9 @@ function isNavigationItemActive(input: {
     return input.pathname === input.item.href;
   }
 
-  return input.pathname.startsWith(input.item.href);
+  return input.pathname.startsWith(
+    input.item.href,
+  );
 }
 
 export function ExcusedSubnav() {
@@ -59,16 +68,20 @@ export function ExcusedSubnav() {
       <div className="flex flex-wrap gap-2">
         {navigationItems.map((item) => {
           const Icon = item.icon;
-          const isActive = isNavigationItemActive({
-            pathname,
-            item,
-          });
+
+          const isActive =
+            isNavigationItemActive({
+              pathname,
+              item,
+            });
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              aria-current={isActive ? "page" : undefined}
+              aria-current={
+                isActive ? "page" : undefined
+              }
               className={[
                 "starland-btn starland-btn-sm",
                 isActive
@@ -76,7 +89,10 @@ export function ExcusedSubnav() {
                   : "starland-btn-soft",
               ].join(" ")}
             >
-              <Icon className="h-4 w-4" aria-hidden="true" />
+              <Icon
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
               {item.label}
             </Link>
           );
