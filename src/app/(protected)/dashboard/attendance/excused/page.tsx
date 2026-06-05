@@ -4,6 +4,7 @@ import {
   CalendarCheck,
   ClipboardEdit,
   Search,
+  ShieldAlert,
   ShieldCheck,
   TimerOff,
 } from "lucide-react";
@@ -21,12 +22,7 @@ import type {
 } from "@/features/attendance/excused/types/excused-record-types";
 
 type ExcusedRecordsPageProps = {
-  searchParams: Promise<
-    Record<
-      string,
-      string | string[] | undefined
-    >
-  >;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 function OptionList({
@@ -39,10 +35,7 @@ function OptionList({
       <option value="">All</option>
 
       {options.map((option) => (
-        <option
-          key={option.id}
-          value={option.id}
-        >
+        <option key={option.id} value={option.id}>
           {option.label}
         </option>
       ))}
@@ -109,12 +102,8 @@ function ExcusedRecordFiltersForm({
             defaultValue={filters.source}
           >
             <option value="">All sources</option>
-            <option value="AUTOMATIC">
-              Automatic
-            </option>
-            <option value="MANUAL">
-              Manual
-            </option>
+            <option value="AUTOMATIC">Automatic</option>
+            <option value="MANUAL">Manual</option>
           </select>
         </div>
 
@@ -149,9 +138,7 @@ function ExcusedRecordFiltersForm({
             className="starland-input mt-2"
             defaultValue={filters.branchId}
           >
-            <OptionList
-              options={options.branches}
-            />
+            <OptionList options={options.branches} />
           </select>
         </div>
 
@@ -167,13 +154,9 @@ function ExcusedRecordFiltersForm({
             id="departmentId"
             name="departmentId"
             className="starland-input mt-2"
-            defaultValue={
-              filters.departmentId
-            }
+            defaultValue={filters.departmentId}
           >
-            <OptionList
-              options={options.departments}
-            />
+            <OptionList options={options.departments} />
           </select>
         </div>
 
@@ -191,9 +174,7 @@ function ExcusedRecordFiltersForm({
             className="starland-input mt-2"
             defaultValue={filters.scheduleId}
           >
-            <OptionList
-              options={options.schedules}
-            />
+            <OptionList options={options.schedules} />
           </select>
         </div>
 
@@ -202,10 +183,7 @@ function ExcusedRecordFiltersForm({
             type="submit"
             className="starland-btn starland-btn-primary"
           >
-            <Search
-              className="h-4 w-4"
-              aria-hidden="true"
-            />
+            <Search className="h-4 w-4" aria-hidden="true" />
             Apply Filters
           </button>
 
@@ -226,16 +204,13 @@ export default async function ExcusedRecordsPage({
 }: ExcusedRecordsPageProps) {
   await requireCanManageEmployees();
 
-  const resolvedSearchParams =
-    await searchParams;
+  const resolvedSearchParams = await searchParams;
 
-  const filters =
-    parseExcusedRecordSearchParams(
-      resolvedSearchParams,
-    );
+  const filters = parseExcusedRecordSearchParams(
+    resolvedSearchParams,
+  );
 
-  const result =
-    await getExcusedRecordData(filters);
+  const result = await getExcusedRecordData(filters);
 
   return (
     <section className="starland-page space-y-5">
@@ -250,26 +225,28 @@ export default async function ExcusedRecordsPage({
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Review automatic EXCUSED records
-            generated from approved leave and
+            Review automatic EXCUSED records generated from approved leave and
             manual EXCUSED attendance corrections.
           </p>
         </div>
 
         <div className="flex flex-col gap-2 sm:items-end">
-          <ExcusedRecordActions
-            result={result}
-          />
+          <ExcusedRecordActions result={result} />
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/dashboard/leaves"
+              href="/dashboard/attendance/excused/reconciliation"
               className="starland-btn starland-btn-primary"
             >
-              <CalendarCheck
-                className="h-4 w-4"
-                aria-hidden="true"
-              />
+              <ShieldAlert className="h-4 w-4" aria-hidden="true" />
+              Reconcile EXCUSED
+            </Link>
+
+            <Link
+              href="/dashboard/leaves"
+              className="starland-btn starland-btn-soft"
+            >
+              <CalendarCheck className="h-4 w-4" aria-hidden="true" />
               Approved Leaves
             </Link>
 
@@ -277,10 +254,7 @@ export default async function ExcusedRecordsPage({
               href="/dashboard/attendance/absences/candidates"
               className="starland-btn starland-btn-soft"
             >
-              <TimerOff
-                className="h-4 w-4"
-                aria-hidden="true"
-              />
+              <TimerOff className="h-4 w-4" aria-hidden="true" />
               Attendance Generation
             </Link>
 
@@ -288,10 +262,7 @@ export default async function ExcusedRecordsPage({
               href="/dashboard/attendance/actions"
               className="starland-btn starland-btn-soft"
             >
-              <ArrowLeft
-                className="h-4 w-4"
-                aria-hidden="true"
-              />
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Attendance Actions
             </Link>
           </div>
@@ -309,10 +280,9 @@ export default async function ExcusedRecordsPage({
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Automatic EXCUSED records are created
-            from approved leave. Manual EXCUSED
-            corrections remain marked as manual and
-            follow the attendance review policy.
+            Automatic EXCUSED records are created from approved leave. Manual
+            EXCUSED corrections remain marked as manual and follow the
+            attendance review policy.
           </p>
         </div>
 
@@ -337,10 +307,7 @@ export default async function ExcusedRecordsPage({
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {
-                result.summary
-                  .matchingExcused
-              }
+              {result.summary.matchingExcused}
             </p>
           </article>
 
@@ -352,10 +319,7 @@ export default async function ExcusedRecordsPage({
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {
-                result.summary
-                  .automaticExcused
-              }
+              {result.summary.automaticExcused}
             </p>
           </article>
 
@@ -379,10 +343,7 @@ export default async function ExcusedRecordsPage({
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {
-                result.summary
-                  .linkedApprovedLeave
-              }
+              {result.summary.linkedApprovedLeave}
             </p>
 
             <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
@@ -397,9 +358,7 @@ export default async function ExcusedRecordsPage({
         options={result.options}
       />
 
-      <ExcusedRecordsTable
-        result={result}
-      />
+      <ExcusedRecordsTable result={result} />
     </section>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   BarChart3,
+  CalendarCheck,
   CalendarClock,
   CalendarDays,
   ClipboardCheck,
@@ -14,6 +15,7 @@ import {
   MonitorSmartphone,
   RefreshCw,
   RotateCcw,
+  ShieldAlert,
   TimerOff,
   type LucideIcon,
 } from "lucide-react";
@@ -31,9 +33,7 @@ import { getCurrentSession } from "@/features/auth/server/session";
 import { canViewAllAttendance } from "@/lib/security/roles";
 
 type AttendancePageProps = {
-  searchParams: Promise<
-    Record<string, string | string[] | undefined>
-  >;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 type AttendanceNavigationCard = {
@@ -58,6 +58,26 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
     tone: "success",
   },
   {
+    title: "EXCUSED Records",
+    description:
+      "Review automatic EXCUSED records from approved leave and manual EXCUSED corrections.",
+    href: "/dashboard/attendance/excused",
+    icon: CalendarCheck,
+    badge: "EXCUSED",
+    buttonLabel: "View EXCUSED",
+    tone: "success",
+  },
+  {
+    title: "EXCUSED Reconciliation",
+    description:
+      "Find automatic EXCUSED records no longer supported by approved leave and safely rollback eligible records.",
+    href: "/dashboard/attendance/excused/reconciliation",
+    icon: ShieldAlert,
+    badge: "Reconcile",
+    buttonLabel: "Open Reconciliation",
+    tone: "warning",
+  },
+  {
     title: "Exception Calendar",
     description:
       "Encode holidays, suspensions, no-work dates, rest days, and branch-specific exception dates.",
@@ -70,7 +90,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Exception Audit",
     description:
-      "Review create, update, and archive activity logs for holidays, suspensions, and other attendance exceptions.",
+      "Review create, update, and archive activity logs for attendance exception dates.",
     href: "/dashboard/attendance/exceptions/audit",
     icon: FileClock,
     badge: "Exception Logs",
@@ -88,14 +108,14 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
     tone: "info",
   },
   {
-    title: "Absence Candidates",
+    title: "Attendance Generation",
     description:
-      "Preview scheduled employees without attendance before safely generating ABSENT records.",
+      "Preview scheduled employees and safely generate automatic EXCUSED or ABSENT attendance records.",
     href: "/dashboard/attendance/absences/candidates",
-    icon: TimerOff,
-    badge: "Preview",
-    buttonLabel: "Preview Absences",
-    tone: "danger",
+    icon: ClipboardCheck,
+    badge: "Generate",
+    buttonLabel: "Preview Generation",
+    tone: "success",
   },
   {
     title: "ABSENT Records",
@@ -170,7 +190,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Attendance Audit",
     description:
-      "Track attendance changes, approvals, recalculation, missing timeouts, ABSENT generation, and rollback logs.",
+      "Track attendance changes, approvals, EXCUSED generation, ABSENT generation, and rollback logs.",
     href: "/dashboard/attendance/audit",
     icon: History,
     badge: "Audit",
@@ -250,10 +270,9 @@ export default async function AttendancePage({
 
   const resolvedSearchParams = await searchParams;
 
-  const filters =
-    parseAttendanceListSearchParams(
-      resolvedSearchParams,
-    );
+  const filters = parseAttendanceListSearchParams(
+    resolvedSearchParams,
+  );
 
   const [result, detail] = await Promise.all([
     getAttendanceList(filters),
@@ -275,9 +294,9 @@ export default async function AttendancePage({
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Review employee attendance from ODL web attendance,
-            RFID, biometric kiosks, manual corrections, and
-            future synchronized attendance sources.
+            Review employee attendance from ODL web attendance, RFID,
+            biometric kiosks, approved-leave automation, manual corrections,
+            and future synchronized attendance sources.
           </p>
         </div>
 
@@ -285,10 +304,7 @@ export default async function AttendancePage({
           href="/dashboard/attendance/actions"
           className="starland-btn starland-btn-primary"
         >
-          <Clock3
-            className="h-4 w-4"
-            aria-hidden="true"
-          />
+          <Clock3 className="h-4 w-4" aria-hidden="true" />
           Attendance Actions
         </Link>
       </div>
@@ -342,13 +358,9 @@ export default async function AttendancePage({
         })}
       </section>
 
-      <AttendanceSummaryCards
-        summary={result.summary}
-      />
+      <AttendanceSummaryCards summary={result.summary} />
 
-      <AttendanceListFilters
-        filters={result.filters}
-      />
+      <AttendanceListFilters filters={result.filters} />
 
       <AttendanceTable
         records={result.records}
