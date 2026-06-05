@@ -7,25 +7,24 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationHealthEndpointCard } from "@/features/attendance/automation/health/components/attendance-automation-health-endpoint-card";
 import { AttendanceAutomationHealthSummary } from "@/features/attendance/automation/health/components/attendance-automation-health-summary";
+import { AttendanceAutomationScheduleCard } from "@/features/attendance/automation/health/components/attendance-automation-schedule-card";
 import { RecentAttendanceAutomationRuns } from "@/features/attendance/automation/health/components/recent-attendance-automation-runs";
 import { getAttendanceAutomationHealthData } from "@/features/attendance/automation/health/server/attendance-automation-health-queries";
+import type { AttendanceAutomationHealthRun } from "@/features/attendance/automation/health/types/attendance-automation-health-types";
 
 export const dynamic = "force-dynamic";
+
+type RunSnapshotProps = {
+  title: string;
+  run: AttendanceAutomationHealthRun | null;
+};
 
 function RunSnapshot({
   title,
   run,
-}: {
-  title: string;
-  run:
-    | Awaited<
-        ReturnType<
-          typeof getAttendanceAutomationHealthData
-        >
-      >["latestRun"]
-    | null;
-}) {
+}: RunSnapshotProps) {
   return (
     <article className="starland-card p-5">
       <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
@@ -117,8 +116,8 @@ function RunSnapshot({
           </p>
 
           <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
-            No automation execution of this type exists
-            in the monitoring window.
+            No automation execution of this type
+            exists in the monitoring window.
           </p>
         </div>
       )}
@@ -145,10 +144,10 @@ export default async function AttendanceAutomationHealthPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Monitor approved-leave automation
-            configuration, recent execution health,
-            failures, generated attendance records,
-            retries, and stale scheduled processing.
+            Monitor automation configuration,
+            failures, retries, protected endpoint
+            execution, and daily scheduler
+            compliance.
           </p>
         </div>
 
@@ -199,11 +198,10 @@ export default async function AttendanceAutomationHealthPage() {
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            The automation is considered healthy when
-            its endpoint secret is configured, its
-            latest run succeeds, no failure occurs in
-            the last 24 hours, and a run was recorded
-            recently.
+            Health now evaluates the protected
+            API/system schedule separately. Manual
+            dashboard executions do not satisfy the
+            scheduled-run requirement.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
@@ -212,7 +210,7 @@ export default async function AttendanceAutomationHealthPage() {
                 className="h-3.5 w-3.5"
                 aria-hidden="true"
               />
-              Status: {data.statusLabel}
+              Health: {data.statusLabel}
             </span>
 
             <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
@@ -220,8 +218,11 @@ export default async function AttendanceAutomationHealthPage() {
                 className="h-3.5 w-3.5"
                 aria-hidden="true"
               />
-              Generated:{" "}
-              {data.summary.generatedRecords}
+              Schedule:{" "}
+              {
+                data.scheduleCompliance
+                  .statusLabel
+              }
             </span>
           </div>
         </div>
@@ -231,10 +232,23 @@ export default async function AttendanceAutomationHealthPage() {
         data={data}
       />
 
-      <section className="grid gap-5 xl:grid-cols-3">
+      <AttendanceAutomationScheduleCard
+        data={data}
+      />
+
+      <AttendanceAutomationHealthEndpointCard
+        data={data}
+      />
+
+      <section className="grid gap-5 xl:grid-cols-4">
         <RunSnapshot
           title="Latest Run"
           run={data.latestRun}
+        />
+
+        <RunSnapshot
+          title="Latest API/System Run"
+          run={data.latestApiRun}
         />
 
         <RunSnapshot

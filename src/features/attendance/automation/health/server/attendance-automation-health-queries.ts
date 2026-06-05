@@ -5,10 +5,15 @@ import {
   type ApprovedLeaveAutomationExecutionMode,
   type ApprovedLeaveAutomationRunStatus,
 } from "../../history/types/approved-leave-automation-history-types";
+import {
+  getAttendanceAutomationScheduleCompliance,
+  getAttendanceAutomationScheduleConfiguration,
+} from "./attendance-automation-schedule";
 import type {
   AttendanceAutomationHealthData,
   AttendanceAutomationHealthRun,
   AttendanceAutomationHealthStatus,
+  AttendanceAutomationScheduleComplianceStatus,
 } from "../types/attendance-automation-health-types";
 
 const MONITORING_WINDOW_DAYS = 30;
@@ -315,8 +320,7 @@ function getHealthStatus(input: {
   totalRuns: number;
   latestRun: AttendanceAutomationHealthRun | null;
   failuresLast24Hours: number;
-  latestRunDate: Date | null;
-  staleThreshold: Date;
+  scheduleStatus: AttendanceAutomationScheduleComplianceStatus;
 }): AttendanceAutomationHealthStatus {
   if (!input.secretConfigured) {
     return "NOT_CONFIGURED";
@@ -324,22 +328,24 @@ function getHealthStatus(input: {
 
   if (
     input.totalRuns === 0 ||
-    !input.latestRun ||
-    !input.latestRunDate
+    !input.latestRun
   ) {
     return "NO_RUNS";
   }
 
   if (
     input.latestRun.status === "FAILED" ||
-    input.failuresLast24Hours > 0
+    input.failuresLast24Hours > 0 ||
+    input.scheduleStatus ===
+      "LATE_COMPLETED"
   ) {
     return "DEGRADED";
   }
 
   if (
-    input.latestRunDate.getTime() <
-    input.staleThreshold.getTime()
+    input.scheduleStatus === "OVERDUE" ||
+    input.scheduleStatus ===
+      "NO_API_RUNS"
   ) {
     return "STALE";
   }
@@ -358,28 +364,28 @@ function getHealthCopy(
       return {
         label: "Healthy",
         description:
-          "The automation secret is configured, a recent run completed, and no failure was recorded during the last 24 hours.",
+          "The endpoint secret is configured, recent automation has not failed, and the daily API/system schedule is currently compliant.",
       };
 
     case "DEGRADED":
       return {
         label: "Needs Attention",
         description:
-          "The latest automation run failed or at least one failure was recorded during the last 24 hours.",
+          "A recent automation failed, or today's scheduled API/system run completed after its grace deadline.",
       };
 
     case "STALE":
       return {
-        label: "Stale",
+        label: "Scheduled Run Overdue",
         description:
-          "No approved-leave automation run has been recorded during the last 24 hours.",
+          "The protected API/system automation has not completed for today's expected schedule.",
       };
 
     case "NO_RUNS":
       return {
         label: "No Runs Recorded",
         description:
-          "The endpoint is configured, but there are no approved-leave automation runs in the monitoring window.",
+          "The endpoint is configured, but no approved-leave automation execution exists in the monitoring window.",
       };
 
     case "NOT_CONFIGURED":
@@ -491,6 +497,19 @@ export async function getAttendanceAutomationHealthData(): Promise<AttendanceAut
         run.status === "UNKNOWN",
     );
 
+  const apiRunRecords =
+    mappedRuns.filter(
+      (run) =>
+        run.executionMode === "API",
+    );
+
+  const dashboardRunRecords =
+    mappedRuns.filter(
+      (run) =>
+        run.executionMode ===
+        "DASHBOARD",
+    );
+
   const failuresLast24Hours =
     failedRuns.filter((run) => {
       const createdAt =
@@ -513,18 +532,16 @@ export async function getAttendanceAutomationHealthData(): Promise<AttendanceAut
       );
     }).length;
 
-  const dashboardRuns =
-    mappedRuns.filter(
-      (run) =>
-        run.executionMode ===
-        "DASHBOARD",
-    ).length;
+  const apiRunsToday =
+    apiRunRecords.filter((run) => {
+      const createdAt =
+        new Date(run.createdAtIso);
 
-  const apiRuns =
-    mappedRuns.filter(
-      (run) =>
-        run.executionMode === "API",
-    ).length;
+      return (
+        createdAt.getTime() >=
+        todayStart.getTime()
+      );
+    }).length;
 
   const retries =
     mappedRuns.filter(
@@ -559,18 +576,31 @@ export async function getAttendanceAutomationHealthData(): Promise<AttendanceAut
   const latestRun =
     mappedRuns[0] ?? null;
 
+  const latestApiRun =
+    apiRunRecords[0] ?? null;
+
   const latestCompletedRun =
     completedRuns[0] ?? null;
 
   const latestFailedRun =
     failedRuns[0] ?? null;
 
-  const latestRunDate =
-    latestRun
-      ? new Date(
-          latestRun.createdAtIso,
-        )
-      : null;
+  const scheduleConfiguration =
+    getAttendanceAutomationScheduleConfiguration();
+
+  const scheduleCompliance =
+    getAttendanceAutomationScheduleCompliance({
+      now,
+
+      latestApiRunAt: latestApiRun
+        ? new Date(
+            latestApiRun.createdAtIso,
+          )
+        : null,
+
+      configuration:
+        scheduleConfiguration,
+    });
 
   const status =
     getHealthStatus({
@@ -578,9 +608,8 @@ export async function getAttendanceAutomationHealthData(): Promise<AttendanceAut
       totalRuns,
       latestRun,
       failuresLast24Hours,
-      latestRunDate,
-      staleThreshold:
-        last24HoursStart,
+      scheduleStatus:
+        scheduleCompliance.status,
     });
 
   const healthCopy =
@@ -604,24 +633,44 @@ export async function getAttendanceAutomationHealthData(): Promise<AttendanceAut
       totalRuns >
       logRecords.length,
 
+    scheduleConfiguration,
+
+    scheduleCompliance,
+
     summary: {
       totalRuns,
+
       completedRuns:
         completedRuns.length,
+
       failedRuns:
         failedRuns.length,
+
       unknownRuns:
         unknownRuns.length,
+
       runsToday,
+
+      apiRunsToday,
+
       failuresLast24Hours,
+
       generatedRecords,
+
       retries,
-      dashboardRuns,
-      apiRuns,
+
+      dashboardRuns:
+        dashboardRunRecords.length,
+
+      apiRuns:
+        apiRunRecords.length,
+
       successRate,
     },
 
     latestRun,
+
+    latestApiRun,
 
     latestCompletedRun,
 
