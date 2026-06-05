@@ -1,7 +1,13 @@
 import { AttendanceSource } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
-import { buildAttendanceReviewRequiredWhere } from "./attendance-review-policy";
 import type { AttendanceActionHubStats } from "../types/attendance-action-hub-types";
+import { buildAttendanceReviewRequiredWhere } from "./attendance-review-policy";
+
+const exceptionAuditActions = [
+  "ATTENDANCE_EXCEPTION_CREATED",
+  "ATTENDANCE_EXCEPTION_UPDATED",
+  "ATTENDANCE_EXCEPTION_ARCHIVED",
+] as const;
 
 function getManilaTodayRange(): {
   start: Date;
@@ -16,11 +22,22 @@ function getManilaTodayRange(): {
     day: "2-digit",
   }).formatToParts(now);
 
-  const year = Number(parts.find((part) => part.type === "year")?.value);
-  const month = Number(parts.find((part) => part.type === "month")?.value);
-  const day = Number(parts.find((part) => part.type === "day")?.value);
+  const year = Number(
+    parts.find((part) => part.type === "year")?.value,
+  );
 
-  const start = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+  const month = Number(
+    parts.find((part) => part.type === "month")?.value,
+  );
+
+  const day = Number(
+    parts.find((part) => part.type === "day")?.value,
+  );
+
+  const start = new Date(
+    Date.UTC(year, month - 1, day, 0, 0, 0, 0),
+  );
+
   const end = new Date(start);
 
   end.setUTCDate(end.getUTCDate() + 1);
@@ -34,7 +51,7 @@ function getManilaTodayRange(): {
 export async function getAttendanceActionHubStats(): Promise<AttendanceActionHubStats> {
   const today = getManilaTodayRange();
 
-  const todayWhere = {
+  const todayAttendanceWhere = {
     attDate: {
       gte: today.start,
       lt: today.end,
@@ -48,7 +65,8 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     },
   };
 
-  const reviewRequiredWhere = buildAttendanceReviewRequiredWhere();
+  const reviewRequiredWhere =
+    buildAttendanceReviewRequiredWhere();
 
   const [
     totalToday,
@@ -72,35 +90,39 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     activeAttendanceExceptions,
     absenceBlockingExceptions,
     todayBlockingExceptions,
+    exceptionAuditLogs,
+    exceptionCreatedAuditLogs,
+    exceptionUpdatedAuditLogs,
+    exceptionArchivedAuditLogs,
   ] = await Promise.all([
     prisma.attendance.count({
-      where: todayWhere,
+      where: todayAttendanceWhere,
     }),
 
     prisma.attendance.count({
       where: {
-        ...todayWhere,
+        ...todayAttendanceWhere,
         status: "ON_TIME",
       },
     }),
 
     prisma.attendance.count({
       where: {
-        ...todayWhere,
+        ...todayAttendanceWhere,
         status: "LATE",
       },
     }),
 
     prisma.attendance.count({
       where: {
-        ...todayWhere,
+        ...todayAttendanceWhere,
         status: "HALF_DAY",
       },
     }),
 
     prisma.attendance.count({
       where: {
-        ...todayWhere,
+        ...todayAttendanceWhere,
         status: "ABSENT",
       },
     }),
@@ -113,14 +135,14 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
 
     prisma.attendance.count({
       where: {
-        ...todayWhere,
+        ...todayAttendanceWhere,
         isManual: true,
       },
     }),
 
     prisma.attendance.count({
       where: {
-        ...todayWhere,
+        ...todayAttendanceWhere,
         OR: [
           {
             inSource: AttendanceSource.WEB,
@@ -225,6 +247,36 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
         affectsAbsenceGeneration: true,
       },
     }),
+
+    prisma.activityLog.count({
+      where: {
+        entityType: "attendance_exception",
+        action: {
+          in: [...exceptionAuditActions],
+        },
+      },
+    }),
+
+    prisma.activityLog.count({
+      where: {
+        entityType: "attendance_exception",
+        action: "ATTENDANCE_EXCEPTION_CREATED",
+      },
+    }),
+
+    prisma.activityLog.count({
+      where: {
+        entityType: "attendance_exception",
+        action: "ATTENDANCE_EXCEPTION_UPDATED",
+      },
+    }),
+
+    prisma.activityLog.count({
+      where: {
+        entityType: "attendance_exception",
+        action: "ATTENDANCE_EXCEPTION_ARCHIVED",
+      },
+    }),
   ]);
 
   return {
@@ -249,5 +301,9 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     activeAttendanceExceptions,
     absenceBlockingExceptions,
     todayBlockingExceptions,
+    exceptionAuditLogs,
+    exceptionCreatedAuditLogs,
+    exceptionUpdatedAuditLogs,
+    exceptionArchivedAuditLogs,
   };
 }

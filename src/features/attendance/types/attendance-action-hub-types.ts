@@ -10,14 +10,22 @@ export type AttendanceActionHubStats = {
   pendingReview: number;
   openReview: number;
   verifiedNotApproved: number;
+
   attendanceAuditLogs: number;
+
   absentTotal: number;
   automaticAbsent: number;
   manualAbsent: number;
   generatedAbsentAuditLogs: number;
   rollbackEligibleAbsent: number;
   absentRollbackAuditLogs: number;
+
   activeAttendanceExceptions: number;
   absenceBlockingExceptions: number;
   todayBlockingExceptions: number;
+
+  exceptionAuditLogs: number;
+  exceptionCreatedAuditLogs: number;
+  exceptionUpdatedAuditLogs: number;
+  exceptionArchivedAuditLogs: number;
 };

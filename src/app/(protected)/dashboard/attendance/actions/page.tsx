@@ -7,6 +7,7 @@ import {
   ClipboardEdit,
   Clock3,
   ClockAlert,
+  FileClock,
   FileSpreadsheet,
   History,
   Hourglass,
@@ -30,6 +31,7 @@ type AttendanceActionCard = {
   buttonLabel: string;
   statLabel: string;
   statValue: number;
+  tone: "success" | "warning" | "info" | "danger";
 };
 
 type AttendancePolicyCard = {
@@ -41,7 +43,9 @@ type AttendancePolicyCard = {
   tone: "success" | "warning" | "info" | "danger";
 };
 
-function iconToneClass(tone: AttendancePolicyCard["tone"]): string {
+function iconToneClass(
+  tone: AttendancePolicyCard["tone"],
+): string {
   if (tone === "warning") {
     return "text-[var(--starland-warning)]";
   }
@@ -57,47 +61,66 @@ function iconToneClass(tone: AttendancePolicyCard["tone"]): string {
   return "text-[var(--starland-success)]";
 }
 
+function badgeToneClass(
+  tone: AttendanceActionCard["tone"],
+): string {
+  if (tone === "warning") {
+    return "starland-badge-warning";
+  }
+
+  if (tone === "danger") {
+    return "starland-badge-danger";
+  }
+
+  if (tone === "info") {
+    return "starland-badge-info";
+  }
+
+  return "starland-badge-success";
+}
+
 export default async function AttendanceActionsPage() {
   await requireCanManageEmployees();
 
-  const stats = await getAttendanceActionHubStats();
+  const stats =
+    await getAttendanceActionHubStats();
 
   const policyCards: AttendancePolicyCard[] = [
     {
       title: "Normal Attendance",
       description:
-        "RFID, biometric/kiosk, and ODL time-in/out records proceed without HR review unless manually changed later.",
+        "RFID, biometric, kiosk, and ODL punches do not require HR review unless they are manually changed.",
       icon: ShieldCheck,
-      label: "No Review Needed",
+      label: "No Review",
       value: stats.totalToday,
       tone: "success",
     },
     {
       title: "Exception Calendar",
       description:
-        "Active exception dates prevent wrong ABSENT generation during holidays, suspensions, no-work dates, and rest days.",
+        "Active exceptions prevent incorrect ABSENT generation during holidays, suspensions, no-work dates, and rest days.",
       icon: CalendarDays,
       label: "Blocking Today",
       value: stats.todayBlockingExceptions,
       tone: "info",
     },
     {
+      title: "Exception Audit",
+      description:
+        "Every exception creation, update, and archive operation is recorded in the activity log.",
+      icon: FileClock,
+      label: "Audit Logs",
+      value: stats.exceptionAuditLogs,
+      tone: "info",
+    },
+    {
       title: "ABSENT Rollback",
       description:
-        "Rollback only automatic ABSENT records with no punch data. Manual and punched records are protected.",
+        "Only automatic ABSENT records without punch data are eligible for safe rollback.",
       icon: RotateCcw,
       label: "Eligible",
       value: stats.rollbackEligibleAbsent,
       tone: "danger",
-    },
-    {
-      title: "Schedule Assignment",
-      description:
-        "Bulk employee schedule assignment prevents HR from editing employee schedules one by one.",
-      icon: CalendarClock,
-      label: "Required For",
-      value: "Auto Status",
-      tone: "info",
     },
   ];
 
@@ -105,57 +128,74 @@ export default async function AttendanceActionsPage() {
     {
       title: "Attendance List",
       description:
-        "View all RFID, biometric/kiosk, ODL, and manual attendance records.",
+        "View all RFID, biometric, kiosk, ODL, and manual attendance records.",
       href: "/dashboard/attendance",
       icon: Clock3,
       badge: "Records",
       buttonLabel: "Open Attendance",
       statLabel: "Today",
       statValue: stats.totalToday,
+      tone: "success",
     },
     {
       title: "Exception Calendar",
       description:
-        "Encode holidays, class suspensions, no-work dates, rest days, and branch-specific exception dates.",
+        "Manage holidays, class suspensions, no-work dates, rest days, and branch-specific exception dates.",
       href: "/dashboard/attendance/exceptions",
       icon: CalendarDays,
       badge: "Exceptions",
       buttonLabel: "Open Exceptions",
       statLabel: "Active",
       statValue: stats.activeAttendanceExceptions,
+      tone: "info",
+    },
+    {
+      title: "Exception Audit",
+      description:
+        "Review exception calendar create, update, and archive logs with filters, print, and CSV export.",
+      href: "/dashboard/attendance/exceptions/audit",
+      icon: FileClock,
+      badge: "Exception Logs",
+      buttonLabel: "Open Exception Audit",
+      statLabel: "Total Logs",
+      statValue: stats.exceptionAuditLogs,
+      tone: "info",
     },
     {
       title: "Schedule Assignment",
       description:
-        "Bulk assign employee schedules by branch, department, designation, employee type, or current schedule.",
+        "Bulk assign schedules by branch, department, designation, employee type, or current schedule.",
       href: "/dashboard/attendance/schedule-assignment",
       icon: CalendarClock,
       badge: "Schedules",
       buttonLabel: "Assign Schedules",
-      statLabel: "For Auto Status",
+      statLabel: "Attendance Today",
       statValue: stats.totalToday,
+      tone: "info",
     },
     {
       title: "Absence Candidates",
       description:
-        "Preview scheduled employees with no attendance record before generating ABSENT records.",
+        "Preview scheduled employees without attendance before generating ABSENT records.",
       href: "/dashboard/attendance/absences/candidates",
       icon: TimerOff,
       badge: "Preview",
       buttonLabel: "Preview Absences",
-      statLabel: "Blocking Exceptions",
+      statLabel: "Blocking Rules",
       statValue: stats.absenceBlockingExceptions,
+      tone: "danger",
     },
     {
       title: "ABSENT Records",
       description:
-        "Review generated and manual ABSENT attendance records with filters, print, CSV export, and detail links.",
+        "Review generated and manual ABSENT records with filters, print, CSV export, and detail links.",
       href: "/dashboard/attendance/absences",
       icon: TimerOff,
       badge: "ABSENT",
       buttonLabel: "View ABSENT Records",
       statLabel: "Total ABSENT",
       statValue: stats.absentTotal,
+      tone: "danger",
     },
     {
       title: "Rollback ABSENT",
@@ -167,72 +207,79 @@ export default async function AttendanceActionsPage() {
       buttonLabel: "Open Rollback",
       statLabel: "Eligible",
       statValue: stats.rollbackEligibleAbsent,
+      tone: "danger",
     },
     {
       title: "Status Recalculation",
       description:
-        "Automatically recalculate normal attendance statuses using employee schedule and shift rules.",
+        "Recalculate normal attendance status using assigned employee schedules and shift rules.",
       href: "/dashboard/attendance/status-recalculation",
       icon: RefreshCw,
       badge: "Auto Status",
       buttonLabel: "Open Recalculation",
-      statLabel: "Today",
+      statLabel: "Attendance Today",
       statValue: stats.totalToday,
+      tone: "info",
     },
     {
       title: "Manual Attendance Input",
       description:
-        "Create or correct attendance manually. These records are automatically marked as pending review.",
+        "Create or correct attendance manually. Manual changes are automatically marked for HR review.",
       href: "/dashboard/attendance/manual",
       icon: ClipboardEdit,
       badge: "Manual",
       buttonLabel: "Manual Input",
       statLabel: "Manual Today",
       statValue: stats.manualToday,
+      tone: "warning",
     },
     {
       title: "Attendance Review Queue",
       description:
-        "Review only manual attendance, manual edits, and corrections. Normal punches are excluded.",
+        "Review manual attendance, manual edits, and corrections. Normal punches are excluded.",
       href: "/dashboard/attendance/review",
       icon: ClipboardCheck,
       badge: "HR Review",
       buttonLabel: "Open Review Queue",
       statLabel: "Open Review",
       statValue: stats.openReview,
+      tone: "warning",
     },
     {
       title: "Missing Timeout Management",
       description:
-        "Mark old normal records with time-in but no time-out as missing timeout.",
+        "Manage old normal records with time-in but without a recorded time-out.",
       href: "/dashboard/attendance/missing-timeouts",
       icon: ClockAlert,
       badge: "Timeout",
       buttonLabel: "Open Missing Timeouts",
       statLabel: "Missing Timeout",
       statValue: stats.missingTimeout,
+      tone: "danger",
     },
     {
       title: "Attendance Automation",
       description:
-        "Check cron setup, actor account, secret configuration, missing-timeout automation, status recalculation automation, and absence generation checks.",
+        "Check cron setup and run missing-timeout and status-recalculation automation manually.",
       href: "/dashboard/attendance/automation",
       icon: Hourglass,
       badge: "Cron",
       buttonLabel: "Open Automation",
       statLabel: "Missing Timeout",
       statValue: stats.missingTimeout,
+      tone: "info",
     },
     {
       title: "Attendance Audit Trail",
       description:
-        "Track manual changes, approvals, status updates, recalculation, missing-timeout automation, ABSENT generation, ABSENT rollback, and exception logs.",
+        "Track manual changes, approvals, recalculation, missing timeouts, ABSENT generation, and rollback logs.",
       href: "/dashboard/attendance/audit",
       icon: History,
-      badge: "Audit",
+      badge: "Attendance Audit",
       buttonLabel: "Open Audit Trail",
       statLabel: "Audit Logs",
       statValue: stats.attendanceAuditLogs,
+      tone: "info",
     },
     {
       title: "Attendance Reports",
@@ -244,17 +291,19 @@ export default async function AttendanceActionsPage() {
       buttonLabel: "Open Reports",
       statLabel: "Pending Review",
       statValue: stats.pendingReview,
+      tone: "info",
     },
     {
       title: "ODL Time In / Out",
       description:
-        "Open the online distance learning teacher time-in and time-out page.",
+        "Open the online distance learning employee time-in and time-out page.",
       href: "/dashboard/attendance/odl",
       icon: MonitorSmartphone,
       badge: "ODL",
       buttonLabel: "Open ODL Attendance",
       statLabel: "WEB Today",
       statValue: stats.webToday,
+      tone: "success",
     },
   ];
 
@@ -271,10 +320,9 @@ export default async function AttendanceActionsPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Manage attendance records, employee schedule assignment, exception
-            calendar, absence preview, ABSENT records, ABSENT rollback, manual
-            corrections, missing timeouts, HR review, automation, audit trail,
-            status recalculation, and reports from one place.
+            Manage attendance records, schedules, exceptions,
+            absences, review queues, automation, reports, and
+            audit trails from one central page.
           </p>
         </div>
 
@@ -282,7 +330,10 @@ export default async function AttendanceActionsPage() {
           href="/dashboard/attendance"
           className="starland-btn starland-btn-soft"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <ArrowLeft
+            className="h-4 w-4"
+            aria-hidden="true"
+          />
           Back to Attendance
         </Link>
       </div>
@@ -294,13 +345,13 @@ export default async function AttendanceActionsPage() {
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Today, ABSENT, and Exception Status
+            Today, Exceptions, and Review Status
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Use these live counts to quickly check today&apos;s attendance,
-            ABSENT records, exception dates, rollback eligibility, missing
-            timeouts, HR review workload, and audit logs.
+            These counts provide a live overview of attendance,
+            exceptions, ABSENT records, reviews, and audit
+            activity.
           </p>
         </div>
 
@@ -367,8 +418,27 @@ export default async function AttendanceActionsPage() {
             </p>
 
             <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Blocking ABSENT: {stats.absenceBlockingExceptions} · Today:{" "}
+              ABSENT blocking:{" "}
+              {stats.absenceBlockingExceptions} · Today:{" "}
               {stats.todayBlockingExceptions}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <FileClock className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Exception Audit Logs
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.exceptionAuditLogs}
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
+              Created: {stats.exceptionCreatedAuditLogs} ·
+              Updated: {stats.exceptionUpdatedAuditLogs} ·
+              Archived: {stats.exceptionArchivedAuditLogs}
             </p>
           </article>
 
@@ -384,7 +454,8 @@ export default async function AttendanceActionsPage() {
             </p>
 
             <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Auto: {stats.automaticAbsent} · Manual: {stats.manualAbsent}
+              Automatic: {stats.automaticAbsent} · Manual:{" "}
+              {stats.manualAbsent}
             </p>
           </article>
 
@@ -400,7 +471,46 @@ export default async function AttendanceActionsPage() {
             </p>
 
             <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Rollback logs: {stats.absentRollbackAuditLogs}
+              Rollback audit logs:{" "}
+              {stats.absentRollbackAuditLogs}
+            </p>
+          </article>
+        </div>
+
+        <div className="grid gap-4 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ClockAlert className="h-7 w-7 text-[var(--starland-danger)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Missing Timeout
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.missingTimeout}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ClipboardEdit className="h-7 w-7 text-[var(--starland-warning)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Manual Today
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.manualToday}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ClipboardCheck className="h-7 w-7 text-[var(--starland-warning)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Open Review
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {stats.openReview}
             </p>
           </article>
 
@@ -408,7 +518,7 @@ export default async function AttendanceActionsPage() {
             <History className="h-7 w-7 text-[var(--starland-info)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Audit Logs
+              Attendance Audit Logs
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
@@ -416,7 +526,8 @@ export default async function AttendanceActionsPage() {
             </p>
 
             <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
-              ABSENT generated logs: {stats.generatedAbsentAuditLogs}
+              ABSENT generated:{" "}
+              {stats.generatedAbsentAuditLogs}
             </p>
           </article>
         </div>
@@ -425,7 +536,7 @@ export default async function AttendanceActionsPage() {
       <section className="starland-card overflow-hidden">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-            Automation Policy
+            Attendance Policy
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
@@ -433,10 +544,10 @@ export default async function AttendanceActionsPage() {
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Encode holidays, class suspensions, no-work dates, rest days, and
-            branch-specific events first. Then preview absences, generate ABSENT
-            records after HR confirmation, review generated records, and
-            rollback only automatic ABSENT records when needed.
+            Assign employee schedules, encode attendance
+            exceptions, preview absence candidates, generate
+            ABSENT records after verification, and use the audit
+            pages to trace every important change.
           </p>
         </div>
 
@@ -450,7 +561,10 @@ export default async function AttendanceActionsPage() {
                 className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4"
               >
                 <Icon
-                  className={["h-7 w-7", iconToneClass(card.tone)].join(" ")}
+                  className={[
+                    "h-7 w-7",
+                    iconToneClass(card.tone),
+                  ].join(" ")}
                   aria-hidden="true"
                 />
 
@@ -482,11 +596,22 @@ export default async function AttendanceActionsPage() {
             >
               <div>
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--starland-light-bg)] text-[var(--starland-main-green)]">
-                    <Icon className="h-6 w-6" aria-hidden="true" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--starland-light-bg)]">
+                    <Icon
+                      className={[
+                        "h-6 w-6",
+                        iconToneClass(card.tone),
+                      ].join(" ")}
+                      aria-hidden="true"
+                    />
                   </div>
 
-                  <span className="starland-badge starland-badge-success">
+                  <span
+                    className={[
+                      "starland-badge",
+                      badgeToneClass(card.tone),
+                    ].join(" ")}
+                  >
                     {card.badge}
                   </span>
                 </div>

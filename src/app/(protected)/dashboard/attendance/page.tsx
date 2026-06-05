@@ -8,6 +8,7 @@ import {
   ClipboardEdit,
   Clock3,
   ClockAlert,
+  FileClock,
   History,
   Hourglass,
   MonitorSmartphone,
@@ -21,16 +22,18 @@ import { AttendanceListFilters } from "@/features/attendance/components/attendan
 import { AttendancePagination } from "@/features/attendance/components/attendance-pagination";
 import { AttendanceSummaryCards } from "@/features/attendance/components/attendance-summary-cards";
 import { AttendanceTable } from "@/features/attendance/components/attendance-table";
-import { getCurrentSession } from "@/features/auth/server/session";
-import { canViewAllAttendance } from "@/lib/security/roles";
 import {
   getAttendanceDetail,
   getAttendanceList,
 } from "@/features/attendance/server/attendance-queries";
 import { parseAttendanceListSearchParams } from "@/features/attendance/validators/attendance-list-validation";
+import { getCurrentSession } from "@/features/auth/server/session";
+import { canViewAllAttendance } from "@/lib/security/roles";
 
 type AttendancePageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: Promise<
+    Record<string, string | string[] | undefined>
+  >;
 };
 
 type AttendanceNavigationCard = {
@@ -47,7 +50,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Attendance Actions",
     description:
-      "Open the attendance hub for quick access to manual input, review queue, reports, automation, audit trail, status recalculation, missing timeouts, absences, exceptions, and ODL attendance.",
+      "Open the central attendance hub for attendance operations, reports, automation, absences, exceptions, and audit trails.",
     href: "/dashboard/attendance/actions",
     icon: Clock3,
     badge: "Hub",
@@ -57,7 +60,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Exception Calendar",
     description:
-      "Encode holidays, class suspensions, no-work dates, rest days, and branch-specific exception dates.",
+      "Encode holidays, suspensions, no-work dates, rest days, and branch-specific exception dates.",
     href: "/dashboard/attendance/exceptions",
     icon: CalendarDays,
     badge: "Exceptions",
@@ -65,9 +68,19 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
     tone: "info",
   },
   {
+    title: "Exception Audit",
+    description:
+      "Review create, update, and archive activity logs for holidays, suspensions, and other attendance exceptions.",
+    href: "/dashboard/attendance/exceptions/audit",
+    icon: FileClock,
+    badge: "Exception Logs",
+    buttonLabel: "Open Exception Audit",
+    tone: "info",
+  },
+  {
     title: "Schedule Assignment",
     description:
-      "Bulk assign employee schedules so automatic status calculation can use the correct shift rules.",
+      "Bulk assign employee schedules so automatic attendance calculations use the correct shift rules.",
     href: "/dashboard/attendance/schedule-assignment",
     icon: CalendarClock,
     badge: "Schedules",
@@ -77,7 +90,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Absence Candidates",
     description:
-      "Preview scheduled employees with no attendance record before safely generating ABSENT records.",
+      "Preview scheduled employees without attendance before safely generating ABSENT records.",
     href: "/dashboard/attendance/absences/candidates",
     icon: TimerOff,
     badge: "Preview",
@@ -87,7 +100,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "ABSENT Records",
     description:
-      "Review generated and manual ABSENT attendance records with filters, print, CSV export, and detail links.",
+      "Review generated and manual ABSENT attendance records with filters, printing, and CSV export.",
     href: "/dashboard/attendance/absences",
     icon: TimerOff,
     badge: "ABSENT",
@@ -107,7 +120,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Manual Attendance",
     description:
-      "Create or correct attendance manually. Saved manual records are marked as pending review.",
+      "Create or correct attendance manually. Manual changes are automatically sent for HR review.",
     href: "/dashboard/attendance/manual",
     icon: ClipboardEdit,
     badge: "Manual",
@@ -117,7 +130,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Review Queue",
     description:
-      "Review only manual attendance, manual edits, and corrections. Normal punches are excluded.",
+      "Review manual attendance, manual edits, and corrections. Normal punches are excluded.",
     href: "/dashboard/attendance/review",
     icon: ClipboardCheck,
     badge: "HR Review",
@@ -127,7 +140,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Status Recalculation",
     description:
-      "Automatically recalculate normal attendance status from employee schedule, shift, and grace minutes.",
+      "Recalculate normal attendance status from employee schedule, shift time, and grace minutes.",
     href: "/dashboard/attendance/status-recalculation",
     icon: RefreshCw,
     badge: "Auto Status",
@@ -137,7 +150,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Missing Timeouts",
     description:
-      "Mark old time-in records without time-out as missing timeout without making them manual.",
+      "Manage old time-in records without time-out while preserving their original attendance source.",
     href: "/dashboard/attendance/missing-timeouts",
     icon: ClockAlert,
     badge: "Timeout",
@@ -147,7 +160,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "Automation",
     description:
-      "Check cron setup and run missing-timeout and status-recalculation automation manually when needed.",
+      "Check cron setup and run attendance automation processes manually when needed.",
     href: "/dashboard/attendance/automation",
     icon: Hourglass,
     badge: "Cron",
@@ -155,9 +168,9 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
     tone: "info",
   },
   {
-    title: "Audit Trail",
+    title: "Attendance Audit",
     description:
-      "Track manual changes, approvals, corrections, status recalculation, missing-timeout automation, ABSENT generation, rollback, and exception logs.",
+      "Track attendance changes, approvals, recalculation, missing timeouts, ABSENT generation, and rollback logs.",
     href: "/dashboard/attendance/audit",
     icon: History,
     badge: "Audit",
@@ -177,7 +190,7 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   {
     title: "ODL Time In / Out",
     description:
-      "Open the online distance learning teacher time-in and time-out page.",
+      "Open the online distance learning employee time-in and time-out page.",
     href: "/dashboard/attendance/odl",
     icon: MonitorSmartphone,
     badge: "ODL",
@@ -186,7 +199,9 @@ const attendanceNavigationCards: AttendanceNavigationCard[] = [
   },
 ];
 
-function badgeClass(tone: AttendanceNavigationCard["tone"]): string {
+function badgeClass(
+  tone: AttendanceNavigationCard["tone"],
+): string {
   if (tone === "warning") {
     return "starland-badge-warning";
   }
@@ -202,7 +217,9 @@ function badgeClass(tone: AttendanceNavigationCard["tone"]): string {
   return "starland-badge-success";
 }
 
-function iconClass(tone: AttendanceNavigationCard["tone"]): string {
+function iconClass(
+  tone: AttendanceNavigationCard["tone"],
+): string {
   if (tone === "warning") {
     return "text-[var(--starland-warning)]";
   }
@@ -232,11 +249,17 @@ export default async function AttendancePage({
   }
 
   const resolvedSearchParams = await searchParams;
-  const filters = parseAttendanceListSearchParams(resolvedSearchParams);
+
+  const filters =
+    parseAttendanceListSearchParams(
+      resolvedSearchParams,
+    );
 
   const [result, detail] = await Promise.all([
     getAttendanceList(filters),
-    filters.detailId ? getAttendanceDetail(filters.detailId) : null,
+    filters.detailId
+      ? getAttendanceDetail(filters.detailId)
+      : null,
   ]);
 
   return (
@@ -252,9 +275,9 @@ export default async function AttendancePage({
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            HR/Admin can review all employee attendance records from ODL web
-            attendance, lobby RFID, biometric kiosk, manual corrections, and
-            future sync sources.
+            Review employee attendance from ODL web attendance,
+            RFID, biometric kiosks, manual corrections, and
+            future synchronized attendance sources.
           </p>
         </div>
 
@@ -262,7 +285,10 @@ export default async function AttendancePage({
           href="/dashboard/attendance/actions"
           className="starland-btn starland-btn-primary"
         >
-          <Clock3 className="h-4 w-4" aria-hidden="true" />
+          <Clock3
+            className="h-4 w-4"
+            aria-hidden="true"
+          />
           Attendance Actions
         </Link>
       </div>
@@ -272,19 +298,26 @@ export default async function AttendancePage({
           const Icon = card.icon;
 
           return (
-            <article key={card.href} className="starland-card p-4">
+            <article
+              key={card.href}
+              className="starland-card flex flex-col p-4"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--starland-light-bg)]">
                   <Icon
-                    className={["h-5 w-5", iconClass(card.tone)].join(" ")}
+                    className={[
+                      "h-5 w-5",
+                      iconClass(card.tone),
+                    ].join(" ")}
                     aria-hidden="true"
                   />
                 </div>
 
                 <span
-                  className={["starland-badge", badgeClass(card.tone)].join(
-                    " ",
-                  )}
+                  className={[
+                    "starland-badge",
+                    badgeClass(card.tone),
+                  ].join(" ")}
                 >
                   {card.badge}
                 </span>
@@ -294,7 +327,7 @@ export default async function AttendancePage({
                 {card.title}
               </h2>
 
-              <p className="mt-2 min-h-16 text-sm leading-6 text-[var(--starland-muted-text)]">
+              <p className="mt-2 flex-1 text-sm leading-6 text-[var(--starland-muted-text)]">
                 {card.description}
               </p>
 
@@ -309,11 +342,18 @@ export default async function AttendancePage({
         })}
       </section>
 
-      <AttendanceSummaryCards summary={result.summary} />
+      <AttendanceSummaryCards
+        summary={result.summary}
+      />
 
-      <AttendanceListFilters filters={result.filters} />
+      <AttendanceListFilters
+        filters={result.filters}
+      />
 
-      <AttendanceTable records={result.records} filters={result.filters} />
+      <AttendanceTable
+        records={result.records}
+        filters={result.filters}
+      />
 
       <AttendancePagination result={result} />
 
