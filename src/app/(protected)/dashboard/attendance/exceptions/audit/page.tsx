@@ -2,79 +2,46 @@ import Link from "next/link";
 import {
   ArrowLeft,
   CalendarDays,
-  History,
+  FileClock,
+  PencilLine,
   Search,
-  ShieldCheck,
-  TimerOff,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
-import { AttendanceExceptionActions } from "@/features/attendance/exceptions/components/attendance-exception-actions";
-import { AttendanceExceptionForm } from "@/features/attendance/exceptions/components/attendance-exception-form";
-import { AttendanceExceptionTable } from "@/features/attendance/exceptions/components/attendance-exception-table";
+import { AttendanceExceptionAuditActions } from "@/features/attendance/exceptions/audit/components/attendance-exception-audit-actions";
+import { AttendanceExceptionAuditTable } from "@/features/attendance/exceptions/audit/components/attendance-exception-audit-table";
 import {
-  getAttendanceExceptionData,
-  parseAttendanceExceptionSearchParams,
-} from "@/features/attendance/exceptions/server/attendance-exception-queries";
-import type {
-  AttendanceExceptionFilters,
-  AttendanceExceptionOption,
-  AttendanceExceptionOptions,
-} from "@/features/attendance/exceptions/types/attendance-exception-types";
+  getAttendanceExceptionAuditData,
+  parseAttendanceExceptionAuditSearchParams,
+} from "@/features/attendance/exceptions/audit/server/attendance-exception-audit-queries";
+import type { AttendanceExceptionAuditFilters } from "@/features/attendance/exceptions/audit/types/attendance-exception-audit-types";
 
-type AttendanceExceptionsPageProps = {
+type AttendanceExceptionAuditPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-const exceptionTypes = [
+const actionOptions = [
   {
-    label: "All Types",
+    label: "All Actions",
     value: "",
   },
   {
-    label: "Holiday",
-    value: "HOLIDAY",
+    label: "Created",
+    value: "ATTENDANCE_EXCEPTION_CREATED",
   },
   {
-    label: "Class Suspension",
-    value: "CLASS_SUSPENSION",
+    label: "Updated",
+    value: "ATTENDANCE_EXCEPTION_UPDATED",
   },
   {
-    label: "No Work",
-    value: "NO_WORK",
-  },
-  {
-    label: "School Event",
-    value: "SCHOOL_EVENT",
-  },
-  {
-    label: "Rest Day",
-    value: "REST_DAY",
-  },
-  {
-    label: "Other",
-    value: "OTHER",
+    label: "Archived",
+    value: "ATTENDANCE_EXCEPTION_ARCHIVED",
   },
 ];
 
-function BranchOptions({ options }: { options: AttendanceExceptionOption[] }) {
-  return (
-    <>
-      <option value="">All branches</option>
-      {options.map((option) => (
-        <option key={option.id} value={option.id}>
-          {option.label}
-        </option>
-      ))}
-    </>
-  );
-}
-
-function AttendanceExceptionFiltersForm({
+function AttendanceExceptionAuditFiltersForm({
   filters,
-  options,
 }: {
-  filters: AttendanceExceptionFilters;
-  options: AttendanceExceptionOptions;
+  filters: AttendanceExceptionAuditFilters;
 }) {
   return (
     <section className="starland-card p-5 print:hidden">
@@ -115,45 +82,27 @@ function AttendanceExceptionFiltersForm({
 
         <div>
           <label
-            htmlFor="branchId"
+            htmlFor="action"
             className="text-sm font-bold text-[var(--starland-dark-text)]"
           >
-            Branch
+            Action
           </label>
 
           <select
-            id="branchId"
-            name="branchId"
+            id="action"
+            name="action"
             className="starland-input mt-2"
-            defaultValue={filters.branchId}
+            defaultValue={filters.action}
           >
-            <BranchOptions options={options.branches} />
-          </select>
-        </div>
-
-        <div>
-          <label
-            htmlFor="type"
-            className="text-sm font-bold text-[var(--starland-dark-text)]"
-          >
-            Type
-          </label>
-
-          <select
-            id="type"
-            name="type"
-            className="starland-input mt-2"
-            defaultValue={filters.type}
-          >
-            {exceptionTypes.map((type) => (
-              <option key={type.value || "ALL"} value={type.value}>
-                {type.label}
+            {actionOptions.map((option) => (
+              <option key={option.value || "ALL"} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>
         </div>
 
-        <div className="xl:col-span-2">
+        <div>
           <label
             htmlFor="q"
             className="text-sm font-bold text-[var(--starland-dark-text)]"
@@ -165,38 +114,19 @@ function AttendanceExceptionFiltersForm({
             id="q"
             name="q"
             className="starland-input mt-2"
-            placeholder="Title or description"
+            placeholder="Action, entity ID, entity type"
             defaultValue={filters.q}
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="activeOnly"
-            className="text-sm font-bold text-[var(--starland-dark-text)]"
-          >
-            Status
-          </label>
-
-          <select
-            id="activeOnly"
-            name="activeOnly"
-            className="starland-input mt-2"
-            defaultValue={filters.activeOnly ? "true" : "false"}
-          >
-            <option value="true">Active only</option>
-            <option value="false">All statuses</option>
-          </select>
-        </div>
-
-        <div className="flex items-end gap-2">
+        <div className="flex items-end gap-2 xl:col-span-4">
           <button type="submit" className="starland-btn starland-btn-primary">
             <Search className="h-4 w-4" aria-hidden="true" />
-            Apply
+            Apply Filters
           </button>
 
           <Link
-            href="/dashboard/attendance/exceptions"
+            href="/dashboard/attendance/exceptions/audit"
             className="starland-btn starland-btn-soft"
           >
             Reset
@@ -207,51 +137,44 @@ function AttendanceExceptionFiltersForm({
   );
 }
 
-export default async function AttendanceExceptionsPage({
+export default async function AttendanceExceptionAuditPage({
   searchParams,
-}: AttendanceExceptionsPageProps) {
+}: AttendanceExceptionAuditPageProps) {
   await requireCanManageEmployees();
 
   const resolvedSearchParams = await searchParams;
-  const filters = parseAttendanceExceptionSearchParams(resolvedSearchParams);
-  const result = await getAttendanceExceptionData(filters);
+  const filters =
+    parseAttendanceExceptionAuditSearchParams(resolvedSearchParams);
+  const result = await getAttendanceExceptionAuditData(filters);
 
   return (
     <section className="starland-page space-y-5">
       <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-info">
-            Attendance Exceptions
+            Exception Audit
           </span>
 
           <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
-            Exception Calendar
+            Exception Calendar Audit
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Manage holidays, class suspensions, no-work dates, rest days, and
-            other dates that should affect ABSENT generation.
+            Review create, update, and archive activity logs for attendance
+            exception dates.
           </p>
         </div>
 
         <div className="flex flex-col gap-2 sm:items-end">
-          <AttendanceExceptionActions result={result} />
+          <AttendanceExceptionAuditActions result={result} />
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/dashboard/attendance/exceptions/audit"
+              href="/dashboard/attendance/exceptions"
               className="starland-btn starland-btn-primary"
             >
-              <History className="h-4 w-4" aria-hidden="true" />
-              Exception Audit
-            </Link>
-
-            <Link
-              href="/dashboard/attendance/absences/candidates"
-              className="starland-btn starland-btn-soft"
-            >
-              <TimerOff className="h-4 w-4" aria-hidden="true" />
-              Absence Candidates
+              <CalendarDays className="h-4 w-4" aria-hidden="true" />
+              Exception Calendar
             </Link>
 
             <Link
@@ -268,30 +191,30 @@ export default async function AttendanceExceptionsPage({
       <section className="starland-card overflow-hidden print:shadow-none">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-            Exception Rules
+            Audit Trail
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Holiday and Suspension Control
+            Exception Calendar Change History
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Dates marked as affecting absence generation will be used to prevent
-            wrong ABSENT records from holidays, suspended classes, no-work days,
-            and branch-specific events.
+            These logs help verify when holidays, class suspensions, no-work
+            days, rest days, and branch-specific exceptions were created,
+            changed, or archived.
           </p>
         </div>
 
         <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <CalendarDays className="h-7 w-7 text-[var(--starland-info)]" />
+            <FileClock className="h-7 w-7 text-[var(--starland-info)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Active Exceptions
+              Total Logs
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {result.summary.totalActiveExceptions}
+              {result.summary.totalLogs}
             </p>
           </article>
 
@@ -299,50 +222,48 @@ export default async function AttendanceExceptionsPage({
             <Search className="h-7 w-7 text-[var(--starland-main-green)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Matching Filters
+              Matching Logs
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {result.summary.totalMatchingExceptions}
+              {result.summary.matchingLogs}
             </p>
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ShieldCheck className="h-7 w-7 text-[var(--starland-danger)]" />
+            <CalendarDays className="h-7 w-7 text-[var(--starland-success)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Exclude ABSENT
+              Created Logs
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {result.summary.affectsAbsenceGeneration}
+              {result.summary.createdLogs}
             </p>
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <CalendarDays className="h-7 w-7 text-[var(--starland-warning)]" />
+            <PencilLine className="h-7 w-7 text-[var(--starland-warning)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Showing This Page
+              Updated / Archived
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-              {result.summary.currentPageRecords}
+              {result.summary.updatedLogs + result.summary.archivedLogs}
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-[var(--starland-muted-text)]">
+              Updated: {result.summary.updatedLogs} · Archived:{" "}
+              {result.summary.archivedLogs}
             </p>
           </article>
         </div>
       </section>
 
-      <div className="print:hidden">
-        <AttendanceExceptionForm options={result.options} />
-      </div>
+      <AttendanceExceptionAuditFiltersForm filters={result.filters} />
 
-      <AttendanceExceptionFiltersForm
-        filters={result.filters}
-        options={result.options}
-      />
-
-      <AttendanceExceptionTable result={result} />
+      <AttendanceExceptionAuditTable result={result} />
     </section>
   );
 }
