@@ -1,5 +1,3 @@
-Set-StrictMode -Version Latest
-
 param(
     [string]$BaseUrl = "http://localhost:3000",
 
@@ -13,6 +11,7 @@ param(
     [string]$HeaderMode = "XAttendance"
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 function Remove-SurroundingQuotes {
@@ -28,6 +27,7 @@ function Remove-SurroundingQuotes {
     }
 
     $firstCharacter = $normalized.Substring(0, 1)
+
     $lastCharacter = $normalized.Substring(
         $normalized.Length - 1,
         1
