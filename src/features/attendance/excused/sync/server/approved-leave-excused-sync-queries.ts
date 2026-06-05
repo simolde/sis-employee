@@ -12,7 +12,14 @@ import type {
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_EVALUATED_DAYS = 366;
 
-const weekdayTokens = [
+type WeekdayTokenDefinition = {
+  index: number;
+  short: string;
+  long: string;
+  numberTokens: readonly string[];
+};
+
+const weekdayTokens: readonly WeekdayTokenDefinition[] = [
   {
     index: 0,
     short: "SUN",
@@ -55,7 +62,7 @@ const weekdayTokens = [
     long: "SATURDAY",
     numberTokens: ["6"],
   },
-] as const;
+];
 
 type ApprovedLeaveSyncLeaveRecord = {
   leaveId: number;
@@ -228,12 +235,14 @@ function getSafeDateRange(
   endExclusive: Date;
 } {
   const fallbackStart =
-    parseApprovedLeaveSyncDate(getManilaDateInputValue(-7)) ??
-    new Date();
+    parseApprovedLeaveSyncDate(
+      getManilaDateInputValue(-7),
+    ) ?? new Date();
 
   const fallbackEnd =
-    parseApprovedLeaveSyncDate(getManilaDateInputValue(30)) ??
-    fallbackStart;
+    parseApprovedLeaveSyncDate(
+      getManilaDateInputValue(30),
+    ) ?? fallbackStart;
 
   const parsedStart =
     parseApprovedLeaveSyncDate(filters.dateFrom) ??
@@ -297,9 +306,7 @@ export function isApprovedLeaveSyncScheduleDay(input: {
     (token) =>
       token === day.short ||
       token === day.long ||
-      day.numberTokens.includes(
-        token as (typeof day.numberTokens)[number],
-      ),
+      day.numberTokens.includes(token),
   );
 }
 
@@ -314,7 +321,9 @@ function buildApprovedLeaveWhere(input: {
     },
   ];
 
-  const branchId = parsePositiveId(input.filters.branchId);
+  const branchId = parsePositiveId(
+    input.filters.branchId,
+  );
 
   const departmentId = parsePositiveId(
     input.filters.departmentId,
@@ -461,8 +470,7 @@ function mapCandidate(input: {
       input.attendanceDate,
     ),
     leaveId: input.leave.leaveId,
-    leaveTypeName:
-      input.leave.leaveType.name,
+    leaveTypeName: input.leave.leaveType.name,
     leaveDateFrom: formatDate(
       input.leave.dateFrom,
     ),
@@ -477,60 +485,59 @@ async function evaluateApprovedLeaveExcusedSync(
 ): Promise<ApprovedLeaveSyncEvaluation> {
   const range = getSafeDateRange(filters);
 
-  const leaves =
-    await prisma.leave.findMany({
-      where: buildApprovedLeaveWhere({
-        filters,
-        start: range.start,
-        endExclusive: range.endExclusive,
-      }),
-      select: {
-        leaveId: true,
-        dateFrom: true,
-        dateTo: true,
-        leaveType: {
-          select: {
-            name: true,
-          },
+  const leaves = await prisma.leave.findMany({
+    where: buildApprovedLeaveWhere({
+      filters,
+      start: range.start,
+      endExclusive: range.endExclusive,
+    }),
+    select: {
+      leaveId: true,
+      dateFrom: true,
+      dateTo: true,
+      leaveType: {
+        select: {
+          name: true,
         },
-        employee: {
-          select: {
-            empId: true,
-            empNumber: true,
-            firstName: true,
-            middleName: true,
-            lastName: true,
-            branchId: true,
-            branch: {
-              select: {
-                name: true,
-              },
+      },
+      employee: {
+        select: {
+          empId: true,
+          empNumber: true,
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          branchId: true,
+          branch: {
+            select: {
+              name: true,
             },
-            department: {
-              select: {
-                name: true,
-              },
+          },
+          department: {
+            select: {
+              name: true,
             },
-            schedule: {
-              select: {
-                scheduleId: true,
-                scheduleCode: true,
-                name: true,
-                daysOfWeek: true,
-              },
+          },
+          schedule: {
+            select: {
+              scheduleId: true,
+              scheduleCode: true,
+              name: true,
+              daysOfWeek: true,
             },
           },
         },
       },
-      orderBy: [
-        {
-          dateFrom: "asc",
-        },
-        {
-          leaveId: "asc",
-        },
-      ],
-    });
+    },
+    orderBy: [
+      {
+        dateFrom: "asc",
+      },
+      {
+        leaveId: "asc",
+      },
+    ],
+  });
 
   const employeeIds = Array.from(
     new Set(
@@ -558,9 +565,7 @@ async function evaluateApprovedLeaveExcusedSync(
               attDate: true,
             },
           })
-        : Promise.resolve<
-            AttendanceRecordKey[]
-          >([]),
+        : Promise.resolve<AttendanceRecordKey[]>([]),
 
       prisma.attendanceExceptionDate.findMany({
         where: {
@@ -599,6 +604,7 @@ async function evaluateApprovedLeaveExcusedSync(
   );
 
   const evaluatedKeys = new Set<string>();
+
   const candidates: ApprovedLeaveExcusedSyncCandidate[] =
     [];
 
