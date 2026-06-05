@@ -9,6 +9,11 @@ export type ApprovedLeaveAutomationExecutionModeFilter =
   | ""
   | ApprovedLeaveAutomationExecutionMode;
 
+export type ApprovedLeaveAutomationRunStatus =
+  | "COMPLETED"
+  | "FAILED"
+  | "UNKNOWN";
+
 export type ApprovedLeaveAutomationHistoryFilters = {
   q: string;
   executionMode: ApprovedLeaveAutomationExecutionModeFilter;
@@ -22,9 +27,13 @@ export type ApprovedLeaveAutomationHistoryItem = {
   activityLogId: number;
   runKey: string;
   executionMode: ApprovedLeaveAutomationExecutionMode;
+  status: ApprovedLeaveAutomationRunStatus;
   actorUserId: number | null;
   attendanceDateFrom: string;
   attendanceDateTo: string;
+  employeeSearch: string;
+  branchId: string;
+  departmentId: string;
   limit: number;
   checkedCount: number;
   generatedCount: number;
@@ -40,6 +49,14 @@ export type ApprovedLeaveAutomationHistoryItem = {
   createdAt: string;
 };
 
+export type ApprovedLeaveAutomationHistoryDetail =
+  ApprovedLeaveAutomationHistoryItem & {
+    action: string;
+    entityType: string;
+    oldValueText: string;
+    newValueText: string;
+  };
+
 export type ApprovedLeaveAutomationHistoryResult = {
   filters: ApprovedLeaveAutomationHistoryFilters;
   records: ApprovedLeaveAutomationHistoryItem[];
@@ -48,6 +65,8 @@ export type ApprovedLeaveAutomationHistoryResult = {
     matchingRuns: number;
     dashboardRuns: number;
     apiRuns: number;
+    completedRunsOnPage: number;
+    failedRunsOnPage: number;
     generatedRecordsOnPage: number;
     currentPageRecords: number;
   };

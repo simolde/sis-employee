@@ -4,12 +4,25 @@ import {
   APPROVED_LEAVE_EXCUSED_AUTOMATION_RUN_ACTION,
   type ApprovedLeaveAutomationExecutionMode,
   type ApprovedLeaveAutomationExecutionModeFilter,
+  type ApprovedLeaveAutomationHistoryDetail,
   type ApprovedLeaveAutomationHistoryFilters,
   type ApprovedLeaveAutomationHistoryItem,
   type ApprovedLeaveAutomationHistoryResult,
+  type ApprovedLeaveAutomationRunStatus,
 } from "../types/approved-leave-automation-history-types";
 
 const DEFAULT_PAGE_SIZE = 20;
+
+type AutomationRunLogRecord = {
+  activityLogId: number;
+  actorUserId: number | null;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  oldValue: Prisma.JsonValue;
+  newValue: Prisma.JsonValue;
+  createdAt: Date;
+};
 
 function singleSearchParam(
   value: string | string[] | undefined,
@@ -28,25 +41,17 @@ function parsePositiveInteger(
 ): number {
   const parsed = Number(value);
 
-  if (
-    !Number.isInteger(parsed) ||
-    parsed <= 0
-  ) {
+  if (!Number.isInteger(parsed) || parsed <= 0) {
     return fallback;
   }
 
   return parsed;
 }
 
-function parsePositiveId(
-  value: string,
-): number | null {
+function parsePositiveId(value: string): number | null {
   const parsed = Number(value);
 
-  if (
-    !Number.isInteger(parsed) ||
-    parsed <= 0
-  ) {
+  if (!Number.isInteger(parsed) || parsed <= 0) {
     return null;
   }
 
@@ -56,8 +61,7 @@ function parsePositiveId(
 function normalizeExecutionMode(
   value: string,
 ): ApprovedLeaveAutomationExecutionModeFilter {
-  const normalized =
-    value.trim().toUpperCase();
+  const normalized = value.trim().toUpperCase();
 
   if (
     normalized === "DASHBOARD" ||
@@ -79,30 +83,24 @@ function getManilaDateInputValue(
       offsetDays * 24 * 60 * 60 * 1000,
   );
 
-  const parts = new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone: "Asia/Manila",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    },
-  ).formatToParts(targetDate);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(targetDate);
 
   const year =
-    parts.find(
-      (part) => part.type === "year",
-    )?.value ?? "";
+    parts.find((part) => part.type === "year")
+      ?.value ?? "";
 
   const month =
-    parts.find(
-      (part) => part.type === "month",
-    )?.value ?? "";
+    parts.find((part) => part.type === "month")
+      ?.value ?? "";
 
   const day =
-    parts.find(
-      (part) => part.type === "day",
-    )?.value ?? "";
+    parts.find((part) => part.type === "day")
+      ?.value ?? "";
 
   return `${year}-${month}-${day}`;
 }
@@ -126,8 +124,7 @@ function dateInputToStartDate(
 function dateInputToEndDate(
   value: string,
 ): Date | undefined {
-  const start =
-    dateInputToStartDate(value);
+  const start = dateInputToStartDate(value);
 
   if (!start) {
     return undefined;
@@ -226,12 +223,44 @@ function readNumber(
     : fallback;
 }
 
+function normalizeRunStatus(
+  value: string,
+): ApprovedLeaveAutomationRunStatus {
+  const normalized = value
+    .trim()
+    .toUpperCase();
+
+  if (normalized === "COMPLETED") {
+    return "COMPLETED";
+  }
+
+  if (normalized === "FAILED") {
+    return "FAILED";
+  }
+
+  return "UNKNOWN";
+}
+
 function parseExecutionModeFromRunKey(
   runKey: string,
 ): ApprovedLeaveAutomationExecutionMode {
   return runKey.startsWith("API:")
     ? "API"
     : "DASHBOARD";
+}
+
+function safeJsonText(
+  value: Prisma.JsonValue,
+): string {
+  if (value === null) {
+    return "null";
+  }
+
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
 }
 
 function buildHistoryWhere(
@@ -248,13 +277,10 @@ function buildHistoryWhere(
     ];
 
   const dateFrom =
-    dateInputToStartDate(
-      filters.dateFrom,
-    );
+    dateInputToStartDate(filters.dateFrom);
 
-  const dateTo = dateInputToEndDate(
-    filters.dateTo,
-  );
+  const dateTo =
+    dateInputToEndDate(filters.dateTo);
 
   if (dateFrom || dateTo) {
     andConditions.push({
@@ -315,13 +341,9 @@ function buildHistoryWhere(
   };
 }
 
-function mapHistoryItem(input: {
-  activityLogId: number;
-  actorUserId: number | null;
-  entityId: string | null;
-  newValue: Prisma.JsonValue;
-  createdAt: Date;
-}): ApprovedLeaveAutomationHistoryItem {
+function mapHistoryItem(
+  input: AutomationRunLogRecord,
+): ApprovedLeaveAutomationHistoryItem {
   const runKey =
     input.entityId ?? "UNKNOWN";
 
@@ -355,6 +377,13 @@ function mapHistoryItem(input: {
       input.activityLogId,
     runKey,
     executionMode,
+    status: normalizeRunStatus(
+      readString(
+        object,
+        "status",
+        "UNKNOWN",
+      ),
+    ),
     actorUserId: input.actorUserId,
     attendanceDateFrom: readString(
       object,
@@ -365,6 +394,21 @@ function mapHistoryItem(input: {
       object,
       "attendanceDateTo",
       "—",
+    ),
+    employeeSearch: readString(
+      object,
+      "employeeSearch",
+      "",
+    ),
+    branchId: readString(
+      object,
+      "branchId",
+      "",
+    ),
+    departmentId: readString(
+      object,
+      "departmentId",
+      "",
     ),
     limit: readNumber(
       object,
@@ -383,10 +427,11 @@ function mapHistoryItem(input: {
         object,
         "existingAttendanceCount",
       ),
-    noApprovedLeaveCount: readNumber(
-      object,
-      "noApprovedLeaveCount",
-    ),
+    noApprovedLeaveCount:
+      readNumber(
+        object,
+        "noApprovedLeaveCount",
+      ),
     exceptionProtectedCount:
       readNumber(
         object,
@@ -517,7 +562,10 @@ export async function getApprovedLeaveAutomationHistory(
       select: {
         activityLogId: true,
         actorUserId: true,
+        action: true,
+        entityType: true,
         entityId: true,
+        oldValue: true,
         newValue: true,
         createdAt: true,
       },
@@ -549,6 +597,16 @@ export async function getApprovedLeaveAutomationHistory(
       matchingRuns: totalItems,
       dashboardRuns,
       apiRuns,
+      completedRunsOnPage:
+        mappedRecords.filter(
+          (record) =>
+            record.status === "COMPLETED",
+        ).length,
+      failedRunsOnPage:
+        mappedRecords.filter(
+          (record) =>
+            record.status === "FAILED",
+        ).length,
       generatedRecordsOnPage:
         mappedRecords.reduce(
           (total, record) =>
@@ -568,5 +626,53 @@ export async function getApprovedLeaveAutomationHistory(
       hasNextPage:
         safePage < totalPages,
     },
+  };
+}
+
+export async function getApprovedLeaveAutomationHistoryDetail(
+  activityLogId: number,
+): Promise<ApprovedLeaveAutomationHistoryDetail | null> {
+  if (
+    !Number.isInteger(activityLogId) ||
+    activityLogId <= 0
+  ) {
+    return null;
+  }
+
+  const record =
+    await prisma.activityLog.findFirst({
+      where: {
+        activityLogId,
+        action:
+          APPROVED_LEAVE_EXCUSED_AUTOMATION_RUN_ACTION,
+        entityType:
+          "attendance_automation_run",
+      },
+      select: {
+        activityLogId: true,
+        actorUserId: true,
+        action: true,
+        entityType: true,
+        entityId: true,
+        oldValue: true,
+        newValue: true,
+        createdAt: true,
+      },
+    });
+
+  if (!record) {
+    return null;
+  }
+
+  return {
+    ...mapHistoryItem(record),
+    action: record.action,
+    entityType: record.entityType,
+    oldValueText: safeJsonText(
+      record.oldValue,
+    ),
+    newValueText: safeJsonText(
+      record.newValue,
+    ),
   };
 }

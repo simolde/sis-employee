@@ -4,6 +4,7 @@ import {
   ChevronRight,
   Clock3,
   CloudCog,
+  Eye,
   LayoutDashboard,
 } from "lucide-react";
 import type {
@@ -20,8 +21,7 @@ function buildPageHref(
   filters: ApprovedLeaveAutomationHistoryFilters,
   page: number,
 ): string {
-  const params =
-    new URLSearchParams();
+  const params = new URLSearchParams();
 
   if (filters.q) {
     params.set("q", filters.q);
@@ -83,11 +83,40 @@ function ExecutionModeBadge({
   );
 }
 
+function RunStatusBadge({
+  status,
+}: {
+  status:
+    ApprovedLeaveAutomationHistoryItem["status"];
+}) {
+  if (status === "FAILED") {
+    return (
+      <span className="starland-badge starland-badge-danger">
+        FAILED
+      </span>
+    );
+  }
+
+  if (status === "COMPLETED") {
+    return (
+      <span className="starland-badge starland-badge-success">
+        COMPLETED
+      </span>
+    );
+  }
+
+  return (
+    <span className="starland-badge starland-badge-warning">
+      UNKNOWN
+    </span>
+  );
+}
+
 export function ApprovedLeaveAutomationHistoryTable({
   result,
 }: ApprovedLeaveAutomationHistoryTableProps) {
   return (
-    <section className="starland-card overflow-hidden">
+    <section className="starland-card overflow-hidden print:shadow-none">
       <div className="border-b border-[var(--starland-border)] px-5 py-4">
         <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
           Completed Automation Runs
@@ -99,7 +128,7 @@ export function ApprovedLeaveAutomationHistoryTable({
         </p>
       </div>
 
-      <div className="starland-scroll-x">
+      <div className="starland-scroll-x print:overflow-visible">
         <table className="starland-table">
           <thead>
             <tr>
@@ -109,6 +138,9 @@ export function ApprovedLeaveAutomationHistoryTable({
               <th>Processing Results</th>
               <th>Protected / Skipped</th>
               <th>Duration</th>
+              <th className="print:hidden">
+                Details
+              </th>
             </tr>
           </thead>
 
@@ -132,6 +164,14 @@ export function ApprovedLeaveAutomationHistoryTable({
                       <p className="mt-1 max-w-56 break-all text-xs font-semibold text-[var(--starland-muted-text)]">
                         {record.runKey}
                       </p>
+
+                      <div className="mt-2">
+                        <RunStatusBadge
+                          status={
+                            record.status
+                          }
+                        />
+                      </div>
 
                       <p className="mt-2 text-xs text-[var(--starland-muted-text)]">
                         {record.createdAt}
@@ -275,23 +315,35 @@ export function ApprovedLeaveAutomationHistoryTable({
                         </div>
                       </div>
                     </td>
+
+                    <td className="print:hidden">
+                      <Link
+                        href={`/dashboard/attendance/automation/approved-leave-excused/history/${record.activityLogId}`}
+                        className="starland-btn starland-btn-soft starland-btn-sm"
+                      >
+                        <Eye
+                          className="h-4 w-4"
+                          aria-hidden="true"
+                        />
+                        View
+                      </Link>
+                    </td>
                   </tr>
                 ),
               )
             ) : (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={7}>
                   <div className="rounded-2xl border border-dashed border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-6 text-center">
                     <p className="font-bold text-[var(--starland-dark-text)]">
-                      No automation runs
-                      found
+                      No automation runs found
                     </p>
 
                     <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
-                      Run the dashboard
-                      automation or protected
-                      endpoint to create the first
-                      history record.
+                      Run the dashboard automation
+                      or protected endpoint to
+                      create the first history
+                      record.
                     </p>
                   </div>
                 </td>
@@ -301,7 +353,7 @@ export function ApprovedLeaveAutomationHistoryTable({
         </table>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[var(--starland-border)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-[var(--starland-border)] px-5 py-4 print:hidden sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-semibold text-[var(--starland-muted-text)]">
           Page {result.pagination.page} of{" "}
           {result.pagination.totalPages} ·{" "}
