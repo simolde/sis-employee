@@ -1,6 +1,6 @@
 import { AttendanceSource } from "@/generated/prisma/client";
+import { getExcusedReconciliationOverviewStats } from "@/features/attendance/excused/reconciliation/server/excused-reconciliation-overview";
 import { prisma } from "@/lib/db/prisma";
-import { getExcusedReconciliationOverviewStats } from "../excused/reconciliation/server/excused-reconciliation-overview";
 import type { AttendanceActionHubStats } from "../types/attendance-action-hub-types";
 import { buildAttendanceReviewRequiredWhere } from "./attendance-review-policy";
 
@@ -66,7 +66,8 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     },
   };
 
-  const reviewRequiredWhere = buildAttendanceReviewRequiredWhere();
+  const reviewRequiredWhere =
+    buildAttendanceReviewRequiredWhere();
 
   const [
     baseStats,
@@ -193,7 +194,8 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
 
       prisma.activityLog.count({
         where: {
-          action: "ATTENDANCE_ABSENT_AUTO_GENERATED",
+          action:
+            "ATTENDANCE_ABSENT_AUTO_GENERATED",
         },
       }),
 
@@ -208,7 +210,8 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
 
       prisma.activityLog.count({
         where: {
-          action: "ATTENDANCE_ABSENT_AUTO_ROLLED_BACK",
+          action:
+            "ATTENDANCE_ABSENT_AUTO_ROLLED_BACK",
         },
       }),
 
@@ -234,7 +237,9 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
 
       prisma.activityLog.count({
         where: {
-          action: "ATTENDANCE_EXCUSED_AUTO_GENERATED",
+          entityType: "attendance",
+          action:
+            "ATTENDANCE_EXCUSED_AUTO_GENERATED",
         },
       }),
 
@@ -271,21 +276,24 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
       prisma.activityLog.count({
         where: {
           entityType: "attendance_exception",
-          action: "ATTENDANCE_EXCEPTION_CREATED",
+          action:
+            "ATTENDANCE_EXCEPTION_CREATED",
         },
       }),
 
       prisma.activityLog.count({
         where: {
           entityType: "attendance_exception",
-          action: "ATTENDANCE_EXCEPTION_UPDATED",
+          action:
+            "ATTENDANCE_EXCEPTION_UPDATED",
         },
       }),
 
       prisma.activityLog.count({
         where: {
           entityType: "attendance_exception",
-          action: "ATTENDANCE_EXCEPTION_ARCHIVED",
+          action:
+            "ATTENDANCE_EXCEPTION_ARCHIVED",
         },
       }),
     ]),
@@ -326,6 +334,13 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     exceptionArchivedAuditLogs,
   ] = baseStats;
 
+  const excusedRollbackAuditLogs =
+    excusedReconciliationStats.rollbackAuditLogs;
+
+  const excusedAutomationAuditLogs =
+    generatedExcusedAuditLogs +
+    excusedRollbackAuditLogs;
+
   return {
     totalToday,
     onTimeToday,
@@ -333,19 +348,23 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     halfDayToday,
     absentToday,
     excusedToday,
+
     missingTimeout,
     manualToday,
     webToday,
     pendingReview,
     openReview,
     verifiedNotApproved,
+
     attendanceAuditLogs,
+
     absentTotal,
     automaticAbsent,
     manualAbsent,
     generatedAbsentAuditLogs,
     rollbackEligibleAbsent,
     absentRollbackAuditLogs,
+
     excusedTotal,
     automaticExcused,
     manualExcused,
@@ -363,12 +382,13 @@ export async function getAttendanceActionHubStats(): Promise<AttendanceActionHub
     excusedMissingGenerationProvenance:
       excusedReconciliationStats.missingGenerationProvenance,
 
-    excusedRollbackAuditLogs:
-      excusedReconciliationStats.rollbackAuditLogs,
+    excusedRollbackAuditLogs,
+    excusedAutomationAuditLogs,
 
     activeAttendanceExceptions,
     absenceBlockingExceptions,
     todayBlockingExceptions,
+
     exceptionAuditLogs,
     exceptionCreatedAuditLogs,
     exceptionUpdatedAuditLogs,

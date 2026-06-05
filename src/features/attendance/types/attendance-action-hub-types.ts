@@ -32,6 +32,7 @@ export type AttendanceActionHubStats = {
   excusedReconciliationEligible: number;
   excusedMissingGenerationProvenance: number;
   excusedRollbackAuditLogs: number;
+  excusedAutomationAuditLogs: number;
 
   activeAttendanceExceptions: number;
   absenceBlockingExceptions: number;
