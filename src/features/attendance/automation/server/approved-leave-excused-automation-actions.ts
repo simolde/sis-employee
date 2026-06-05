@@ -67,6 +67,9 @@ function revalidateApprovedLeaveAutomationPages() {
     "/dashboard/attendance/automation/approved-leave-excused",
   );
   revalidatePath(
+    "/dashboard/attendance/automation/approved-leave-excused/history",
+  );
+  revalidatePath(
     "/dashboard/attendance/excused",
   );
   revalidatePath(
@@ -230,6 +233,7 @@ export async function runApprovedLeaveExcusedAutomationAction(
       limit,
       generationSource:
         "APPROVED_LEAVE_AUTOMATION",
+      automationExecutionMode: "DASHBOARD",
     });
 
   revalidateApprovedLeaveAutomationPages();
@@ -247,9 +251,10 @@ export async function runApprovedLeaveExcusedAutomationAction(
     notScheduledCount:
       result.notScheduledCount,
     skippedCount: result.skippedCount,
+    runAuditLogId: result.runAuditLogId,
     message:
       result.generatedCount > 0
-        ? `${result.generatedCount} missing EXCUSED record(s) were generated. ${result.existingAttendanceCount} record(s) already had attendance, ${result.exceptionProtectedCount} were protected by exception dates, and ${result.notScheduledCount} were not scheduled.`
-        : `No EXCUSED records were generated. ${result.existingAttendanceCount} record(s) already had attendance, ${result.exceptionProtectedCount} were protected by exception dates, ${result.notScheduledCount} were not scheduled, and ${result.noApprovedLeaveCount} no longer had approved leave.`,
+        ? `${result.generatedCount} missing EXCUSED record(s) were generated. Automation run log #${result.runAuditLogId ?? "—"} was recorded.`
+        : `No EXCUSED records were generated. Automation run log #${result.runAuditLogId ?? "—"} was still recorded for traceability.`,
   };
 }

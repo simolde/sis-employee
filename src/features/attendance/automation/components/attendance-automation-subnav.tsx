@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   Gauge,
   History,
+  ListChecks,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,6 +29,12 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       label: "Approved Leave EXCUSED",
       href: "/dashboard/attendance/automation/approved-leave-excused",
       icon: CalendarCheck,
+      exact: true,
+    },
+    {
+      label: "Run History",
+      href: "/dashboard/attendance/automation/approved-leave-excused/history",
+      icon: ListChecks,
       exact: false,
     },
     {

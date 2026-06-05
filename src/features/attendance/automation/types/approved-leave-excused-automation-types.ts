@@ -8,6 +8,7 @@ export type ApprovedLeaveExcusedAutomationActionState = {
   exceptionProtectedCount?: number;
   notScheduledCount?: number;
   skippedCount?: number;
+  runAuditLogId?: number | null;
   fieldErrors?: {
     dateFrom?: string[];
     dateTo?: string[];

@@ -19,6 +19,7 @@ export type ApprovedLeaveExcusedAutomationResult = {
   exceptionProtectedCount: number;
   notScheduledCount: number;
   skippedCount: number;
+  runAuditLogId: number | null;
 };
 
 function getManilaDateInputValue(
@@ -31,24 +32,30 @@ function getManilaDateInputValue(
       offsetDays * 24 * 60 * 60 * 1000,
   );
 
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Manila",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(targetDate);
+  const parts = new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: "Asia/Manila",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    },
+  ).formatToParts(targetDate);
 
   const year =
-    parts.find((part) => part.type === "year")
-      ?.value ?? "";
+    parts.find(
+      (part) => part.type === "year",
+    )?.value ?? "";
 
   const month =
-    parts.find((part) => part.type === "month")
-      ?.value ?? "";
+    parts.find(
+      (part) => part.type === "month",
+    )?.value ?? "";
 
   const day =
-    parts.find((part) => part.type === "day")
-      ?.value ?? "";
+    parts.find(
+      (part) => part.type === "day",
+    )?.value ?? "";
 
   return `${year}-${month}-${day}`;
 }
@@ -65,7 +72,11 @@ function validDateInput(
 function normalizeLimit(
   value: number | undefined,
 ): number {
-  if (!value || !Number.isInteger(value) || value <= 0) {
+  if (
+    !value ||
+    !Number.isInteger(value) ||
+    value <= 0
+  ) {
     return 500;
   }
 
@@ -77,31 +88,38 @@ export async function runApprovedLeaveExcusedAutomation(
 ): Promise<ApprovedLeaveExcusedAutomationResult> {
   const startedAt = new Date();
 
-  const dateFrom = validDateInput(options.dateFrom)
+  const dateFrom = validDateInput(
+    options.dateFrom,
+  )
     ? options.dateFrom
     : getManilaDateInputValue(-30);
 
-  const dateTo = validDateInput(options.dateTo)
+  const dateTo = validDateInput(
+    options.dateTo,
+  )
     ? options.dateTo
     : getManilaDateInputValue();
 
-  const filters: ApprovedLeaveExcusedSyncFilters = {
-    q: "",
-    branchId: "",
-    departmentId: "",
-    dateFrom,
-    dateTo,
-    page: 1,
-    pageSize: 20,
-  };
+  const filters: ApprovedLeaveExcusedSyncFilters =
+    {
+      q: "",
+      branchId: "",
+      departmentId: "",
+      dateFrom,
+      dateTo,
+      page: 1,
+      pageSize: 20,
+    };
 
-  const result = await runApprovedLeaveExcusedSync({
-    filters,
-    actorUserId: null,
-    limit: normalizeLimit(options.limit),
-    generationSource:
-      "APPROVED_LEAVE_AUTOMATION",
-  });
+  const result =
+    await runApprovedLeaveExcusedSync({
+      filters,
+      actorUserId: null,
+      limit: normalizeLimit(options.limit),
+      generationSource:
+        "APPROVED_LEAVE_AUTOMATION",
+      automationExecutionMode: "API",
+    });
 
   return {
     startedAt: startedAt.toISOString(),
