@@ -3,35 +3,10 @@ import {
   NextResponse,
 } from "next/server";
 import { runApprovedLeaveExcusedAutomation } from "@/features/attendance/automation/server/approved-leave-excused-automation-runner";
+import { authorizeAutomationRequest } from "@/lib/security/automation-request-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function getExpectedSecret(): string | null {
-  const secret =
-    process.env.ATTENDANCE_AUTOMATION_SECRET ??
-    process.env.CRON_SECRET;
-
-  return secret?.trim() || null;
-}
-
-function isAuthorized(
-  request: NextRequest,
-): boolean {
-  const expectedSecret = getExpectedSecret();
-
-  if (!expectedSecret) {
-    return false;
-  }
-
-  const authorization =
-    request.headers.get("authorization");
-
-  return (
-    authorization ===
-    `Bearer ${expectedSecret}`
-  );
-}
 
 function parseDateInput(
   value: string | null,
@@ -55,40 +30,70 @@ function parseLimit(
 
   const parsed = Number(value);
 
-  if (!Number.isInteger(parsed) || parsed <= 0) {
+  if (
+    !Number.isInteger(parsed) ||
+    parsed <= 0
+  ) {
     return undefined;
   }
 
   return Math.min(parsed, 500);
 }
 
+function jsonResponse(
+  body: object,
+  status = 200,
+): NextResponse {
+  return NextResponse.json(body, {
+    status,
+    headers: {
+      "Cache-Control":
+        "no-store, no-cache, must-revalidate",
+    },
+  });
+}
+
 async function handleAutomationRequest(
   request: NextRequest,
-) {
-  const expectedSecret = getExpectedSecret();
+): Promise<NextResponse> {
+  const authorization =
+    authorizeAutomationRequest(request);
 
-  if (!expectedSecret) {
-    return NextResponse.json(
+  if (!authorization.configured) {
+    return jsonResponse(
       {
         ok: false,
         message:
           "Attendance automation secret is not configured.",
+        ...(
+          process.env.NODE_ENV !== "production"
+            ? {
+                diagnostics:
+                  authorization.diagnostics,
+              }
+            : {}
+        ),
       },
-      {
-        status: 503,
-      },
+      503,
     );
   }
 
-  if (!isAuthorized(request)) {
-    return NextResponse.json(
+  if (!authorization.authorized) {
+    return jsonResponse(
       {
         ok: false,
-        message: "Unauthorized automation request.",
+        message:
+          "Unauthorized automation request.",
+        ...(
+          process.env.NODE_ENV !== "production"
+            ? {
+                diagnostics:
+                  authorization.diagnostics,
+              }
+            : {}
+        ),
       },
-      {
-        status: 401,
-      },
+      401,
     );
   }
 
@@ -112,7 +117,7 @@ async function handleAutomationRequest(
         ),
       });
 
-    return NextResponse.json({
+    return jsonResponse({
       ok: true,
       message:
         "Approved-leave EXCUSED automation completed.",
@@ -124,27 +129,25 @@ async function handleAutomationRequest(
       error,
     );
 
-    return NextResponse.json(
+    return jsonResponse(
       {
         ok: false,
         message:
           "Approved-leave EXCUSED automation failed.",
       },
-      {
-        status: 500,
-      },
+      500,
     );
   }
 }
 
 export async function GET(
   request: NextRequest,
-) {
+): Promise<NextResponse> {
   return handleAutomationRequest(request);
 }
 
 export async function POST(
   request: NextRequest,
-) {
+): Promise<NextResponse> {
   return handleAutomationRequest(request);
 }
