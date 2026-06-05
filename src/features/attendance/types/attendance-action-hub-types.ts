@@ -4,6 +4,8 @@ export type AttendanceActionHubStats = {
   lateToday: number;
   halfDayToday: number;
   absentToday: number;
+  excusedToday: number;
+
   missingTimeout: number;
   manualToday: number;
   webToday: number;
@@ -19,6 +21,11 @@ export type AttendanceActionHubStats = {
   generatedAbsentAuditLogs: number;
   rollbackEligibleAbsent: number;
   absentRollbackAuditLogs: number;
+
+  excusedTotal: number;
+  automaticExcused: number;
+  manualExcused: number;
+  generatedExcusedAuditLogs: number;
 
   activeAttendanceExceptions: number;
   absenceBlockingExceptions: number;
