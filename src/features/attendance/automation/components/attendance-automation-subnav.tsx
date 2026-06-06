@@ -8,6 +8,7 @@ import {
   Gauge,
   History,
   ListChecks,
+  Settings2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,6 +31,12 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       label: "Automation Health",
       href: "/dashboard/attendance/automation/health",
       icon: Activity,
+      exact: true,
+    },
+    {
+      label: "Configuration",
+      href: "/dashboard/attendance/automation/configuration",
+      icon: Settings2,
       exact: true,
     },
     {
