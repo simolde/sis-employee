@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/server/session";
 import {
+  ApprovedLeaveExcusedAutomationBusyError,
   ApprovedLeaveExcusedAutomationExecutionError,
   runApprovedLeaveExcusedSync,
 } from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-service";
@@ -56,6 +57,10 @@ function revalidateRetryPages(
 
   revalidatePath(
     "/dashboard/attendance/automation",
+  );
+
+  revalidatePath(
+    "/dashboard/attendance/automation/health",
   );
 
   revalidatePath(
@@ -123,9 +128,12 @@ export async function retryApprovedLeaveAutomationAction(
   if (!confirmed) {
     return {
       ok: false,
+
       message:
         "Confirm the retry before continuing.",
+
       originalRunAuditLogId,
+
       fieldErrors: {
         confirmRetry: [
           "Retry confirmation is required.",
@@ -142,19 +150,21 @@ export async function retryApprovedLeaveAutomationAction(
   if (!originalRun) {
     return {
       ok: false,
+
       message:
         "The original automation run no longer exists.",
+
       originalRunAuditLogId,
     };
   }
 
-  if (
-    originalRun.status !== "FAILED"
-  ) {
+  if (originalRun.status !== "FAILED") {
     return {
       ok: false,
+
       message:
         "Only failed automation runs can be retried from this page.",
+
       originalRunAuditLogId,
     };
   }
@@ -163,12 +173,16 @@ export async function retryApprovedLeaveAutomationAction(
     {
       q: originalRun.employeeSearch,
       branchId: originalRun.branchId,
+
       departmentId:
         originalRun.departmentId,
+
       dateFrom:
         originalRun.attendanceDateFrom,
+
       dateTo:
         originalRun.attendanceDateTo,
+
       page: 1,
       pageSize: 20,
     };
@@ -177,7 +191,9 @@ export async function retryApprovedLeaveAutomationAction(
     const result =
       await runApprovedLeaveExcusedSync({
         filters,
-        actorUserId: session.userId,
+
+        actorUserId:
+          session.userId,
 
         limit: normalizeLimit(
           originalRun.limit,
@@ -238,6 +254,20 @@ export async function retryApprovedLeaveAutomationAction(
 
     if (
       error instanceof
+      ApprovedLeaveExcusedAutomationBusyError
+    ) {
+      return {
+        ok: false,
+
+        message:
+          `Retry blocked because another approved-leave automation run is active. Try again in approximately ${error.retryAfterSeconds} second(s).`,
+
+        originalRunAuditLogId,
+      };
+    }
+
+    if (
+      error instanceof
       ApprovedLeaveExcusedAutomationExecutionError
     ) {
       if (error.runAuditLogId) {
@@ -268,8 +298,10 @@ export async function retryApprovedLeaveAutomationAction(
 
     return {
       ok: false,
+
       message:
         "The automation retry failed unexpectedly.",
+
       originalRunAuditLogId,
     };
   }

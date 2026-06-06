@@ -2,6 +2,12 @@ import type { ApprovedLeaveExcusedGenerationSource } from "@/features/attendance
 import { createExcusedAttendanceForApprovedLeave } from "@/features/attendance/absences/server/approved-leave-excused-service";
 import type { ApprovedLeaveAutomationExecutionMode } from "@/features/attendance/automation/history/types/approved-leave-automation-history-types";
 import {
+  APPROVED_LEAVE_EXCUSED_AUTOMATION_LOCK_NAME,
+  acquireAttendanceAutomationLock,
+  releaseAttendanceAutomationLock,
+  type AttendanceAutomationLockHandle,
+} from "@/features/attendance/automation/server/attendance-automation-lock";
+import {
   recordApprovedLeaveExcusedAutomationRun,
   type ApprovedLeaveExcusedAutomationRunCounts,
 } from "@/features/attendance/automation/server/approved-leave-excused-run-audit";
@@ -49,6 +55,29 @@ export class ApprovedLeaveExcusedAutomationExecutionError extends Error {
         }
       ).cause = cause;
     }
+  }
+}
+
+export class ApprovedLeaveExcusedAutomationBusyError extends Error {
+  readonly retryAfterSeconds: number;
+  readonly lockExpiresAt: string;
+
+  constructor(input: {
+    retryAfterSeconds: number;
+    lockExpiresAt: Date;
+  }) {
+    super(
+      `Approved-leave EXCUSED automation is already running. Try again in approximately ${input.retryAfterSeconds} second(s).`,
+    );
+
+    this.name =
+      "ApprovedLeaveExcusedAutomationBusyError";
+
+    this.retryAfterSeconds =
+      input.retryAfterSeconds;
+
+    this.lockExpiresAt =
+      input.lockExpiresAt.toISOString();
   }
 }
 
@@ -120,6 +149,27 @@ function getFailureMessage(
   }
 
   return "Unexpected approved-leave automation error.";
+}
+
+function acquireApprovedLeaveAutomationLock(): AttendanceAutomationLockHandle {
+  const lockResult =
+    acquireAttendanceAutomationLock(
+      APPROVED_LEAVE_EXCUSED_AUTOMATION_LOCK_NAME,
+    );
+
+  if (!lockResult.acquired) {
+    throw new ApprovedLeaveExcusedAutomationBusyError(
+      {
+        retryAfterSeconds:
+          lockResult.busy.retryAfterSeconds,
+
+        lockExpiresAt:
+          lockResult.busy.expiresAt,
+      },
+    );
+  }
+
+  return lockResult.handle;
 }
 
 async function recordFailedRun(input: {
@@ -224,13 +274,20 @@ export async function runApprovedLeaveExcusedSync({
     requestedLimit,
   );
 
-  const startedAt = new Date();
-
-  const progress = createEmptyCounts();
-
   const isAutomationRun =
     generationSource ===
     "APPROVED_LEAVE_AUTOMATION";
+
+  let lockHandle: AttendanceAutomationLockHandle | null =
+    null;
+
+  if (isAutomationRun) {
+    lockHandle =
+      acquireApprovedLeaveAutomationLock();
+  }
+
+  const startedAt = new Date();
+  const progress = createEmptyCounts();
 
   const executionMode = getExecutionMode({
     actorUserId,
@@ -242,197 +299,225 @@ export async function runApprovedLeaveExcusedSync({
       retryOfRunAuditLogId,
     );
 
-  let result: ApprovedLeaveExcusedAutomationRunCounts;
-
   try {
-    const candidateSeeds =
-      await getApprovedLeaveExcusedSyncCandidateSeeds(
-        filters,
-        Math.min(limit * 10, 5000),
-      );
+    let result: ApprovedLeaveExcusedAutomationRunCounts;
 
-    result = await prisma.$transaction(
-      async (tx) => {
-        for (const candidate of candidateSeeds) {
-          if (
-            progress.generatedCount >= limit
-          ) {
-            break;
-          }
+    try {
+      const candidateSeeds =
+        await getApprovedLeaveExcusedSyncCandidateSeeds(
+          filters,
+          Math.min(limit * 10, 5000),
+        );
 
-          progress.checkedCount += 1;
-
-          const attendanceDate =
-            parseApprovedLeaveSyncDate(
-              candidate.attendanceDateInput,
-            );
-
-          if (!attendanceDate) {
-            progress.skippedCount += 1;
-            continue;
-          }
-
-          const employee =
-            await tx.employee.findUnique({
-              where: {
-                empId: candidate.empId,
-              },
-              select: {
-                empId: true,
-                empNumber: true,
-                status: true,
-                branchId: true,
-                scheduleId: true,
-                schedule: {
-                  select: {
-                    daysOfWeek: true,
-                  },
-                },
-              },
-            });
-
-          if (
-            !employee ||
-            employee.status !== "ACTIVE" ||
-            !employee.scheduleId ||
-            !employee.schedule ||
-            !isApprovedLeaveSyncScheduleDay({
-              date: attendanceDate,
-              daysOfWeek:
-                employee.schedule.daysOfWeek,
-            })
-          ) {
-            progress.notScheduledCount += 1;
-            continue;
-          }
-
-          const blockingException =
-            await tx.attendanceExceptionDate.findFirst({
-              where: {
-                exceptionDate:
-                  attendanceDate,
-                status: "ACTIVE",
-                affectsAbsenceGeneration:
-                  true,
-                OR: [
-                  {
-                    branchId: null,
-                  },
-                  {
-                    branchId:
-                      employee.branchId,
-                  },
-                ],
-              },
-              select: {
-                exceptionId: true,
-              },
-            });
-
-          if (blockingException) {
-            progress.exceptionProtectedCount +=
-              1;
-
-            continue;
-          }
-
-          const syncResult =
-            await createExcusedAttendanceForApprovedLeave(
-              {
-                tx,
-                employee: {
-                  empId: employee.empId,
-                  empNumber:
-                    employee.empNumber,
-                  scheduleId:
-                    employee.scheduleId,
-                },
-                attDate:
-                  attendanceDate,
-                actorUserId,
-                generationSource,
-              },
-            );
-
-          if (syncResult.created) {
-            progress.generatedCount += 1;
-            continue;
-          }
-
-          switch (syncResult.reason) {
-            case "ATTENDANCE_ALREADY_EXISTS":
-              progress.existingAttendanceCount +=
-                1;
+      result = await prisma.$transaction(
+        async (tx) => {
+          for (const candidate of candidateSeeds) {
+            if (
+              progress.generatedCount >=
+              limit
+            ) {
               break;
+            }
 
-            case "NO_APPROVED_LEAVE":
-              progress.noApprovedLeaveCount +=
-                1;
-              break;
+            progress.checkedCount += 1;
 
-            case "NO_ASSIGNED_SCHEDULE":
-              progress.notScheduledCount += 1;
-              break;
+            const attendanceDate =
+              parseApprovedLeaveSyncDate(
+                candidate.attendanceDateInput,
+              );
 
-            default:
+            if (!attendanceDate) {
               progress.skippedCount += 1;
-          }
-        }
+              continue;
+            }
 
-        return {
-          ...progress,
-        };
-      },
-      {
-        maxWait: 10_000,
-        timeout: 60_000,
-      },
-    );
-  } catch (error) {
-    const failedRunAuditLogId =
+            const employee =
+              await tx.employee.findUnique({
+                where: {
+                  empId: candidate.empId,
+                },
+
+                select: {
+                  empId: true,
+                  empNumber: true,
+                  status: true,
+                  branchId: true,
+                  scheduleId: true,
+
+                  schedule: {
+                    select: {
+                      daysOfWeek: true,
+                    },
+                  },
+                },
+              });
+
+            if (
+              !employee ||
+              employee.status !== "ACTIVE" ||
+              !employee.scheduleId ||
+              !employee.schedule ||
+              !isApprovedLeaveSyncScheduleDay({
+                date: attendanceDate,
+                daysOfWeek:
+                  employee.schedule
+                    .daysOfWeek,
+              })
+            ) {
+              progress.notScheduledCount += 1;
+              continue;
+            }
+
+            const blockingException =
+              await tx.attendanceExceptionDate.findFirst(
+                {
+                  where: {
+                    exceptionDate:
+                      attendanceDate,
+
+                    status: "ACTIVE",
+
+                    affectsAbsenceGeneration:
+                      true,
+
+                    OR: [
+                      {
+                        branchId: null,
+                      },
+                      {
+                        branchId:
+                          employee.branchId,
+                      },
+                    ],
+                  },
+
+                  select: {
+                    exceptionId: true,
+                  },
+                },
+              );
+
+            if (blockingException) {
+              progress.exceptionProtectedCount +=
+                1;
+
+              continue;
+            }
+
+            const syncResult =
+              await createExcusedAttendanceForApprovedLeave(
+                {
+                  tx,
+
+                  employee: {
+                    empId: employee.empId,
+                    empNumber:
+                      employee.empNumber,
+                    scheduleId:
+                      employee.scheduleId,
+                  },
+
+                  attDate:
+                    attendanceDate,
+
+                  actorUserId,
+
+                  generationSource,
+                },
+              );
+
+            if (syncResult.created) {
+              progress.generatedCount += 1;
+              continue;
+            }
+
+            switch (syncResult.reason) {
+              case "ATTENDANCE_ALREADY_EXISTS":
+                progress.existingAttendanceCount +=
+                  1;
+                break;
+
+              case "NO_APPROVED_LEAVE":
+                progress.noApprovedLeaveCount +=
+                  1;
+                break;
+
+              case "NO_ASSIGNED_SCHEDULE":
+                progress.notScheduledCount +=
+                  1;
+                break;
+
+              default:
+                progress.skippedCount += 1;
+            }
+          }
+
+          return {
+            ...progress,
+          };
+        },
+        {
+          maxWait: 10_000,
+          timeout: 60_000,
+        },
+      );
+    } catch (error) {
+      const failedRunAuditLogId =
+        isAutomationRun
+          ? await recordFailedRun({
+              actorUserId,
+              executionMode,
+              filters,
+              limit,
+              startedAt,
+              progress,
+
+              retryOfRunAuditLogId:
+                normalizedRetryRunId,
+
+              error,
+            })
+          : null;
+
+      if (isAutomationRun) {
+        throw new ApprovedLeaveExcusedAutomationExecutionError(
+          failedRunAuditLogId
+            ? `Approved-leave EXCUSED automation failed. Failed run #${failedRunAuditLogId} was recorded.`
+            : "Approved-leave EXCUSED automation failed. The failed run log could not be recorded.",
+
+          failedRunAuditLogId,
+
+          error,
+        );
+      }
+
+      throw error;
+    }
+
+    const runAuditLogId =
       isAutomationRun
-        ? await recordFailedRun({
+        ? await recordCompletedRun({
             actorUserId,
             executionMode,
             filters,
             limit,
             startedAt,
-            progress,
+            result,
+
             retryOfRunAuditLogId:
               normalizedRetryRunId,
-            error,
           })
         : null;
 
-    if (isAutomationRun) {
-      throw new ApprovedLeaveExcusedAutomationExecutionError(
-        failedRunAuditLogId
-          ? `Approved-leave EXCUSED automation failed. Failed run #${failedRunAuditLogId} was recorded.`
-          : "Approved-leave EXCUSED automation failed. The failed run log could not be recorded.",
-        failedRunAuditLogId,
-        error,
+    return {
+      ...result,
+      runAuditLogId,
+    };
+  } finally {
+    if (lockHandle) {
+      releaseAttendanceAutomationLock(
+        lockHandle,
       );
     }
-
-    throw error;
   }
-
-  const runAuditLogId =
-    isAutomationRun
-      ? await recordCompletedRun({
-          actorUserId,
-          executionMode,
-          filters,
-          limit,
-          startedAt,
-          result,
-          retryOfRunAuditLogId:
-            normalizedRetryRunId,
-        })
-      : null;
-
-  return {
-    ...result,
-    runAuditLogId,
-  };
 }

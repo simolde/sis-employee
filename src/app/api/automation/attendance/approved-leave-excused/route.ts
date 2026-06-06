@@ -3,7 +3,10 @@ import {
   NextResponse,
 } from "next/server";
 import { runApprovedLeaveExcusedAutomation } from "@/features/attendance/automation/server/approved-leave-excused-automation-runner";
-import { ApprovedLeaveExcusedAutomationExecutionError } from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-service";
+import {
+  ApprovedLeaveExcusedAutomationBusyError,
+  ApprovedLeaveExcusedAutomationExecutionError,
+} from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-service";
 import { authorizeAutomationRequest } from "@/lib/security/automation-request-auth";
 
 export const runtime = "nodejs";
@@ -44,12 +47,19 @@ function parseLimit(
 function jsonResponse(
   body: object,
   status = 200,
+  extraHeaders: Record<string, string> = {},
 ): NextResponse {
   return NextResponse.json(body, {
     status,
+
     headers: {
       "Cache-Control":
         "no-store, no-cache, must-revalidate",
+
+      Pragma: "no-cache",
+      Expires: "0",
+
+      ...extraHeaders,
     },
   });
 }
@@ -64,8 +74,10 @@ async function handleAutomationRequest(
     return jsonResponse(
       {
         ok: false,
+
         message:
           "Attendance automation secret is not configured.",
+
         ...(process.env.NODE_ENV !==
         "production"
           ? {
@@ -74,6 +86,7 @@ async function handleAutomationRequest(
             }
           : {}),
       },
+
       503,
     );
   }
@@ -82,8 +95,10 @@ async function handleAutomationRequest(
     return jsonResponse(
       {
         ok: false,
+
         message:
           "Unauthorized automation request.",
+
         ...(process.env.NODE_ENV !==
         "production"
           ? {
@@ -92,6 +107,7 @@ async function handleAutomationRequest(
             }
           : {}),
       },
+
       401,
     );
   }
@@ -104,11 +120,13 @@ async function handleAutomationRequest(
             "dateFrom",
           ),
         ),
+
         dateTo: parseDateInput(
           request.nextUrl.searchParams.get(
             "dateTo",
           ),
         ),
+
         limit: parseLimit(
           request.nextUrl.searchParams.get(
             "limit",
@@ -118,11 +136,42 @@ async function handleAutomationRequest(
 
     return jsonResponse({
       ok: true,
+
       message:
         "Approved-leave EXCUSED automation completed.",
+
       result,
     });
   } catch (error) {
+    if (
+      error instanceof
+      ApprovedLeaveExcusedAutomationBusyError
+    ) {
+      return jsonResponse(
+        {
+          ok: false,
+          busy: true,
+
+          message:
+            error.message,
+
+          retryAfterSeconds:
+            error.retryAfterSeconds,
+
+          lockExpiresAt:
+            error.lockExpiresAt,
+        },
+
+        409,
+
+        {
+          "Retry-After": String(
+            error.retryAfterSeconds,
+          ),
+        },
+      );
+    }
+
     if (
       error instanceof
       ApprovedLeaveExcusedAutomationExecutionError
@@ -135,10 +184,15 @@ async function handleAutomationRequest(
       return jsonResponse(
         {
           ok: false,
-          message: error.message,
+          busy: false,
+
+          message:
+            error.message,
+
           runAuditLogId:
             error.runAuditLogId,
         },
+
         500,
       );
     }
@@ -151,10 +205,14 @@ async function handleAutomationRequest(
     return jsonResponse(
       {
         ok: false,
+        busy: false,
+
         message:
           "Approved-leave EXCUSED automation failed unexpectedly.",
+
         runAuditLogId: null,
       },
+
       500,
     );
   }

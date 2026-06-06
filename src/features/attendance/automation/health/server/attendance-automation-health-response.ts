@@ -1,4 +1,5 @@
 import { getAttendanceAutomationHealthData } from "./attendance-automation-health-queries";
+import { getAttendanceAutomationLockHealthData } from "./attendance-automation-lock-health";
 import type { AttendanceAutomationHealthApiResponse } from "../types/attendance-automation-health-api-types";
 import type { AttendanceAutomationHealthStatus } from "../types/attendance-automation-health-types";
 
@@ -21,6 +22,9 @@ export async function buildAttendanceAutomationHealthApiResponse(): Promise<Atte
   const health =
     await getAttendanceAutomationHealthData();
 
+  const lock =
+    getAttendanceAutomationLockHealthData();
+
   return {
     ok: health.status === "HEALTHY",
 
@@ -42,6 +46,8 @@ export async function buildAttendanceAutomationHealthApiResponse(): Promise<Atte
 
       isPartial:
         health.isPartial,
+
+      lock,
 
       scheduleConfiguration:
         health.scheduleConfiguration,

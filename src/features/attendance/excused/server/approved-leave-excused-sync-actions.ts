@@ -11,7 +11,7 @@ import {
 import { parseApprovedLeaveSyncDate } from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-queries";
 import type { ApprovedLeaveExcusedSyncFilters } from "@/features/attendance/excused/sync/types/approved-leave-excused-sync-types";
 import { canManageEmployees } from "@/lib/security/roles";
-import type { ApprovedLeaveExcusedAutomationActionState } from "../types/approved-leave-excused-automation-types";
+import type { ApprovedLeaveExcusedAutomationActionState } from "@/features/attendance/automation/types/approved-leave-excused-automation-types";
 
 const MAXIMUM_DATE_RANGE_DAYS = 366;
 const MAXIMUM_RECORDS_PER_RUN = 500;

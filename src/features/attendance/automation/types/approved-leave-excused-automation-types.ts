@@ -1,6 +1,10 @@
 export type ApprovedLeaveExcusedAutomationActionState = {
   ok: boolean;
   message: string;
+
+  busy?: boolean;
+  retryAfterSeconds?: number;
+
   checkedCount?: number;
   generatedCount?: number;
   existingAttendanceCount?: number;
@@ -8,7 +12,9 @@ export type ApprovedLeaveExcusedAutomationActionState = {
   exceptionProtectedCount?: number;
   notScheduledCount?: number;
   skippedCount?: number;
+
   runAuditLogId?: number | null;
+
   fieldErrors?: {
     dateFrom?: string[];
     dateTo?: string[];
@@ -21,4 +27,5 @@ export const initialApprovedLeaveExcusedAutomationActionState: ApprovedLeaveExcu
   {
     ok: false,
     message: "",
+    busy: false,
   };

@@ -1,3 +1,4 @@
+import type { AttendanceAutomationLockHealthData } from "./attendance-automation-lock-health-types";
 import type {
   AttendanceAutomationHealthData,
   AttendanceAutomationHealthRun,
@@ -8,6 +9,9 @@ export type AttendanceAutomationHealthApiData = {
   secretConfigured: boolean;
   monitoringWindowDays: number;
   isPartial: boolean;
+
+  lock:
+    AttendanceAutomationLockHealthData;
 
   scheduleConfiguration:
     AttendanceAutomationHealthData["scheduleConfiguration"];
