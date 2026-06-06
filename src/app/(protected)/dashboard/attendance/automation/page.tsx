@@ -1,104 +1,83 @@
 import Link from "next/link";
 import {
-  Activity,
   ArrowLeft,
-  CalendarClock,
-  CheckCircle2,
-  CircleAlert,
+  ClipboardCheck,
   Clock3,
-  ExternalLink,
-  KeyRound,
-  LockKeyhole,
-  ServerCog,
-  Settings2,
+  ClockAlert,
+  FileSpreadsheet,
+  Hourglass,
+  RefreshCw,
   ShieldCheck,
-  TriangleAlert,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
-import { AttendanceAutomationCommandBuilder } from "@/features/attendance/automation/configuration/components/attendance-automation-command-builder";
-import { getAttendanceAutomationConfigurationData } from "@/features/attendance/automation/configuration/server/attendance-automation-configuration-queries";
+import { AttendanceAutomationRunner } from "@/features/attendance/automation/components/attendance-automation-runner";
+import { getAttendanceAutomationStatus } from "@/features/attendance/automation/server/attendance-automation-queries";
 
-export const dynamic = "force-dynamic";
-
-function EnvironmentVariableRow({
-  name,
-  value,
-  description,
-}: {
-  name: string;
-  value: string;
-  description: string;
-}) {
+function StatusBadge({ ok }: { ok: boolean }) {
   return (
-    <tr>
-      <td>
-        <code className="text-xs font-bold text-[var(--starland-dark-text)]">
-          {name}
-        </code>
-      </td>
-
-      <td>
-        <code className="text-xs text-[var(--starland-dark-text)]">
-          {value}
-        </code>
-      </td>
-
-      <td className="text-sm text-[var(--starland-muted-text)]">
-        {description}
-      </td>
-    </tr>
+    <span
+      className={[
+        "starland-badge",
+        ok ? "starland-badge-success" : "starland-badge-danger",
+      ].join(" ")}
+    >
+      {ok ? "OK" : "Needs Setup"}
+    </span>
   );
 }
 
-export default async function AttendanceAutomationConfigurationPage() {
+export default async function AttendanceAutomationPage() {
   await requireCanManageEmployees();
 
-  const data =
-    getAttendanceAutomationConfigurationData();
+  const status = await getAttendanceAutomationStatus();
+
+  const missingTimeoutCronUrlExample =
+    "/api/cron/mark-missing-timeouts?secret=<MISSING_TIMEOUT_CRON_SECRET>&limit=200";
+
+  const attendanceStatusCronUrlExample =
+    "/api/cron/recalculate-attendance-statuses?secret=<ATTENDANCE_STATUS_CRON_SECRET>&limit=300";
 
   return (
     <section className="starland-page space-y-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-info">
-            Automation Setup
+            Attendance Automation
           </span>
 
           <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
-            Attendance Automation Configuration
+            Attendance Automation Status
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Review protected endpoint settings,
-            scheduler timing, concurrency-lock
-            configuration, and safe commands for
-            external execution.
+            Check the automatic missing-timeout cron, attendance status
+            recalculation cron, actor accounts, and current automation workload.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Link
-            href="/dashboard/attendance/automation/health"
+            href="/dashboard/attendance/status-recalculation"
             className="starland-btn starland-btn-primary"
           >
-            <Activity
-              className="h-4 w-4"
-              aria-hidden="true"
-            />
-
-            Automation Health
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            Status Recalculation
           </Link>
 
           <Link
-            href="/dashboard/attendance/automation"
+            href="/dashboard/attendance/actions"
             className="starland-btn starland-btn-soft"
           >
-            <ArrowLeft
-              className="h-4 w-4"
-              aria-hidden="true"
-            />
+            <Clock3 className="h-4 w-4" aria-hidden="true" />
+            Attendance Actions
+          </Link>
 
-            Automation Overview
+          <Link
+            href="/dashboard/attendance"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Back to Attendance
           </Link>
         </div>
       </div>
@@ -106,383 +85,263 @@ export default async function AttendanceAutomationConfigurationPage() {
       <section className="starland-card overflow-hidden">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-            {data.environment.toUpperCase()}
+            Cron Health Check
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Protected Scheduler Setup
+            Automatic Missing Timeout Job
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            Secret values are never rendered. This
-            page displays only their configuration
-            source, expected header, and length.
+            This cron marks old time-in records without time-out as
+            MISSING_TIMEOUT. It does not make records manual and does not send
+            normal records to HR review.
           </p>
         </div>
 
-        <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <KeyRound
-              className={[
-                "h-7 w-7",
-                data.secret.configured
-                  ? "text-[var(--starland-success)]"
-                  : "text-[var(--starland-danger)]",
-              ].join(" ")}
-              aria-hidden="true"
-            />
+            <ShieldCheck className="h-7 w-7 text-[var(--starland-success)]" />
 
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Automation Secret
-            </p>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-sm font-bold text-[var(--starland-muted-text)]">
+                Missing Timeout Secret
+              </p>
 
-            <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
-              {data.secret.configured
-                ? "Configured"
-                : "Missing"}
-            </p>
+              <StatusBadge ok={status.cronSecretConfigured} />
+            </div>
 
-            <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Source: {data.secret.source}
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              Environment variable:
+              <br />
+              <code>MISSING_TIMEOUT_CRON_SECRET</code>
             </p>
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <CalendarClock
-              className="h-7 w-7 text-[var(--starland-info)]"
-              aria-hidden="true"
-            />
+            <ClipboardCheck className="h-7 w-7 text-[var(--starland-info)]" />
 
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Daily Schedule
-            </p>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-sm font-bold text-[var(--starland-muted-text)]">
+                Missing Timeout Actor
+              </p>
 
-            <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
-              {data.schedule.scheduleLabel}
-            </p>
+              <StatusBadge ok={status.cronActorFound} />
+            </div>
 
-            <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Grace:{" "}
-              {data.schedule.graceMinutes} minutes
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <LockKeyhole
-              className="h-7 w-7 text-[var(--starland-warning)]"
-              aria-hidden="true"
-            />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Lock Lease
-            </p>
-
-            <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
-              {data.lock.leaseSeconds} seconds
-            </p>
-
-            <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
-              {data.lock.leaseMinutes} minute(s)
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              {status.cronActorEmail}
+              <br />
+              User: {status.cronActorUsername}
+              <br />
+              Status: {status.cronActorStatus}
             </p>
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ServerCog
-              className="h-7 w-7 text-[var(--starland-main-green)]"
-              aria-hidden="true"
-            />
+            <ClockAlert className="h-7 w-7 text-[var(--starland-warning)]" />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Maximum Per Run
+              Eligible Missing Timeouts
             </p>
 
-            <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
-              {data.maximumRecordsPerRun}
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {status.eligibleMissingTimeouts}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Hourglass className="h-7 w-7 text-[var(--starland-danger)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Open Manual Review
             </p>
 
-            <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
-              Recommended range:{" "}
-              {data.recommendedDateRangeDays} days
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {status.openReviewRecords}
+            </p>
+          </article>
+        </div>
+
+        <div className="grid gap-4 px-5 pb-5 md:grid-cols-2">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <FileSpreadsheet className="h-7 w-7 text-[var(--starland-success)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Already Marked Missing Timeout
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {status.markedMissingTimeouts}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Clock3 className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Recommended Schedule
+            </p>
+
+            <p className="mt-1 text-lg font-extrabold text-[var(--starland-dark-text)]">
+              {status.recommendedSchedule}
+            </p>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              Batch limit: {status.batchLimit} records per run.
             </p>
           </article>
         </div>
       </section>
 
-      {data.warnings.length > 0 ? (
-        <section className="space-y-3">
-          {data.warnings.map((warning) => (
-            <article
-              key={warning.code}
-              className="rounded-2xl border border-amber-200 bg-amber-50 p-4"
-            >
-              <div className="flex items-start gap-3">
-                <TriangleAlert
-                  className="mt-0.5 h-5 w-5 shrink-0 text-amber-700"
-                  aria-hidden="true"
-                />
-
-                <div>
-                  <h2 className="font-extrabold text-amber-800">
-                    {warning.title}
-                  </h2>
-
-                  <p className="mt-1 text-sm font-semibold leading-6 text-amber-700">
-                    {warning.message}
-                  </p>
-                </div>
-              </div>
-            </article>
-          ))}
-        </section>
-      ) : (
-        <section className="rounded-2xl border border-green-200 bg-green-50 p-4">
-          <div className="flex items-start gap-3">
-            <CheckCircle2
-              className="mt-0.5 h-5 w-5 shrink-0 text-green-700"
-              aria-hidden="true"
-            />
-
-            <div>
-              <h2 className="font-extrabold text-green-800">
-                Configuration checks passed
-              </h2>
-
-              <p className="mt-1 text-sm font-semibold text-green-700">
-                No automation configuration warnings
-                were detected.
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section className="grid gap-5 xl:grid-cols-2">
-        <article className="starland-card overflow-hidden">
-          <div className="border-b border-[var(--starland-border)] px-5 py-4">
-            <div className="flex items-center gap-2">
-              <ShieldCheck
-                className="h-5 w-5 text-[var(--starland-success)]"
-                aria-hidden="true"
-              />
-
-              <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
-                Endpoint Authentication
-              </h2>
-            </div>
-          </div>
-
-          <dl className="grid gap-4 p-5 sm:grid-cols-2">
-            <div>
-              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
-                Secret Source
-              </dt>
-
-              <dd className="mt-1 break-all font-bold text-[var(--starland-dark-text)]">
-                {data.secret.source}
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
-                Secret Length
-              </dt>
-
-              <dd className="mt-1 font-bold text-[var(--starland-dark-text)]">
-                {data.secret.configured
-                  ? `${data.secret.secretLength} characters`
-                  : "Not configured"}
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
-                Request Header
-              </dt>
-
-              <dd className="mt-1 break-all font-bold text-[var(--starland-dark-text)]">
-                {data.secret.requestHeaderName}
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
-                Environment Variable
-              </dt>
-
-              <dd className="mt-1 break-all font-bold text-[var(--starland-dark-text)]">
-                {
-                  data.secret
-                    .environmentVariableName
-                }
-              </dd>
-            </div>
-          </dl>
-        </article>
-
-        <article className="starland-card overflow-hidden">
-          <div className="border-b border-[var(--starland-border)] px-5 py-4">
-            <div className="flex items-center gap-2">
-              <ExternalLink
-                className="h-5 w-5 text-[var(--starland-info)]"
-                aria-hidden="true"
-              />
-
-              <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
-                Endpoint URLs
-              </h2>
-            </div>
-          </div>
-
-          <div className="space-y-4 p-5">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
-                Application Base URL
-              </p>
-
-              <code className="mt-2 block overflow-x-auto whitespace-nowrap rounded-xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] px-3 py-2 text-xs text-[var(--starland-dark-text)]">
-                {data.applicationBaseUrl}
-              </code>
-            </div>
-
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
-                Automation Endpoint
-              </p>
-
-              <code className="mt-2 block overflow-x-auto whitespace-nowrap rounded-xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] px-3 py-2 text-xs text-[var(--starland-dark-text)]">
-                POST {data.automationEndpointUrl}
-              </code>
-            </div>
-
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
-                Health Endpoint
-              </p>
-
-              <code className="mt-2 block overflow-x-auto whitespace-nowrap rounded-xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] px-3 py-2 text-xs text-[var(--starland-dark-text)]">
-                GET {data.healthEndpointUrl}
-              </code>
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <AttendanceAutomationCommandBuilder
-        data={data}
+      <AttendanceAutomationRunner
+        batchLimit={status.batchLimit}
+        eligibleMissingTimeouts={status.eligibleMissingTimeouts}
       />
 
       <section className="starland-card overflow-hidden">
-        <div className="border-b border-[var(--starland-border)] px-5 py-4">
-          <div className="flex items-center gap-2">
-            <Settings2
-              className="h-5 w-5 text-[var(--starland-info)]"
-              aria-hidden="true"
-            />
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+            Status Recalculation Cron
+          </span>
 
-            <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
-              Environment Variables
-            </h2>
-          </div>
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+            Automatic Schedule-Based Status Calculation
+          </h2>
 
-          <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
-            Restart the Node.js application after
-            changing server-side environment
-            variables.
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+            This cron recalculates normal RFID, biometric, and ODL attendance
+            records using each employee&apos;s assigned schedule and shift.
+            Manual records and pending review records are skipped.
           </p>
         </div>
 
-        <div className="starland-scroll-x">
-          <table className="starland-table">
-            <thead>
-              <tr>
-                <th>Variable</th>
-                <th>Current / Example</th>
-                <th>Description</th>
-              </tr>
-            </thead>
+        <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <RefreshCw className="h-7 w-7 text-[var(--starland-main-green)]" />
 
-            <tbody>
-              <EnvironmentVariableRow
-                name="NEXT_PUBLIC_APP_URL"
-                value={
-                  data.applicationBaseUrl
-                }
-                description="Public HTTPS base URL used when generating endpoint commands."
-              />
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-sm font-bold text-[var(--starland-muted-text)]">
+                Status Cron Secret
+              </p>
 
-              <EnvironmentVariableRow
-                name="ATTENDANCE_AUTOMATION_SECRET"
-                value={
-                  data.secret.source ===
-                  "ATTENDANCE_AUTOMATION_SECRET"
-                    ? "Configured"
-                    : "Recommended"
-                }
-                description="Primary protected automation secret. Use a long random value."
-              />
+              <StatusBadge ok={status.attendanceStatusCronSecretConfigured} />
+            </div>
 
-              <EnvironmentVariableRow
-                name="ATTENDANCE_AUTOMATION_EXPECTED_HOUR"
-                value={String(
-                  data.schedule.expectedHour,
-                )}
-                description="Expected daily API execution hour using 24-hour Asia/Manila time."
-              />
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              Environment variable:
+              <br />
+              <code>ATTENDANCE_STATUS_CRON_SECRET</code>
+            </p>
+          </article>
 
-              <EnvironmentVariableRow
-                name="ATTENDANCE_AUTOMATION_EXPECTED_MINUTE"
-                value={String(
-                  data.schedule.expectedMinute,
-                )}
-                description="Expected minute of the scheduled API execution."
-              />
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ClipboardCheck className="h-7 w-7 text-[var(--starland-info)]" />
 
-              <EnvironmentVariableRow
-                name="ATTENDANCE_AUTOMATION_GRACE_MINUTES"
-                value={String(
-                  data.schedule.graceMinutes,
-                )}
-                description="Allowed delay after the expected execution time."
-              />
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-sm font-bold text-[var(--starland-muted-text)]">
+                Status Cron Actor
+              </p>
 
-              <EnvironmentVariableRow
-                name="ATTENDANCE_AUTOMATION_LOCK_LEASE_SECONDS"
-                value={String(
-                  data.lock.leaseSeconds,
-                )}
-                description="Maximum lifetime of the single-process automation lock."
-              />
-            </tbody>
-          </table>
+              <StatusBadge ok={status.attendanceStatusCronActorFound} />
+            </div>
+
+            <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+              {status.attendanceStatusCronActorEmail}
+              <br />
+              User: {status.attendanceStatusCronActorUsername}
+              <br />
+              Status: {status.attendanceStatusCronActorStatus}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ShieldCheck className="h-7 w-7 text-[var(--starland-success)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Normal Records
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {status.attendanceStatusNormalRecords}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Clock3 className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              With Schedule
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {status.attendanceStatusNormalRecordsWithSchedule}
+            </p>
+          </article>
+        </div>
+
+        <div className="px-5 pb-5">
+          <Link
+            href="/dashboard/attendance/status-recalculation"
+            className="starland-btn starland-btn-primary"
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            Open Status Recalculation
+          </Link>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
-        <div className="flex items-start gap-3">
-          <CircleAlert
-            className="mt-0.5 h-5 w-5 shrink-0 text-blue-700"
-            aria-hidden="true"
-          />
+      <section className="starland-card p-5">
+        <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+          Hostinger Cron Setup
+        </h2>
 
-          <div className="text-sm font-semibold leading-6 text-blue-800">
-            <p>
-              Schedule the protected automation call
-              once each day. A separate health check
-              may run after the grace deadline to
-              notify administrators when execution is
-              stale or degraded.
+        <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+          Add these URL formats to Hostinger cron. Replace the secret
+          placeholders with the exact values from your server environment. Do
+          not expose secrets in screenshots or commits.
+        </p>
+
+        <div className="mt-4 space-y-4">
+          <div className="overflow-x-auto rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+              Missing Timeout Cron
             </p>
 
-            <p className="mt-2">
-              Current expected execution:{" "}
-              <strong>
-                {data.schedule.scheduleLabel}
-              </strong>
-              . Current grace deadline is{" "}
-              <strong>
-                {data.schedule.graceMinutes} minutes
-              </strong>{" "}
-              later.
+            <code className="text-sm font-semibold text-[var(--starland-dark-text)]">
+              {missingTimeoutCronUrlExample}
+            </code>
+          </div>
+
+          <div className="overflow-x-auto rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+              Attendance Status Recalculation Cron
+            </p>
+
+            <code className="text-sm font-semibold text-[var(--starland-dark-text)]">
+              {attendanceStatusCronUrlExample}
+            </code>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-[var(--starland-border)] bg-white p-4">
+            <p className="text-sm font-bold text-[var(--starland-dark-text)]">
+              Missing Timeout Endpoint
+            </p>
+
+            <p className="mt-1 break-all text-sm text-[var(--starland-muted-text)]">
+              {status.endpointPath}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-[var(--starland-border)] bg-white p-4">
+            <p className="text-sm font-bold text-[var(--starland-dark-text)]">
+              Status Recalculation Endpoint
+            </p>
+
+            <p className="mt-1 break-all text-sm text-[var(--starland-muted-text)]">
+              {status.attendanceStatusEndpointPath}
             </p>
           </div>
         </div>
