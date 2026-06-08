@@ -7,6 +7,7 @@ import {
   BarChart3,
   BellRing,
   CalendarCheck,
+  DatabaseZap,
   Gauge,
   History,
   ListChecks,
@@ -56,6 +57,12 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       label: "Automation Health",
       href: "/dashboard/attendance/automation/health",
       icon: Activity,
+      exact: true,
+    },
+    {
+      label: "Diagnostics",
+      href: "/dashboard/attendance/automation/diagnostics",
+      icon: DatabaseZap,
       exact: true,
     },
     {
