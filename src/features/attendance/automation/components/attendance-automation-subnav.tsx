@@ -13,12 +13,19 @@ import {
   Settings2,
   type LucideIcon,
 } from "lucide-react";
+import type { AttendanceAutomationAlertOverallStatus } from "../alerts/types/attendance-automation-alert-types";
+
+type AttendanceAutomationSubnavProps = {
+  alertCount?: number;
+  alertStatus?: AttendanceAutomationAlertOverallStatus;
+};
 
 type AttendanceAutomationNavigationItem = {
   label: string;
   href: string;
   icon: LucideIcon;
   exact: boolean;
+  showAlertBadge?: boolean;
 };
 
 const navigationItems: AttendanceAutomationNavigationItem[] =
@@ -34,6 +41,7 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       href: "/dashboard/attendance/automation/alerts",
       icon: BellRing,
       exact: true,
+      showAlertBadge: true,
     },
     {
       label: "Automation Health",
@@ -89,7 +97,28 @@ function isItemActive(input: {
   );
 }
 
-export function AttendanceAutomationSubnav() {
+function alertBadgeClass(
+  status:
+    | AttendanceAutomationAlertOverallStatus
+    | undefined,
+): string {
+  switch (status) {
+    case "CRITICAL":
+      return "bg-red-600 text-white";
+
+    case "ATTENTION":
+      return "bg-amber-500 text-white";
+
+    case "HEALTHY":
+    default:
+      return "bg-[var(--starland-pale-green)] text-[var(--starland-dark-text)]";
+  }
+}
+
+export function AttendanceAutomationSubnav({
+  alertCount = 0,
+  alertStatus = "HEALTHY",
+}: AttendanceAutomationSubnavProps) {
   const pathname = usePathname();
 
   return (
@@ -106,6 +135,10 @@ export function AttendanceAutomationSubnav() {
             item,
           });
 
+          const showAlertBadge =
+            item.showAlertBadge &&
+            alertCount > 0;
+
           return (
             <Link
               key={item.href}
@@ -114,6 +147,11 @@ export function AttendanceAutomationSubnav() {
                 active
                   ? "page"
                   : undefined
+              }
+              aria-label={
+                item.showAlertBadge
+                  ? `${item.label}, ${alertCount} active alert${alertCount === 1 ? "" : "s"}`
+                  : item.label
               }
               className={[
                 "starland-btn starland-btn-sm",
@@ -127,7 +165,22 @@ export function AttendanceAutomationSubnav() {
                 aria-hidden="true"
               />
 
-              {item.label}
+              <span>{item.label}</span>
+
+              {showAlertBadge ? (
+                <span
+                  className={[
+                    "inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-extrabold leading-none",
+                    alertBadgeClass(
+                      alertStatus,
+                    ),
+                  ].join(" ")}
+                >
+                  {alertCount > 99
+                    ? "99+"
+                    : alertCount}
+                </span>
+              ) : null}
             </Link>
           );
         })}
