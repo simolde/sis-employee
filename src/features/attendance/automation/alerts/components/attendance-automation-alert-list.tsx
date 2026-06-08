@@ -4,6 +4,7 @@ import {
   ArrowUpRight,
   CheckCircle2,
   Info,
+  SearchX,
   TriangleAlert,
 } from "lucide-react";
 import type {
@@ -13,6 +14,9 @@ import type {
 
 type AttendanceAutomationAlertListProps = {
   alerts: AttendanceAutomationAlertItem[];
+  emptyTitle?: string;
+  emptyDescription?: string;
+  filtered?: boolean;
 };
 
 function severityContainerClass(
@@ -209,24 +213,60 @@ function AlertCard({
 
 export function AttendanceAutomationAlertList({
   alerts,
+  emptyTitle,
+  emptyDescription,
+  filtered = false,
 }: AttendanceAutomationAlertListProps) {
   if (alerts.length === 0) {
+    const EmptyIcon = filtered
+      ? SearchX
+      : CheckCircle2;
+
+    const containerClass = filtered
+      ? "border-blue-200 bg-blue-50"
+      : "border-green-200 bg-green-50";
+
+    const textClass = filtered
+      ? "text-blue-800"
+      : "text-green-800";
+
+    const iconClass = filtered
+      ? "text-blue-700"
+      : "text-green-700";
+
     return (
-      <section className="rounded-2xl border border-green-200 bg-green-50 p-6 text-center">
-        <CheckCircle2
-          className="mx-auto h-10 w-10 text-green-700"
+      <section
+        className={[
+          "rounded-2xl border p-6 text-center",
+          containerClass,
+        ].join(" ")}
+      >
+        <EmptyIcon
+          className={[
+            "mx-auto h-10 w-10",
+            iconClass,
+          ].join(" ")}
           aria-hidden="true"
         />
 
-        <h2 className="mt-4 text-xl font-extrabold text-green-800">
-          No active automation alerts
+        <h2
+          className={[
+            "mt-4 text-xl font-extrabold",
+            textClass,
+          ].join(" ")}
+        >
+          {emptyTitle ??
+            "No active automation alerts"}
         </h2>
 
-        <p className="mx-auto mt-2 max-w-2xl text-sm font-semibold leading-6 text-green-700">
-          The secret, scheduler, execution history,
-          recent failures, success rate, and
-          concurrency lock currently have no
-          warning or critical conditions.
+        <p
+          className={[
+            "mx-auto mt-2 max-w-2xl text-sm font-semibold leading-6",
+            textClass,
+          ].join(" ")}
+        >
+          {emptyDescription ??
+            "The attendance automation currently has no warning or critical conditions."}
         </p>
       </section>
     );
