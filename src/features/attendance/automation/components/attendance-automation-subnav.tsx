@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   BarChart3,
+  BellRing,
   CalendarCheck,
   Gauge,
   History,
@@ -26,6 +27,12 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       label: "Automation Overview",
       href: "/dashboard/attendance/automation",
       icon: Gauge,
+      exact: true,
+    },
+    {
+      label: "Alerts",
+      href: "/dashboard/attendance/automation/alerts",
+      icon: BellRing,
       exact: true,
     },
     {
