@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   DatabaseZap,
   Gauge,
+  HeartPulse,
   History,
   ListChecks,
   Settings2,
@@ -74,6 +75,12 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       exact: true,
     },
     {
+      label: "Cron Receipts",
+      href: "/dashboard/attendance/automation/scheduler/heartbeats",
+      icon: HeartPulse,
+      exact: true,
+    },
+    {
       label: "Diagnostics",
       href: "/dashboard/attendance/automation/diagnostics",
       icon: DatabaseZap,
@@ -113,7 +120,8 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
 
 function isItemActive(input: {
   pathname: string;
-  item: AttendanceAutomationNavigationItem;
+  item:
+    AttendanceAutomationNavigationItem;
 }): boolean {
   if (input.item.exact) {
     return (

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -eu
+set -u
 
 DEFAULT_ENV_FILE="$HOME/private/starland-attendance/.attendance-automation-cron.env"
 
@@ -37,6 +37,8 @@ BASE_URL="${ATTENDANCE_AUTOMATION_BASE_URL%/}"
 
 ENDPOINT="$BASE_URL/api/automation/attendance/health?mode=$ATTENDANCE_AUTOMATION_HEALTH_MODE"
 
+HEARTBEAT_ENDPOINT="$BASE_URL/api/automation/attendance/scheduler-heartbeat"
+
 RESPONSE_FILE="$(mktemp)"
 
 cleanup() {
@@ -45,9 +47,36 @@ cleanup() {
 
 trap cleanup EXIT HUP INT TERM
 
+send_heartbeat() {
+  heartbeat_outcome="$1"
+  heartbeat_http_status="$2"
+  heartbeat_started_at="$3"
+  heartbeat_finished_at="$4"
+  heartbeat_message="$5"
+
+  curl \
+    --silent \
+    --show-error \
+    --location \
+    --output /dev/null \
+    --request POST \
+    --header "X-Attendance-Automation-Secret: $ATTENDANCE_AUTOMATION_SECRET" \
+    --data-urlencode "task=HEALTH" \
+    --data-urlencode "outcome=$heartbeat_outcome" \
+    --data-urlencode "httpStatus=$heartbeat_http_status" \
+    --data-urlencode "startedAt=$heartbeat_started_at" \
+    --data-urlencode "finishedAt=$heartbeat_finished_at" \
+    --data-urlencode "message=$heartbeat_message" \
+    "$HEARTBEAT_ENDPOINT"
+
+  return $?
+}
+
+STARTED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+
 printf '%s\n' "Starland attendance automation health cron"
 printf '%s\n' "Endpoint: $ENDPOINT"
-printf '%s\n' "Started UTC: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+printf '%s\n' "Started UTC: $STARTED_AT"
 
 HTTP_STATUS="$(
   curl \
@@ -62,29 +91,48 @@ HTTP_STATUS="$(
     "$ENDPOINT"
 )"
 
-cat "$RESPONSE_FILE"
-printf '\n'
+CURL_EXIT_CODE="$?"
+
+FINISHED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+
+if [ -s "$RESPONSE_FILE" ]; then
+  cat "$RESPONSE_FILE"
+  printf '\n'
+fi
+
 printf '%s\n' "HTTP status: $HTTP_STATUS"
-printf '%s\n' "Finished UTC: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+printf '%s\n' "Finished UTC: $FINISHED_AT"
 
-case "$HTTP_STATUS" in
-  200)
-    printf '%s\n' "Attendance automation health check passed."
-    exit 0
-    ;;
+OUTCOME="FAILED"
+MESSAGE="Attendance automation health request failed."
+SCRIPT_EXIT_CODE=1
 
-  503)
-    printf '%s\n' "Attendance automation health requires attention." >&2
-    exit 2
-    ;;
+if [ "$CURL_EXIT_CODE" -ne 0 ]; then
+  HTTP_STATUS=""
+  MESSAGE="curl failed with exit code $CURL_EXIT_CODE."
+elif [ "$HTTP_STATUS" = "200" ]; then
+  OUTCOME="SUCCESS"
+  MESSAGE="Attendance automation health check passed."
+  SCRIPT_EXIT_CODE=0
+elif [ "$HTTP_STATUS" = "503" ]; then
+  OUTCOME="ATTENTION"
+  MESSAGE="Attendance automation health requires attention."
+  SCRIPT_EXIT_CODE=2
+elif [ "$HTTP_STATUS" = "401" ]; then
+  MESSAGE="Attendance automation health authentication failed."
+else
+  MESSAGE="Attendance automation health returned HTTP $HTTP_STATUS."
+fi
 
-  401)
-    printf '%s\n' "Attendance automation health authentication failed." >&2
-    exit 1
-    ;;
+if ! send_heartbeat \
+  "$OUTCOME" \
+  "$HTTP_STATUS" \
+  "$STARTED_AT" \
+  "$FINISHED_AT" \
+  "$MESSAGE"; then
+  printf '%s\n' "Warning: scheduler heartbeat could not be recorded." >&2
+fi
 
-  *)
-    printf '%s\n' "Attendance automation health returned an unexpected HTTP status." >&2
-    exit 1
-    ;;
-esac
+printf '%s\n' "$MESSAGE"
+
+exit "$SCRIPT_EXIT_CODE"
