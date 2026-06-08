@@ -11,13 +11,16 @@ import {
   History,
   ListChecks,
   Settings2,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import type { AttendanceAutomationAlertOverallStatus } from "../alerts/types/attendance-automation-alert-types";
 
 type AttendanceAutomationSubnavProps = {
   alertCount?: number;
-  alertStatus?: AttendanceAutomationAlertOverallStatus;
+
+  alertStatus?:
+    AttendanceAutomationAlertOverallStatus;
 };
 
 type AttendanceAutomationNavigationItem = {
@@ -42,6 +45,12 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       icon: BellRing,
       exact: true,
       showAlertBadge: true,
+    },
+    {
+      label: "Acknowledgements",
+      href: "/dashboard/attendance/automation/alerts/acknowledgements",
+      icon: ShieldCheck,
+      exact: true,
     },
     {
       label: "Automation Health",
@@ -150,7 +159,7 @@ export function AttendanceAutomationSubnav({
               }
               aria-label={
                 item.showAlertBadge
-                  ? `${item.label}, ${alertCount} active alert${alertCount === 1 ? "" : "s"}`
+                  ? `${item.label}, ${alertCount} unacknowledged alert${alertCount === 1 ? "" : "s"}`
                   : item.label
               }
               className={[
