@@ -6,7 +6,6 @@ import {
   ATTENDANCE_AUTOMATION_ALERT_ENTITY_TYPE,
 } from "../../types/attendance-automation-alert-acknowledgement-types";
 import type {
-  AttendanceAutomationAlertCode,
   AttendanceAutomationAlertSeverity,
 } from "../../types/attendance-automation-alert-types";
 import type {

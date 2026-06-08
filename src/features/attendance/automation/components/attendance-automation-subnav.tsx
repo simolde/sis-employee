@@ -7,6 +7,7 @@ import {
   BarChart3,
   BellRing,
   CalendarCheck,
+  ClipboardCheck,
   DatabaseZap,
   Gauge,
   History,
@@ -60,6 +61,12 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       exact: true,
     },
     {
+      label: "Readiness",
+      href: "/dashboard/attendance/automation/readiness",
+      icon: ClipboardCheck,
+      exact: true,
+    },
+    {
       label: "Diagnostics",
       href: "/dashboard/attendance/automation/diagnostics",
       icon: DatabaseZap,
@@ -99,7 +106,8 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
 
 function isItemActive(input: {
   pathname: string;
-  item: AttendanceAutomationNavigationItem;
+  item:
+    AttendanceAutomationNavigationItem;
 }): boolean {
   if (input.item.exact) {
     return (

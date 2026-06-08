@@ -5,7 +5,6 @@ import {
   CalendarClock,
   CheckCircle2,
   CircleAlert,
-  Clock3,
   ExternalLink,
   KeyRound,
   LockKeyhole,

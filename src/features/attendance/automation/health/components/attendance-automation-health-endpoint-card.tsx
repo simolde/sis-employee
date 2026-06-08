@@ -2,7 +2,6 @@ import {
   Activity,
   CheckCircle2,
   HeartPulse,
-  KeyRound,
   ShieldAlert,
   TriangleAlert,
 } from "lucide-react";
