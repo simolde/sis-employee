@@ -1,6 +1,8 @@
 import { getAttendanceAutomationConfigurationData } from "@/features/attendance/automation/configuration/server/attendance-automation-configuration-queries";
 import { getAttendanceAutomationHealthData } from "@/features/attendance/automation/health/server/attendance-automation-health-queries";
 import { getAttendanceAutomationLockHealthData } from "@/features/attendance/automation/health/server/attendance-automation-lock-health";
+import { getAttendanceAutomationSchedulerHeartbeatData } from "@/features/attendance/automation/scheduler/heartbeats/server/attendance-automation-scheduler-heartbeat-queries";
+import { buildAttendanceAutomationSchedulerHeartbeatAlerts } from "./attendance-automation-scheduler-heartbeat-alerts";
 import type {
   AttendanceAutomationAlertCenterData,
   AttendanceAutomationAlertCode,
@@ -20,19 +22,23 @@ type AlertDraft = Omit<
 function formatDateTime(
   value: Date,
 ): string {
-  return new Intl.DateTimeFormat("en-PH", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    timeZone: "Asia/Manila",
-  }).format(value);
+  return new Intl.DateTimeFormat(
+    "en-PH",
+    {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      timeZone: "Asia/Manila",
+    },
+  ).format(value);
 }
 
 function severityWeight(
-  severity: AttendanceAutomationAlertSeverity,
+  severity:
+    AttendanceAutomationAlertSeverity,
 ): number {
   switch (severity) {
     case "CRITICAL":
@@ -94,8 +100,12 @@ function buildOverallCopy(input: {
 function createAlertCollector(
   detectedAt: string,
 ): {
-  addAlert: (draft: AlertDraft) => void;
-  getAlerts: () => AttendanceAutomationAlertItem[];
+  addAlert: (
+    draft: AlertDraft,
+  ) => void;
+
+  getAlerts: () =>
+    AttendanceAutomationAlertItem[];
 } {
   const alerts =
     new Map<
@@ -117,21 +127,25 @@ function createAlertCollector(
   }
 
   function getAlerts(): AttendanceAutomationAlertItem[] {
-    return Array.from(alerts.values()).sort(
-      (left, right) => {
-        const severityDifference =
-          severityWeight(right.severity) -
-          severityWeight(left.severity);
-
-        if (severityDifference !== 0) {
-          return severityDifference;
-        }
-
-        return left.title.localeCompare(
-          right.title,
+    return Array.from(
+      alerts.values(),
+    ).sort((left, right) => {
+      const severityDifference =
+        severityWeight(
+          right.severity,
+        ) -
+        severityWeight(
+          left.severity,
         );
-      },
-    );
+
+      if (severityDifference !== 0) {
+        return severityDifference;
+      }
+
+      return left.title.localeCompare(
+        right.title,
+      );
+    });
   }
 
   return {
@@ -142,26 +156,35 @@ function createAlertCollector(
 
 export async function getAttendanceAutomationAlertCenterData(): Promise<AttendanceAutomationAlertCenterData> {
   const now = new Date();
-  const detectedAt = formatDateTime(now);
 
-  const [health, lock] =
-    await Promise.all([
-      getAttendanceAutomationHealthData(),
-
-      Promise.resolve(
-        getAttendanceAutomationLockHealthData(),
-      ),
-    ]);
+  const detectedAt =
+    formatDateTime(now);
 
   const configuration =
     getAttendanceAutomationConfigurationData();
 
+  const [
+    health,
+    lock,
+    schedulerHeartbeats,
+  ] = await Promise.all([
+    getAttendanceAutomationHealthData(),
+
+    getAttendanceAutomationLockHealthData(),
+
+    getAttendanceAutomationSchedulerHeartbeatData(),
+  ]);
+
   const collector =
-    createAlertCollector(detectedAt);
+    createAlertCollector(
+      detectedAt,
+    );
 
   if (!configuration.secret.configured) {
     collector.addAlert({
-      code: "SECRET_NOT_CONFIGURED",
+      code:
+        "SECRET_NOT_CONFIGURED",
+
       severity: "CRITICAL",
 
       title:
@@ -179,15 +202,20 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
       action: {
         label:
           "Open Configuration",
+
         href:
           "/dashboard/attendance/automation/configuration",
       },
     });
   }
 
-  if (health.summary.totalRuns === 0) {
+  if (
+    health.summary.totalRuns === 0
+  ) {
     collector.addAlert({
-      code: "AUTOMATION_RUNS_NOT_FOUND",
+      code:
+        "AUTOMATION_RUNS_NOT_FOUND",
+
       severity: "WARNING",
 
       title:
@@ -204,6 +232,7 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
       action: {
         label:
           "Run Automation",
+
         href:
           "/dashboard/attendance/automation/approved-leave-excused",
       },
@@ -221,7 +250,9 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
         .minutesOverdue;
 
     collector.addAlert({
-      code: "SCHEDULE_OVERDUE",
+      code:
+        "SCHEDULE_OVERDUE",
+
       severity: "CRITICAL",
 
       title:
@@ -233,6 +264,7 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
 
       details: [
         `Expected run: ${health.scheduleCompliance.expectedRunAt}.`,
+
         `Grace deadline: ${health.scheduleCompliance.graceDeadline}.`,
 
         minutesOverdue !== null
@@ -243,6 +275,7 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
       action: {
         label:
           "Review Automation Health",
+
         href:
           "/dashboard/attendance/automation/health",
       },
@@ -267,7 +300,9 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
 
       details: [
         `Expected run: ${health.scheduleCompliance.expectedRunAt}.`,
+
         `Grace deadline: ${health.scheduleCompliance.graceDeadline}.`,
+
         `Latest API run: ${health.scheduleCompliance.latestApiRunAt ?? "Unknown"}.`,
 
         health.scheduleCompliance
@@ -279,6 +314,7 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
       action: {
         label:
           "View Run History",
+
         href:
           "/dashboard/attendance/automation/approved-leave-excused/history",
       },
@@ -286,8 +322,8 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
   }
 
   if (
-    health.summary.failuresLast24Hours >
-    0
+    health.summary
+      .failuresLast24Hours > 0
   ) {
     const latestFailedRun =
       health.latestFailedRun;
@@ -316,21 +352,22 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
         "Review the failed run details before retrying it.",
       ],
 
-      action: latestFailedRun
-        ? {
-            label:
-              `Open Failed Run #${latestFailedRun.activityLogId}`,
+      action:
+        latestFailedRun
+          ? {
+              label:
+                `Open Failed Run #${latestFailedRun.activityLogId}`,
 
-            href:
-              `/dashboard/attendance/automation/approved-leave-excused/history/${latestFailedRun.activityLogId}`,
-          }
-        : {
-            label:
-              "Open Run History",
+              href:
+                `/dashboard/attendance/automation/approved-leave-excused/history/${latestFailedRun.activityLogId}`,
+            }
+          : {
+              label:
+                "Open Run History",
 
-            href:
-              "/dashboard/attendance/automation/approved-leave-excused/history",
-          },
+              href:
+                "/dashboard/attendance/automation/approved-leave-excused/history",
+            },
     });
   }
 
@@ -341,7 +378,9 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
       LOW_SUCCESS_RATE_THRESHOLD
   ) {
     collector.addAlert({
-      code: "LOW_SUCCESS_RATE",
+      code:
+        "LOW_SUCCESS_RATE",
+
       severity: "WARNING",
 
       title:
@@ -359,6 +398,7 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
       action: {
         label:
           "Open Automation Reports",
+
         href:
           "/dashboard/attendance/automation/reports",
       },
@@ -376,20 +416,26 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
         "Attendance automation is currently running",
 
       message:
-        "Another dashboard, API, or retry execution cannot start until the active lock is released.",
+        "Another dashboard, API, or retry execution cannot start until the active MySQL lock is released.",
 
       details: [
-        `Lock acquired: ${lock.acquiredAt ?? "Unknown"}.`,
-        `Automatic expiration: ${lock.expiresAt ?? "Unknown"}.`,
+        lock.ownerConnectionId !==
+        null
+          ? `MySQL owner connection: #${lock.ownerConnectionId}.`
+          : "The MySQL owner connection was not reported.",
 
-        lock.retryAfterSeconds !== null
+        lock.retryAfterSeconds !==
+        null
           ? `Recommended retry delay: ${lock.retryAfterSeconds} second(s).`
           : "Wait for the current operation to finish.",
+
+        `Lock provider: ${lock.source}.`,
       ],
 
       action: {
         label:
           "Open Automation Health",
+
         href:
           "/dashboard/attendance/automation/health",
       },
@@ -397,8 +443,8 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
   }
 
   if (
-    configuration.schedule.invalidVariables
-      .length > 0
+    configuration.schedule
+      .invalidVariables.length > 0
   ) {
     collector.addAlert({
       code:
@@ -414,13 +460,16 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
 
       details: [
         `Invalid variables: ${configuration.schedule.invalidVariables.join(", ")}.`,
+
         `Effective schedule: ${configuration.schedule.scheduleLabel}.`,
+
         `Effective grace period: ${configuration.schedule.graceMinutes} minutes.`,
       ],
 
       action: {
         label:
           "Review Configuration",
+
         href:
           "/dashboard/attendance/automation/configuration",
       },
@@ -429,24 +478,29 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
 
   if (!configuration.lock.valid) {
     collector.addAlert({
-      code: "INVALID_LOCK_LEASE",
+      code:
+        "INVALID_LOCK_LEASE",
+
       severity: "WARNING",
 
       title:
-        "Invalid automation lock lease",
+        "Invalid automation lock timeout",
 
       message:
         "ATTENDANCE_AUTOMATION_LOCK_LEASE_SECONDS is outside its accepted range.",
 
       details: [
         "Valid range: 60 through 3600 seconds.",
+
         `Effective fallback: ${configuration.lock.leaseSeconds} seconds.`,
+
         "Restart the application after correcting the environment value.",
       ],
 
       action: {
         label:
           "Review Configuration",
+
         href:
           "/dashboard/attendance/automation/configuration",
       },
@@ -479,10 +533,25 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
       action: {
         label:
           "Open Configuration",
+
         href:
           "/dashboard/attendance/automation/configuration",
       },
     });
+  }
+
+  const heartbeatAlerts =
+    buildAttendanceAutomationSchedulerHeartbeatAlerts(
+      schedulerHeartbeats,
+    );
+
+  for (
+    const heartbeatAlert of
+    heartbeatAlerts
+  ) {
+    collector.addAlert(
+      heartbeatAlert,
+    );
   }
 
   const derivedAlerts =
@@ -493,7 +562,9 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
     derivedAlerts.length === 0
   ) {
     collector.addAlert({
-      code: "DEGRADED_HEALTH",
+      code:
+        "DEGRADED_HEALTH",
+
       severity: "WARNING",
 
       title:
@@ -504,13 +575,20 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
 
       details: [
         `Health status: ${health.status}.`,
+
         `Schedule status: ${health.scheduleCompliance.status}.`,
-        `Latest run: ${health.latestRun ? `#${health.latestRun.activityLogId}` : "None"}.`,
+
+        `Latest run: ${
+          health.latestRun
+            ? `#${health.latestRun.activityLogId}`
+            : "None"
+        }.`,
       ],
 
       action: {
         label:
           "Open Automation Health",
+
         href:
           "/dashboard/attendance/automation/health",
       },
@@ -523,13 +601,15 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
   const criticalAlerts =
     alerts.filter(
       (alert) =>
-        alert.severity === "CRITICAL",
+        alert.severity ===
+        "CRITICAL",
     ).length;
 
   const warningAlerts =
     alerts.filter(
       (alert) =>
-        alert.severity === "WARNING",
+        alert.severity ===
+        "WARNING",
     ).length;
 
   const informationalAlerts =
@@ -554,7 +634,8 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
     overallDescription:
       overallCopy.description,
 
-    generatedAt: detectedAt,
+    generatedAt:
+      detectedAt,
 
     alerts,
 
@@ -577,6 +658,22 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
       lockStatus:
         lock.status,
 
+      schedulerHeartbeatState:
+        schedulerHeartbeats
+          .overallState,
+
+      automationReceiptState:
+        schedulerHeartbeats
+          .taskStatus
+          .automation
+          .state,
+
+      healthReceiptState:
+        schedulerHeartbeats
+          .taskStatus
+          .health
+          .state,
+
       secretConfigured:
         configuration.secret.configured,
 
@@ -584,7 +681,8 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
         health.summary.totalRuns,
 
       failuresLast24Hours:
-        health.summary.failuresLast24Hours,
+        health.summary
+          .failuresLast24Hours,
 
       successRate:
         health.summary.successRate,
@@ -595,6 +693,20 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
 
       latestFailedRunId:
         health.latestFailedRun
+          ?.activityLogId ?? null,
+
+      latestAutomationReceiptId:
+        schedulerHeartbeats
+          .taskStatus
+          .automation
+          .latestReceipt
+          ?.activityLogId ?? null,
+
+      latestHealthReceiptId:
+        schedulerHeartbeats
+          .taskStatus
+          .health
+          .latestReceipt
           ?.activityLogId ?? null,
     },
   };

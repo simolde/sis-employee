@@ -1,6 +1,9 @@
-import type { AttendanceAutomationHealthStatus } from "../../health/types/attendance-automation-health-types";
+import type {
+  AttendanceAutomationHealthStatus,
+  AttendanceAutomationScheduleComplianceStatus,
+} from "../../health/types/attendance-automation-health-types";
 import type { AttendanceAutomationLockHealthStatus } from "../../health/types/attendance-automation-lock-health-types";
-import type { AttendanceAutomationScheduleComplianceStatus } from "../../health/types/attendance-automation-health-types";
+import type { AttendanceAutomationSchedulerHeartbeatState } from "../../scheduler/heartbeats/types/attendance-automation-scheduler-heartbeat-types";
 
 export type AttendanceAutomationAlertSeverity =
   | "CRITICAL"
@@ -18,7 +21,11 @@ export type AttendanceAutomationAlertCode =
   | "INVALID_SCHEDULE_CONFIGURATION"
   | "INVALID_LOCK_LEASE"
   | "LOCAL_PRODUCTION_URL"
-  | "DEGRADED_HEALTH";
+  | "DEGRADED_HEALTH"
+  | "AUTOMATION_CRON_RECEIPT_MISSING"
+  | "HEALTH_CRON_RECEIPT_MISSING"
+  | "AUTOMATION_CRON_RECEIPT_ATTENTION"
+  | "HEALTH_CRON_RECEIPT_ATTENTION";
 
 export type AttendanceAutomationAlertAction = {
   label: string;
@@ -26,8 +33,11 @@ export type AttendanceAutomationAlertAction = {
 };
 
 export type AttendanceAutomationAlertItem = {
-  code: AttendanceAutomationAlertCode;
-  severity: AttendanceAutomationAlertSeverity;
+  code:
+    AttendanceAutomationAlertCode;
+
+  severity:
+    AttendanceAutomationAlertSeverity;
 
   title: string;
   message: string;
@@ -55,7 +65,8 @@ export type AttendanceAutomationAlertCenterData = {
 
   generatedAt: string;
 
-  alerts: AttendanceAutomationAlertItem[];
+  alerts:
+    AttendanceAutomationAlertItem[];
 
   summary: {
     totalAlerts: number;
@@ -74,13 +85,31 @@ export type AttendanceAutomationAlertCenterData = {
     lockStatus:
       AttendanceAutomationLockHealthStatus;
 
+    schedulerHeartbeatState:
+      AttendanceAutomationSchedulerHeartbeatState;
+
+    automationReceiptState:
+      AttendanceAutomationSchedulerHeartbeatState;
+
+    healthReceiptState:
+      AttendanceAutomationSchedulerHeartbeatState;
+
     secretConfigured: boolean;
 
     totalRuns: number;
     failuresLast24Hours: number;
     successRate: number;
 
-    latestRunId: number | null;
-    latestFailedRunId: number | null;
+    latestRunId:
+      number | null;
+
+    latestFailedRunId:
+      number | null;
+
+    latestAutomationReceiptId:
+      number | null;
+
+    latestHealthReceiptId:
+      number | null;
   };
 };
