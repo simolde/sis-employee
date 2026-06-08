@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity,
+  BarChart3,
   CalendarCheck,
   Gauge,
   History,
@@ -31,6 +32,12 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       label: "Automation Health",
       href: "/dashboard/attendance/automation/health",
       icon: Activity,
+      exact: true,
+    },
+    {
+      label: "Reports",
+      href: "/dashboard/attendance/automation/reports",
+      icon: BarChart3,
       exact: true,
     },
     {
@@ -65,7 +72,8 @@ function isItemActive(input: {
 }): boolean {
   if (input.item.exact) {
     return (
-      input.pathname === input.item.href
+      input.pathname ===
+      input.item.href
     );
   }
 
@@ -96,7 +104,9 @@ export function AttendanceAutomationSubnav() {
               key={item.href}
               href={item.href}
               aria-current={
-                active ? "page" : undefined
+                active
+                  ? "page"
+                  : undefined
               }
               className={[
                 "starland-btn starland-btn-sm",
