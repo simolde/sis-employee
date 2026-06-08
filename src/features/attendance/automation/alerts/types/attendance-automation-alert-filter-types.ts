@@ -1,7 +1,7 @@
+import type { AttendanceAutomationAlertViewItem } from "./attendance-automation-alert-acknowledgement-types";
 import type {
   AttendanceAutomationAlertCenterData,
   AttendanceAutomationAlertCode,
-  AttendanceAutomationAlertItem,
   AttendanceAutomationAlertSeverity,
 } from "./attendance-automation-alert-types";
 
@@ -29,24 +29,35 @@ export type AttendanceAutomationAlertCodeFilter =
 
 export type AttendanceAutomationAlertFilters = {
   q: string;
-  severity: AttendanceAutomationAlertSeverityFilter;
-  code: AttendanceAutomationAlertCodeFilter;
+  severity:
+    AttendanceAutomationAlertSeverityFilter;
+  code:
+    AttendanceAutomationAlertCodeFilter;
 };
 
 export type AttendanceAutomationFilteredAlertResult = {
-  source: AttendanceAutomationAlertCenterData;
+  source:
+    AttendanceAutomationAlertCenterData;
 
-  filters: AttendanceAutomationAlertFilters;
+  filters:
+    AttendanceAutomationAlertFilters;
 
-  alerts: AttendanceAutomationAlertItem[];
+  alerts:
+    AttendanceAutomationAlertViewItem[];
 
-  availableCodes: AttendanceAutomationAlertCode[];
+  availableCodes:
+    AttendanceAutomationAlertCode[];
 
   summary: {
     totalMatchingAlerts: number;
+
     matchingCriticalAlerts: number;
     matchingWarningAlerts: number;
     matchingInformationalAlerts: number;
+
+    acknowledgedAlerts: number;
+    unacknowledgedAlerts: number;
+
     hasActiveFilters: boolean;
   };
 };

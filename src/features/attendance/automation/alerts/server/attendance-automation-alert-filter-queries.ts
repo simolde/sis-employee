@@ -1,3 +1,4 @@
+import { getAttendanceAutomationAlertAcknowledgementMap } from "./attendance-automation-alert-acknowledgement-queries";
 import { getAttendanceAutomationAlertCenterData } from "./attendance-automation-alert-queries";
 import {
   ATTENDANCE_AUTOMATION_ALERT_CODES,
@@ -6,6 +7,7 @@ import {
   type AttendanceAutomationAlertSeverityFilter,
   type AttendanceAutomationFilteredAlertResult,
 } from "../types/attendance-automation-alert-filter-types";
+import type { AttendanceAutomationAlertViewItem } from "../types/attendance-automation-alert-acknowledgement-types";
 import type {
   AttendanceAutomationAlertCode,
   AttendanceAutomationAlertItem,
@@ -56,7 +58,7 @@ function normalizeCode(
 }
 
 function alertMatchesSearch(
-  alert: AttendanceAutomationAlertItem,
+  alert: AttendanceAutomationAlertViewItem,
   query: string,
 ): boolean {
   if (!query) {
@@ -70,6 +72,19 @@ function alertMatchesSearch(
     alert.message,
     ...alert.details,
     alert.action?.label ?? "",
+
+    alert.acknowledgement
+      ? "acknowledged"
+      : "unacknowledged",
+
+    alert.acknowledgement?.note ?? "",
+
+    alert.acknowledgement?.actorUserId
+      ? String(
+          alert.acknowledgement
+            .actorUserId,
+        )
+      : "",
   ]
     .join(" ")
     .toLowerCase();
@@ -89,8 +104,11 @@ function getAvailableCodes(
   return [
     ...ATTENDANCE_AUTOMATION_ALERT_CODES,
   ].sort((left, right) => {
-    const leftActive = activeCodes.has(left);
-    const rightActive = activeCodes.has(right);
+    const leftActive =
+      activeCodes.has(left);
+
+    const rightActive =
+      activeCodes.has(right);
 
     if (leftActive !== rightActive) {
       return leftActive ? -1 : 1;
@@ -131,8 +149,26 @@ export async function getFilteredAttendanceAutomationAlerts(
   const source =
     await getAttendanceAutomationAlertCenterData();
 
-  const alerts = source.alerts.filter(
-    (alert) => {
+  const acknowledgementMap =
+    await getAttendanceAutomationAlertAcknowledgementMap(
+      source.alerts.map(
+        (alert) => alert.code,
+      ),
+    );
+
+  const alertViewItems:
+    AttendanceAutomationAlertViewItem[] =
+    source.alerts.map((alert) => ({
+      ...alert,
+
+      acknowledgement:
+        acknowledgementMap.get(
+          alert.code,
+        ) ?? null,
+    }));
+
+  const alerts =
+    alertViewItems.filter((alert) => {
       if (
         filters.severity &&
         alert.severity !==
@@ -152,8 +188,13 @@ export async function getFilteredAttendanceAutomationAlerts(
         alert,
         filters.q,
       );
-    },
-  );
+    });
+
+  const acknowledgedAlerts =
+    alerts.filter(
+      (alert) =>
+        alert.acknowledgement !== null,
+    ).length;
 
   return {
     source,
@@ -189,6 +230,12 @@ export async function getFilteredAttendanceAutomationAlerts(
             alert.severity ===
             "INFO",
         ).length,
+
+      acknowledgedAlerts,
+
+      unacknowledgedAlerts:
+        alerts.length -
+        acknowledgedAlerts,
 
       hasActiveFilters: Boolean(
         filters.q ||

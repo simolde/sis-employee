@@ -66,7 +66,8 @@ export function buildAttendanceAutomationAlertCsv(
   rows.push(
     buildCsvRow([
       "Overall Description",
-      result.source.overallDescription,
+      result.source
+        .overallDescription,
     ]),
   );
 
@@ -104,22 +105,15 @@ export function buildAttendanceAutomationAlertCsv(
 
   rows.push(
     buildCsvRow([
-      "Matching Critical",
-      result.summary.matchingCriticalAlerts,
+      "Acknowledged Alerts",
+      result.summary.acknowledgedAlerts,
     ]),
   );
 
   rows.push(
     buildCsvRow([
-      "Matching Warnings",
-      result.summary.matchingWarningAlerts,
-    ]),
-  );
-
-  rows.push(
-    buildCsvRow([
-      "Matching Information",
-      result.summary.matchingInformationalAlerts,
+      "Unacknowledged Alerts",
+      result.summary.unacknowledgedAlerts,
     ]),
   );
 
@@ -132,6 +126,13 @@ export function buildAttendanceAutomationAlertCsv(
       "Title",
       "Message",
       "Details",
+
+      "Acknowledged",
+      "Acknowledged By",
+      "Acknowledged At",
+      "Acknowledged Until",
+      "Acknowledgement Note",
+
       "Action",
       "Action URL",
       "Detected At",
@@ -139,6 +140,9 @@ export function buildAttendanceAutomationAlertCsv(
   );
 
   for (const alert of result.alerts) {
+    const acknowledgement =
+      alert.acknowledgement;
+
     rows.push(
       buildCsvRow([
         alert.severity,
@@ -146,6 +150,20 @@ export function buildAttendanceAutomationAlertCsv(
         alert.title,
         alert.message,
         alert.details.join(" | "),
+
+        acknowledgement !== null,
+
+        acknowledgement
+          ?.actorUserId ?? "",
+
+        acknowledgement
+          ?.acknowledgedAt ?? "",
+
+        acknowledgement
+          ?.acknowledgedUntil ?? "",
+
+        acknowledgement?.note ?? "",
+
         alert.action?.label ?? "",
         alert.action?.href ?? "",
         alert.detectedAt,
@@ -180,16 +198,17 @@ export function buildAttendanceAutomationAlertCsvFileName(
         )
       : "all-alerts";
 
-  const datePart =
-    new Date()
-      .toISOString()
-      .slice(0, 10);
+  const datePart = new Date()
+    .toISOString()
+    .slice(0, 10);
 
-  return [
-    "attendance-automation-alerts",
-    datePart,
-    severityPart,
-    codePart,
-    searchPart,
-  ].join("-") + ".csv";
+  return (
+    [
+      "attendance-automation-alerts",
+      datePart,
+      severityPart,
+      codePart,
+      searchPart,
+    ].join("-") + ".csv"
+  );
 }
