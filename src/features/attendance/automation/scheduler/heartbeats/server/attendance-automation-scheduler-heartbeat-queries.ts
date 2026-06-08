@@ -1,5 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { getAttendanceAutomationConfigurationData } from "@/features/attendance/automation/configuration/server/attendance-automation-configuration-queries";
+import { getAttendanceAutomationSchedulerMonitoringConfiguration } from "@/features/attendance/automation/scheduler/server/attendance-automation-scheduler-monitoring-config";
 import { prisma } from "@/lib/db/prisma";
 import {
   ATTENDANCE_AUTOMATION_SCHEDULER_HEARTBEAT_ACTION,
@@ -313,7 +314,9 @@ function getManilaDateParts(
 
 function getCurrentExpectedExecution(input: {
   now: Date;
-  scheduledMinutesFromManilaMidnight: number;
+
+  scheduledMinutesFromManilaMidnight:
+    number;
 }): Date {
   const manilaDate =
     getManilaDateParts(input.now);
@@ -351,7 +354,40 @@ function getCurrentExpectedExecution(input: {
   return expectedAt;
 }
 
-function buildTaskStatus(input: {
+function buildDisabledTaskStatus(input: {
+  task:
+    AttendanceAutomationSchedulerHeartbeatTask;
+
+  expectedAt: Date;
+
+  latestReceipt:
+    AttendanceAutomationSchedulerHeartbeatRecord | null;
+}): AttendanceAutomationSchedulerTaskHeartbeatStatus {
+  return {
+    task: input.task,
+
+    state: "DISABLED",
+
+    stateLabel:
+      "Receipt Monitoring Disabled",
+
+    stateDescription:
+      `The application is not currently requiring ${input.task.toLowerCase()} cron receipts.`,
+
+    expectedAt:
+      formatDateTime(
+        input.expectedAt,
+      ),
+
+    expectedAtIso:
+      input.expectedAt.toISOString(),
+
+    latestReceipt:
+      input.latestReceipt,
+  };
+}
+
+function buildEnabledTaskStatus(input: {
   task:
     AttendanceAutomationSchedulerHeartbeatTask;
 
@@ -469,13 +505,47 @@ function buildTaskStatus(input: {
   };
 }
 
+function buildTaskStatus(input: {
+  monitoringEnabled: boolean;
+
+  task:
+    AttendanceAutomationSchedulerHeartbeatTask;
+
+  expectedAt: Date;
+
+  latestReceipt:
+    AttendanceAutomationSchedulerHeartbeatRecord | null;
+}): AttendanceAutomationSchedulerTaskHeartbeatStatus {
+  if (!input.monitoringEnabled) {
+    return buildDisabledTaskStatus({
+      task: input.task,
+      expectedAt: input.expectedAt,
+      latestReceipt:
+        input.latestReceipt,
+    });
+  }
+
+  return buildEnabledTaskStatus({
+    task: input.task,
+    expectedAt: input.expectedAt,
+    latestReceipt:
+      input.latestReceipt,
+  });
+}
+
 function getOverallState(input: {
+  monitoringEnabled: boolean;
+
   automation:
     AttendanceAutomationSchedulerTaskHeartbeatStatus;
 
   health:
     AttendanceAutomationSchedulerTaskHeartbeatStatus;
 }): AttendanceAutomationSchedulerHeartbeatState {
+  if (!input.monitoringEnabled) {
+    return "DISABLED";
+  }
+
   if (
     input.automation.state ===
       "MISSING" ||
@@ -497,7 +567,8 @@ function getOverallState(input: {
 }
 
 function getOverallCopy(
-  state: AttendanceAutomationSchedulerHeartbeatState,
+  state:
+    AttendanceAutomationSchedulerHeartbeatState,
 ): {
   label: string;
   description: string;
@@ -529,6 +600,15 @@ function getOverallCopy(
         description:
           "At least one expected Hostinger cron receipt has not been recorded for the current scheduling window.",
       };
+
+    case "DISABLED":
+      return {
+        label:
+          "Hostinger Cron Monitoring Disabled",
+
+        description:
+          "Receipt history remains available, but the application is not currently requiring daily Hostinger cron receipts.",
+      };
   }
 }
 
@@ -537,6 +617,9 @@ export async function getAttendanceAutomationSchedulerHeartbeatData(): Promise<A
 
   const configuration =
     getAttendanceAutomationConfigurationData();
+
+  const monitoring =
+    getAttendanceAutomationSchedulerMonitoringConfiguration();
 
   const monitoringStart =
     new Date(
@@ -630,24 +713,37 @@ export async function getAttendanceAutomationSchedulerHeartbeatData(): Promise<A
 
   const automationStatus =
     buildTaskStatus({
+      monitoringEnabled:
+        monitoring.enabled,
+
       task: "AUTOMATION",
+
       expectedAt:
         automationExpectedAt,
+
       latestReceipt:
         latestAutomation,
     });
 
   const healthStatus =
     buildTaskStatus({
+      monitoringEnabled:
+        monitoring.enabled,
+
       task: "HEALTH",
+
       expectedAt:
         healthExpectedAt,
+
       latestReceipt:
         latestHealth,
     });
 
   const overallState =
     getOverallState({
+      monitoringEnabled:
+        monitoring.enabled,
+
       automation:
         automationStatus,
 
@@ -677,6 +773,35 @@ export async function getAttendanceAutomationSchedulerHeartbeatData(): Promise<A
 
     monitoringWindowDays:
       MONITORING_WINDOW_DAYS,
+
+    monitoring: {
+      enabled:
+        monitoring.enabled,
+
+      valid:
+        monitoring.valid,
+
+      provider:
+        monitoring.provider,
+
+      source:
+        monitoring.source,
+
+      variableName:
+        monitoring.variableName,
+
+      rawValue:
+        monitoring.rawValue,
+
+      normalizedValue:
+        monitoring.normalizedValue,
+
+      statusLabel:
+        monitoring.statusLabel,
+
+      statusDescription:
+        monitoring.statusDescription,
+    },
 
     taskStatus: {
       automation:

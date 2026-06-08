@@ -5,6 +5,7 @@ import {
   Clock3,
   HeartPulse,
   History,
+  PauseCircle,
   Play,
   SkipForward,
   TriangleAlert,
@@ -34,6 +35,9 @@ function stateContainerClass(
 
     case "MISSING":
       return "border-red-200 bg-red-50 text-red-800";
+
+    case "DISABLED":
+      return "border-blue-200 bg-blue-50 text-blue-800";
   }
 }
 
@@ -66,6 +70,14 @@ function StateIcon({
     case "MISSING":
       return (
         <CircleAlert
+          className={className}
+          aria-hidden="true"
+        />
+      );
+
+    case "DISABLED":
+      return (
+        <PauseCircle
           className={className}
           aria-hidden="true"
         />
@@ -156,7 +168,7 @@ function TaskStatusCard({
         <dl className="mt-5 space-y-4">
           <div>
             <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
-              Current Expected Window
+              Expected Window
             </dt>
 
             <dd className="mt-1 font-bold text-[var(--starland-dark-text)]">
@@ -262,6 +274,91 @@ export function AttendanceAutomationSchedulerHeartbeatDashboard({
         </div>
       </section>
 
+      <section
+        className={[
+          "rounded-2xl border p-4",
+          data.monitoring.valid
+            ? data.monitoring.enabled
+              ? "border-green-200 bg-green-50"
+              : "border-blue-200 bg-blue-50"
+            : "border-amber-200 bg-amber-50",
+        ].join(" ")}
+      >
+        <div className="flex items-start gap-3">
+          {data.monitoring.valid ? (
+            data.monitoring.enabled ? (
+              <CheckCircle2
+                className="mt-0.5 h-5 w-5 shrink-0 text-green-700"
+                aria-hidden="true"
+              />
+            ) : (
+              <PauseCircle
+                className="mt-0.5 h-5 w-5 shrink-0 text-blue-700"
+                aria-hidden="true"
+              />
+            )
+          ) : (
+            <TriangleAlert
+              className="mt-0.5 h-5 w-5 shrink-0 text-amber-700"
+              aria-hidden="true"
+            />
+          )}
+
+          <div>
+            <h2
+              className={[
+                "font-extrabold",
+                data.monitoring.valid
+                  ? data.monitoring.enabled
+                    ? "text-green-800"
+                    : "text-blue-800"
+                  : "text-amber-800",
+              ].join(" ")}
+            >
+              {data.monitoring.statusLabel}
+            </h2>
+
+            <p
+              className={[
+                "mt-1 text-sm font-semibold leading-6",
+                data.monitoring.valid
+                  ? data.monitoring.enabled
+                    ? "text-green-700"
+                    : "text-blue-700"
+                  : "text-amber-700",
+              ].join(" ")}
+            >
+              {
+                data.monitoring
+                  .statusDescription
+              }
+            </p>
+
+            <code
+              className={[
+                "mt-3 block rounded-xl border bg-white/70 px-3 py-2 text-xs font-bold",
+                data.monitoring.valid
+                  ? data.monitoring.enabled
+                    ? "border-green-200 text-green-800"
+                    : "border-blue-200 text-blue-800"
+                  : "border-amber-200 text-amber-800",
+              ].join(" ")}
+            >
+              {
+                data.monitoring
+                  .variableName
+              }
+              =&quot;
+              {
+                data.monitoring
+                  .normalizedValue
+              }
+              &quot;
+            </code>
+          </div>
+        </div>
+      </section>
+
       <section className="grid gap-5 xl:grid-cols-2">
         <TaskStatusCard
           status={
@@ -363,7 +460,9 @@ export function AttendanceAutomationSchedulerHeartbeatDashboard({
           <p className="mt-1 text-sm leading-6 text-[var(--starland-muted-text)]">
             Latest receipts within the{" "}
             {data.monitoringWindowDays}-day
-            monitoring window.
+            monitoring window. Receipt history
+            remains available even while monitoring
+            is disabled.
           </p>
         </div>
 
@@ -470,7 +569,7 @@ export function AttendanceAutomationSchedulerHeartbeatDashboard({
                       </p>
 
                       <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
-                        Upload the updated shell
+                        Upload the production shell
                         scripts or submit a manual
                         test receipt.
                       </p>

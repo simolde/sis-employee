@@ -111,7 +111,10 @@ function buildAutomationReceiptAlert(
   status:
     AttendanceAutomationSchedulerTaskHeartbeatStatus,
 ): AttendanceAutomationHeartbeatAlertDraft | null {
-  if (status.state === "HEALTHY") {
+  if (
+    status.state === "HEALTHY" ||
+    status.state === "DISABLED"
+  ) {
     return null;
   }
 
@@ -180,7 +183,10 @@ function buildHealthReceiptAlert(
   status:
     AttendanceAutomationSchedulerTaskHeartbeatStatus,
 ): AttendanceAutomationHeartbeatAlertDraft | null {
-  if (status.state === "HEALTHY") {
+  if (
+    status.state === "HEALTHY" ||
+    status.state === "DISABLED"
+  ) {
     return null;
   }
 
@@ -249,6 +255,10 @@ export function buildAttendanceAutomationSchedulerHeartbeatAlerts(
   data:
     AttendanceAutomationSchedulerHeartbeatData,
 ): AttendanceAutomationHeartbeatAlertDraft[] {
+  if (!data.monitoring.enabled) {
+    return [];
+  }
+
   const alerts:
     AttendanceAutomationHeartbeatAlertDraft[] =
     [];

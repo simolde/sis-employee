@@ -1,3 +1,8 @@
+import type {
+  AttendanceAutomationCronProvider,
+  AttendanceAutomationSchedulerMonitoringSource,
+} from "../../server/attendance-automation-scheduler-monitoring-config";
+
 export const ATTENDANCE_AUTOMATION_SCHEDULER_HEARTBEAT_ACTION =
   "ATTENDANCE_AUTOMATION_SCHEDULER_HEARTBEAT";
 
@@ -20,7 +25,8 @@ export type AttendanceAutomationSchedulerHeartbeatSource =
 export type AttendanceAutomationSchedulerHeartbeatState =
   | "HEALTHY"
   | "ATTENTION"
-  | "MISSING";
+  | "MISSING"
+  | "DISABLED";
 
 export type AttendanceAutomationSchedulerHeartbeatRecord = {
   activityLogId: number;
@@ -80,6 +86,28 @@ export type AttendanceAutomationSchedulerHeartbeatData = {
   generatedAtIso: string;
 
   monitoringWindowDays: number;
+
+  monitoring: {
+    enabled: boolean;
+    valid: boolean;
+
+    provider:
+      AttendanceAutomationCronProvider;
+
+    source:
+      AttendanceAutomationSchedulerMonitoringSource;
+
+    variableName: string;
+
+    rawValue: string | null;
+
+    normalizedValue:
+      | "true"
+      | "false";
+
+    statusLabel: string;
+    statusDescription: string;
+  };
 
   taskStatus: {
     automation:
