@@ -8,6 +8,7 @@ import {
   Settings2,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationAlertEndpointCard } from "@/features/attendance/automation/alerts/components/attendance-automation-alert-endpoint-card";
 import { AttendanceAutomationAlertList } from "@/features/attendance/automation/alerts/components/attendance-automation-alert-list";
 import { AttendanceAutomationAlertSummary } from "@/features/attendance/automation/alerts/components/attendance-automation-alert-summary";
 import { getAttendanceAutomationAlertCenterData } from "@/features/attendance/automation/alerts/server/attendance-automation-alert-queries";
@@ -131,6 +132,10 @@ export default async function AttendanceAutomationAlertsPage() {
       </section>
 
       <AttendanceAutomationAlertSummary
+        data={data}
+      />
+
+      <AttendanceAutomationAlertEndpointCard
         data={data}
       />
 
