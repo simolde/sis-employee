@@ -1,22 +1,30 @@
 import {
+  Activity,
   CheckCircle2,
-  CircleAlert,
+  HeartPulse,
   KeyRound,
-  RadioTower,
-  ServerCog,
+  ShieldAlert,
+  TriangleAlert,
 } from "lucide-react";
-import type {
-  AttendanceAutomationHealthData,
-} from "../types/attendance-automation-health-types";
+import type { AttendanceAutomationHealthData } from "../types/attendance-automation-health-types";
 
 type AttendanceAutomationHealthEndpointCardProps = {
   data: AttendanceAutomationHealthData;
 };
 
-function expectedStatusCode(
-  data: AttendanceAutomationHealthData,
+function strictStatusCode(
+  status: AttendanceAutomationHealthData["status"],
 ): number {
-  return data.status === "HEALTHY"
+  return status === "HEALTHY"
+    ? 200
+    : 503;
+}
+
+function operationalStatusCode(
+  status: AttendanceAutomationHealthData["status"],
+): number {
+  return status === "HEALTHY" ||
+    status === "DEGRADED"
     ? 200
     : 503;
 }
@@ -24,14 +32,17 @@ function expectedStatusCode(
 export function AttendanceAutomationHealthEndpointCard({
   data,
 }: AttendanceAutomationHealthEndpointCardProps) {
-  const statusCode =
-    expectedStatusCode(data);
+  const strictCode =
+    strictStatusCode(data.status);
+
+  const operationalCode =
+    operationalStatusCode(data.status);
 
   return (
     <section className="starland-card overflow-hidden">
       <div className="border-b border-[var(--starland-border)] px-5 py-4">
         <div className="flex items-center gap-2">
-          <RadioTower
+          <HeartPulse
             className="h-5 w-5 text-[var(--starland-info)]"
             aria-hidden="true"
           />
@@ -42,71 +53,71 @@ export function AttendanceAutomationHealthEndpointCard({
         </div>
 
         <p className="mt-1 text-sm leading-6 text-[var(--starland-muted-text)]">
-          External uptime monitors and scheduled
-          checks can use this endpoint to verify the
-          approved-leave automation state.
+          External monitoring can use strict mode
+          for admin review or operational mode for
+          scheduler uptime checks.
         </p>
       </div>
 
       <div className="grid gap-4 p-5 lg:grid-cols-3">
         <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-          <ServerCog
+          <Activity
             className="h-6 w-6 text-[var(--starland-info)]"
             aria-hidden="true"
           />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-            Endpoint
+            Strict Endpoint
           </p>
 
           <code className="mt-2 block overflow-x-auto whitespace-nowrap rounded-xl border border-[var(--starland-border)] bg-white px-3 py-2 text-xs font-semibold text-[var(--starland-dark-text)]">
             GET
-            /api/automation/attendance/health
+            /api/automation/attendance/health?mode=strict
           </code>
+
+          <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
+            Returns 503 for DEGRADED, STALE,
+            NO_RUNS, and NOT_CONFIGURED.
+          </p>
         </article>
 
         <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-          <KeyRound
-            className={[
-              "h-6 w-6",
-              data.secretConfigured
-                ? "text-[var(--starland-success)]"
-                : "text-[var(--starland-danger)]",
-            ].join(" ")}
+          <CheckCircle2
+            className="h-6 w-6 text-[var(--starland-success)]"
             aria-hidden="true"
           />
 
           <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-            Authentication
+            Operational Endpoint
           </p>
 
-          <p className="mt-2 text-lg font-extrabold text-[var(--starland-dark-text)]">
-            {data.secretConfigured
-              ? "Secret configured"
-              : "Secret missing"}
-          </p>
+          <code className="mt-2 block overflow-x-auto whitespace-nowrap rounded-xl border border-[var(--starland-border)] bg-white px-3 py-2 text-xs font-semibold text-[var(--starland-dark-text)]">
+            GET
+            /api/automation/attendance/health?mode=operational
+          </code>
 
-          <p className="mt-2 text-xs leading-5 text-[var(--starland-muted-text)]">
-            Supports a bearer token or the
-            X-Attendance-Automation-Secret header.
+          <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
+            Returns 200 for HEALTHY and DEGRADED,
+            but 503 for STALE, NO_RUNS, and
+            NOT_CONFIGURED.
           </p>
         </article>
 
         <article
           className={[
             "rounded-2xl border p-4",
-            statusCode === 200
+            strictCode === 200
               ? "border-green-200 bg-green-50"
               : "border-amber-200 bg-amber-50",
           ].join(" ")}
         >
-          {statusCode === 200 ? (
+          {strictCode === 200 ? (
             <CheckCircle2
               className="h-6 w-6 text-green-700"
               aria-hidden="true"
             />
           ) : (
-            <CircleAlert
+            <TriangleAlert
               className="h-6 w-6 text-amber-700"
               aria-hidden="true"
             />
@@ -115,37 +126,49 @@ export function AttendanceAutomationHealthEndpointCard({
           <p
             className={[
               "mt-3 text-sm font-bold",
-              statusCode === 200
+              strictCode === 200
                 ? "text-green-700"
                 : "text-amber-700",
             ].join(" ")}
           >
-            Current HTTP Result
+            Current Result
           </p>
 
           <p
             className={[
               "mt-2 text-2xl font-extrabold",
-              statusCode === 200
+              strictCode === 200
                 ? "text-green-800"
                 : "text-amber-800",
             ].join(" ")}
           >
-            HTTP {statusCode}
+            Strict HTTP {strictCode}
           </p>
 
           <p
             className={[
-              "mt-2 text-xs font-semibold leading-5",
-              statusCode === 200
+              "mt-2 text-sm font-extrabold",
+              operationalCode === 200
                 ? "text-green-700"
                 : "text-amber-700",
             ].join(" ")}
           >
-            {statusCode === 200
-              ? "The automation currently passes the health requirements."
-              : "The endpoint will signal that monitoring attention is required."}
+            Operational HTTP {operationalCode}
           </p>
+
+          <div className="mt-3 flex items-start gap-2 text-xs font-semibold leading-5 text-[var(--starland-muted-text)]">
+            <ShieldAlert
+              className="mt-0.5 h-4 w-4 shrink-0"
+              aria-hidden="true"
+            />
+
+            <p>
+              Use strict mode for admin dashboards.
+              Use operational mode when a late
+              completed run should be warning-level
+              instead of downtime.
+            </p>
+          </div>
         </article>
       </div>
     </section>

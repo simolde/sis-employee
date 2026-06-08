@@ -5,6 +5,7 @@ import {
 import {
   buildAttendanceAutomationHealthApiResponse,
   getAttendanceAutomationHealthHttpStatus,
+  normalizeAttendanceAutomationHealthMode,
 } from "@/features/attendance/automation/health/server/attendance-automation-health-response";
 import { authorizeAutomationRequest } from "@/lib/security/automation-request-auth";
 
@@ -17,9 +18,11 @@ function jsonResponse(
 ): NextResponse {
   return NextResponse.json(body, {
     status,
+
     headers: {
       "Cache-Control":
         "no-store, no-cache, must-revalidate",
+
       Pragma: "no-cache",
       Expires: "0",
     },
@@ -36,9 +39,10 @@ async function handleHealthRequest(
     return jsonResponse(
       {
         ok: false,
-        status: "NOT_CONFIGURED",
+
         message:
           "Attendance automation secret is not configured.",
+
         ...(process.env.NODE_ENV !==
         "production"
           ? {
@@ -55,8 +59,10 @@ async function handleHealthRequest(
     return jsonResponse(
       {
         ok: false,
+
         message:
           "Unauthorized automation health request.",
+
         ...(process.env.NODE_ENV !==
         "production"
           ? {
@@ -70,16 +76,29 @@ async function handleHealthRequest(
   }
 
   try {
+    const mode =
+      normalizeAttendanceAutomationHealthMode(
+        request.nextUrl.searchParams.get(
+          "mode",
+        ),
+      );
+
     const response =
-      await buildAttendanceAutomationHealthApiResponse();
+      await buildAttendanceAutomationHealthApiResponse(
+        mode,
+      );
 
     const status =
       getAttendanceAutomationHealthHttpStatus(
         response.status,
+        mode,
       );
 
     return jsonResponse(
-      response,
+      {
+        ...response,
+        mode,
+      },
       status,
     );
   } catch (error) {
@@ -91,7 +110,7 @@ async function handleHealthRequest(
     return jsonResponse(
       {
         ok: false,
-        status: "DEGRADED",
+
         message:
           "Attendance automation health could not be evaluated.",
       },

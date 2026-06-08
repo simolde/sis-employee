@@ -4,6 +4,12 @@ param(
     [string]$Secret = "",
 
     [ValidateSet(
+        "strict",
+        "operational"
+    )]
+    [string]$Mode = "strict",
+
+    [ValidateSet(
         "Authorization",
         "XAttendance",
         "XCron"
@@ -33,13 +39,15 @@ function Remove-SurroundingQuotes {
         1
     )
 
-    $hasDoubleQuotes =
+    $hasDoubleQuotes = (
         $firstCharacter -eq '"' -and
         $lastCharacter -eq '"'
+    )
 
-    $hasSingleQuotes =
+    $hasSingleQuotes = (
         $firstCharacter -eq "'" -and
         $lastCharacter -eq "'"
+    )
 
     if ($hasDoubleQuotes -or $hasSingleQuotes) {
         return $normalized.Substring(
@@ -51,7 +59,7 @@ function Remove-SurroundingQuotes {
     return $normalized
 }
 
-function Find-EnvironmentVariableInFiles {
+function Get-EnvironmentValueFromFiles {
     param(
         [Parameter(Mandatory = $true)]
         [string]$VariableName
@@ -64,20 +72,21 @@ function Find-EnvironmentVariableInFiles {
         ".env"
     )
 
+    $escapedVariableName =
+        [Regex]::Escape($VariableName)
+
     foreach ($environmentFile in $environmentFiles) {
         if (-not (Test-Path -LiteralPath $environmentFile)) {
             continue
         }
 
-        $escapedName = [Regex]::Escape($VariableName)
-
         $matchingLine = Get-Content -LiteralPath $environmentFile |
             Where-Object {
-                $_ -match "^\s*$escapedName\s*="
+                $_ -match "^\s*$escapedVariableName\s*="
             } |
             Select-Object -First 1
 
-        if (-not $matchingLine) {
+        if ([string]::IsNullOrWhiteSpace($matchingLine)) {
             continue
         }
 
@@ -98,72 +107,58 @@ function Find-EnvironmentVariableInFiles {
     return $null
 }
 
-function Find-AutomationSecret {
-    $processAttendanceSecret =
-        [Environment]::GetEnvironmentVariable(
-            "ATTENDANCE_AUTOMATION_SECRET",
-            "Process"
-        )
+function Get-AutomationSecret {
+    $variableNames = @(
+        "ATTENDANCE_AUTOMATION_SECRET",
+        "CRON_SECRET"
+    )
 
-    if (
-        -not [string]::IsNullOrWhiteSpace(
-            $processAttendanceSecret
-        )
-    ) {
-        return $processAttendanceSecret.Trim()
+    foreach ($variableName in $variableNames) {
+        $processValue =
+            [Environment]::GetEnvironmentVariable(
+                $variableName,
+                "Process"
+            )
+
+        if (-not [string]::IsNullOrWhiteSpace($processValue)) {
+            return $processValue.Trim()
+        }
     }
 
-    $fileAttendanceSecret =
-        Find-EnvironmentVariableInFiles `
-            -VariableName "ATTENDANCE_AUTOMATION_SECRET"
+    foreach ($variableName in $variableNames) {
+        $fileValue =
+            Get-EnvironmentValueFromFiles `
+                -VariableName $variableName
 
-    if (
-        -not [string]::IsNullOrWhiteSpace(
-            $fileAttendanceSecret
-        )
-    ) {
-        return $fileAttendanceSecret
+        if (-not [string]::IsNullOrWhiteSpace($fileValue)) {
+            return $fileValue.Trim()
+        }
     }
 
-    $processCronSecret =
-        [Environment]::GetEnvironmentVariable(
-            "CRON_SECRET",
-            "Process"
-        )
-
-    if (
-        -not [string]::IsNullOrWhiteSpace(
-            $processCronSecret
-        )
-    ) {
-        return $processCronSecret.Trim()
-    }
-
-    return Find-EnvironmentVariableInFiles `
-        -VariableName "CRON_SECRET"
+    return $null
 }
 
 if ([string]::IsNullOrWhiteSpace($Secret)) {
-    $Secret = Find-AutomationSecret
+    $Secret = Get-AutomationSecret
 }
 
 if ([string]::IsNullOrWhiteSpace($Secret)) {
     throw @"
 No attendance automation secret was found.
 
-Add one of these variables to .env.local:
+Configure:
 
 ATTENDANCE_AUTOMATION_SECRET=your-secret
 
-or:
+Or run:
 
-CRON_SECRET=your-secret
+.\scripts\test-attendance-automation-health.ps1 -Secret "your-secret"
 "@
 }
 
 $uri = (
     $BaseUrl.TrimEnd("/") +
-    "/api/automation/attendance/health"
+    "/api/automation/attendance/health?mode=$Mode"
 )
 
 $headerValue = switch ($HeaderMode) {
@@ -185,18 +180,24 @@ Write-Host "Attendance automation health check" `
     -ForegroundColor Cyan
 
 Write-Host "Endpoint: $uri"
+Write-Host "Mode: $Mode"
 Write-Host "Header mode: $HeaderMode"
 Write-Host "Secret length: $($Secret.Length)"
 Write-Host ""
 
-$curlOutput = & curl.exe `
-    --silent `
-    --show-error `
-    --request GET `
-    --header $headerValue `
-    --write-out "`n__HTTP_STATUS__:%{http_code}" `
+$curlArguments = @(
+    "--silent"
+    "--show-error"
+    "--request"
+    "GET"
+    "--header"
+    $headerValue
+    "--write-out"
+    "`n__HTTP_STATUS__:%{http_code}"
     $uri
+)
 
+$curlOutput = & curl.exe @curlArguments
 $curlExitCode = $LASTEXITCODE
 
 if ($curlExitCode -ne 0) {
@@ -221,7 +222,7 @@ $responseBody = $outputText.Substring(
     $statusMatch.Index
 ).Trim()
 
-$httpColor = switch ($statusCode) {
+$statusColor = switch ($statusCode) {
     200 {
         "Green"
     }
@@ -236,13 +237,14 @@ $httpColor = switch ($statusCode) {
 }
 
 Write-Host "HTTP status: $statusCode" `
-    -ForegroundColor $httpColor
+    -ForegroundColor $statusColor
 
 Write-Host ""
 
 if (-not [string]::IsNullOrWhiteSpace($responseBody)) {
     try {
-        $parsedResponse = $responseBody |
+        $parsedResponse =
+            $responseBody |
             ConvertFrom-Json
 
         $parsedResponse |
@@ -257,9 +259,16 @@ Write-Host ""
 
 switch ($statusCode) {
     200 {
-        Write-Host (
-            "The attendance automation health check passed."
-        ) -ForegroundColor Green
+        if ($Mode -eq "operational") {
+            Write-Host (
+                "Operational health check passed. Warning-level degraded states may still be present."
+            ) -ForegroundColor Green
+        }
+        else {
+            Write-Host (
+                "Strict health check passed."
+            ) -ForegroundColor Green
+        }
 
         exit 0
     }
