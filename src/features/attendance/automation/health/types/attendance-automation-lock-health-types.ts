@@ -1,21 +1,34 @@
 export type AttendanceAutomationLockHealthStatus =
   | "AVAILABLE"
-  | "RUNNING";
+  | "RUNNING"
+  | "UNAVAILABLE";
 
 export type AttendanceAutomationLockHealthData = {
-  status: AttendanceAutomationLockHealthStatus;
+  status:
+    AttendanceAutomationLockHealthStatus;
+
   active: boolean;
 
   lockName: string;
 
+  source: "MYSQL_NAMED_LOCK";
+  distributed: true;
+
   statusLabel: string;
   statusDescription: string;
 
-  acquiredAt: string | null;
-  acquiredAtIso: string | null;
+  ownerConnectionId: number | null;
 
-  expiresAt: string | null;
-  expiresAtIso: string | null;
+  /*
+   * MySQL named locks do not expose acquisition
+   * timestamps or a fixed expiration timestamp.
+   * These fields remain for API compatibility.
+   */
+  acquiredAt: null;
+  acquiredAtIso: null;
+
+  expiresAt: null;
+  expiresAtIso: null;
 
   retryAfterSeconds: number | null;
 };

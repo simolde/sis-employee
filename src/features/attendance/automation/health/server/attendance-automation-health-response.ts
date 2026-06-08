@@ -19,14 +19,16 @@ export function getAttendanceAutomationHealthHttpStatus(
 }
 
 export async function buildAttendanceAutomationHealthApiResponse(): Promise<AttendanceAutomationHealthApiResponse> {
-  const health =
-    await getAttendanceAutomationHealthData();
+  const [health, lock] =
+    await Promise.all([
+      getAttendanceAutomationHealthData(),
 
-  const lock =
-    getAttendanceAutomationLockHealthData();
+      getAttendanceAutomationLockHealthData(),
+    ]);
 
   return {
-    ok: health.status === "HEALTHY",
+    ok:
+      health.status === "HEALTHY",
 
     checkedAt:
       new Date().toISOString(),

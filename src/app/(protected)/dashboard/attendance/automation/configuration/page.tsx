@@ -174,7 +174,7 @@ export default async function AttendanceAutomationConfigurationPage() {
             />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Lock Lease
+              Lock Safety Timeout
             </p>
 
             <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
@@ -450,7 +450,7 @@ export default async function AttendanceAutomationConfigurationPage() {
                 value={String(
                   data.lock.leaseSeconds,
                 )}
-                description="Maximum lifetime of the single-process automation lock."
+                description="Maximum transaction window while the shared MySQL automation lock is held."
               />
             </tbody>
           </table>

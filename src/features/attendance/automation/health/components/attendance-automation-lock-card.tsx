@@ -1,9 +1,11 @@
 import {
   CheckCircle2,
-  Clock3,
+  CircleAlert,
+  Database,
   LockKeyhole,
-  PlayCircle,
+  Network,
   RotateCw,
+  ServerCog,
 } from "lucide-react";
 import type { AttendanceAutomationLockHealthData } from "../types/attendance-automation-lock-health-types";
 
@@ -12,14 +14,24 @@ type AttendanceAutomationLockCardProps = {
 };
 
 function LockStatusIcon({
-  active,
+  status,
 }: {
-  active: boolean;
+  status:
+    AttendanceAutomationLockHealthData["status"];
 }) {
-  if (active) {
+  if (status === "RUNNING") {
     return (
       <RotateCw
         className="h-7 w-7 animate-spin text-amber-700"
+        aria-hidden="true"
+      />
+    );
+  }
+
+  if (status === "UNAVAILABLE") {
+    return (
+      <CircleAlert
+        className="h-7 w-7 text-red-700"
         aria-hidden="true"
       />
     );
@@ -31,6 +43,22 @@ function LockStatusIcon({
       aria-hidden="true"
     />
   );
+}
+
+function statusContainerClass(
+  status:
+    AttendanceAutomationLockHealthData["status"],
+): string {
+  switch (status) {
+    case "RUNNING":
+      return "border-amber-200 bg-amber-50 text-amber-800";
+
+    case "UNAVAILABLE":
+      return "border-red-200 bg-red-50 text-red-800";
+
+    case "AVAILABLE":
+      return "border-green-200 bg-green-50 text-green-800";
+  }
 }
 
 export function AttendanceAutomationLockCard({
@@ -46,15 +74,14 @@ export function AttendanceAutomationLockCard({
           />
 
           <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
-            Automation Execution Lock
+            Distributed Automation Lock
           </h2>
         </div>
 
         <p className="mt-1 text-sm leading-6 text-[var(--starland-muted-text)]">
-          The application lock prevents API,
-          dashboard, and retry executions from
-          processing approved-leave automation at
-          the same time.
+          The shared MySQL lock prevents separate
+          Node.js application processes from running
+          approved-leave automation simultaneously.
         </p>
       </div>
 
@@ -62,14 +89,14 @@ export function AttendanceAutomationLockCard({
         <article
           className={[
             "rounded-2xl border p-5",
-            data.active
-              ? "border-amber-200 bg-amber-50 text-amber-800"
-              : "border-green-200 bg-green-50 text-green-800",
+            statusContainerClass(
+              data.status,
+            ),
           ].join(" ")}
         >
           <div className="flex items-start gap-3">
             <LockStatusIcon
-              active={data.active}
+              status={data.status}
             />
 
             <div>
@@ -89,14 +116,72 @@ export function AttendanceAutomationLockCard({
               null ? (
                 <p className="mt-3 text-xs font-extrabold">
                   Recommended retry: approximately{" "}
-                  {data.retryAfterSeconds} second(s)
+                  {data.retryAfterSeconds} seconds
                 </p>
               ) : null}
             </div>
           </div>
         </article>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Database
+              className="h-6 w-6 text-[var(--starland-info)]"
+              aria-hidden="true"
+            />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Lock Provider
+            </p>
+
+            <p className="mt-2 text-lg font-extrabold text-[var(--starland-dark-text)]">
+              MySQL Named Lock
+            </p>
+
+            <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
+              {data.source}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Network
+              className="h-6 w-6 text-[var(--starland-main-green)]"
+              aria-hidden="true"
+            />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Coordination Scope
+            </p>
+
+            <p className="mt-2 text-lg font-extrabold text-[var(--starland-dark-text)]">
+              Database Server
+            </p>
+
+            <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
+              Shared by application processes using
+              the same MySQL server.
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ServerCog
+              className="h-6 w-6 text-[var(--starland-warning)]"
+              aria-hidden="true"
+            />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Owner Connection
+            </p>
+
+            <p className="mt-2 text-lg font-extrabold text-[var(--starland-dark-text)]">
+              {data.ownerConnectionId !== null
+                ? `#${data.ownerConnectionId}`
+                : data.status === "UNAVAILABLE"
+                  ? "Unknown"
+                  : "No owner"}
+            </p>
+          </article>
+
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <LockKeyhole
               className="h-6 w-6 text-[var(--starland-info)]"
@@ -111,45 +196,14 @@ export function AttendanceAutomationLockCard({
               {data.lockName}
             </p>
           </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <PlayCircle
-              className="h-6 w-6 text-[var(--starland-main-green)]"
-              aria-hidden="true"
-            />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Acquired At
-            </p>
-
-            <p className="mt-2 text-sm font-extrabold text-[var(--starland-dark-text)]">
-              {data.acquiredAt ??
-                "No active lock"}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <Clock3
-              className="h-6 w-6 text-[var(--starland-warning)]"
-              aria-hidden="true"
-            />
-
-            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              Automatic Expiration
-            </p>
-
-            <p className="mt-2 text-sm font-extrabold text-[var(--starland-dark-text)]">
-              {data.expiresAt ??
-                "Not applicable"}
-            </p>
-          </article>
         </div>
       </div>
 
       <div className="border-t border-blue-200 bg-blue-50 px-5 py-4 text-sm font-semibold leading-6 text-blue-800">
-        This is a single-process application lock.
-        Multiple Node.js servers require a shared
-        database or Redis-backed distributed lock.
+        The lock is released when automation
+        completes, fails, or the owning MySQL
+        session closes. Redis is not required for
+        this coordination strategy.
       </div>
     </section>
   );
