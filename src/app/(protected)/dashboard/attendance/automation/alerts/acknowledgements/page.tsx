@@ -6,9 +6,11 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationAcknowledgementHistoryActions } from "@/features/attendance/automation/alerts/acknowledgements/components/attendance-automation-acknowledgement-history-actions";
 import { AttendanceAutomationAcknowledgementHistoryFilters } from "@/features/attendance/automation/alerts/acknowledgements/components/attendance-automation-acknowledgement-history-filters";
 import { AttendanceAutomationAcknowledgementHistorySummary } from "@/features/attendance/automation/alerts/acknowledgements/components/attendance-automation-acknowledgement-history-summary";
 import { AttendanceAutomationAcknowledgementHistoryTable } from "@/features/attendance/automation/alerts/acknowledgements/components/attendance-automation-acknowledgement-history-table";
+import { AttendanceAutomationAcknowledgementPrintHeader } from "@/features/attendance/automation/alerts/acknowledgements/components/attendance-automation-acknowledgement-print-header";
 import {
   getAttendanceAutomationAcknowledgementHistoryData,
   parseAttendanceAutomationAcknowledgementHistorySearchParams,
@@ -45,7 +47,11 @@ export default async function AttendanceAutomationAcknowledgementHistoryPage({
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <AttendanceAutomationAcknowledgementPrintHeader
+        data={data}
+      />
+
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-info">
             Alert Audit Trail
@@ -56,41 +62,47 @@ export default async function AttendanceAutomationAcknowledgementHistoryPage({
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Review every automation-alert
-            acknowledgement, expiration, replacement,
-            and manual clearing event recorded in the
-            activity log.
+            Review, print, and export automation
+            alert acknowledgement, expiration,
+            replacement, and manual clearing
+            activity.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 print:hidden">
-          <Link
-            href="/dashboard/attendance/automation/alerts"
-            className="starland-btn starland-btn-primary"
-          >
-            <BellRing
-              className="h-4 w-4"
-              aria-hidden="true"
-            />
+        <div className="flex flex-col gap-2 sm:items-end">
+          <AttendanceAutomationAcknowledgementHistoryActions
+            data={data}
+          />
 
-            Active Alerts
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/attendance/automation/alerts"
+              className="starland-btn starland-btn-soft"
+            >
+              <BellRing
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
 
-          <Link
-            href="/dashboard/attendance/automation"
-            className="starland-btn starland-btn-soft"
-          >
-            <ArrowLeft
-              className="h-4 w-4"
-              aria-hidden="true"
-            />
+              Active Alerts
+            </Link>
 
-            Automation Overview
-          </Link>
+            <Link
+              href="/dashboard/attendance/automation"
+              className="starland-btn starland-btn-soft"
+            >
+              <ArrowLeft
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Automation Overview
+            </Link>
+          </div>
         </div>
       </div>
 
-      <section className="starland-card overflow-hidden">
+      <section className="starland-card overflow-hidden print:hidden">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <div className="flex items-start gap-3">
             <History
@@ -110,10 +122,10 @@ export default async function AttendanceAutomationAcknowledgementHistoryPage({
               <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
                 Acknowledging an alert does not
                 resolve its underlying condition.
-                This history records who reviewed the
-                alert, for how long, and whether the
-                acknowledgement expired, was cleared,
-                or was replaced.
+                This history records who reviewed
+                each alert and whether the
+                acknowledgement expired, was
+                cleared, or was replaced.
               </p>
             </div>
           </div>
@@ -136,6 +148,11 @@ export default async function AttendanceAutomationAcknowledgementHistoryPage({
               Range: {data.filters.dateFrom} to{" "}
               {data.filters.dateTo}
             </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Page: {data.pagination.page} of{" "}
+              {data.pagination.totalPages}
+            </span>
           </div>
         </div>
       </section>
@@ -151,6 +168,19 @@ export default async function AttendanceAutomationAcknowledgementHistoryPage({
       <AttendanceAutomationAcknowledgementHistoryTable
         data={data}
       />
+
+      <section className="hidden border-t border-black pt-4 text-xs print:block">
+        <p>
+          This report contains the records displayed
+          on page {data.pagination.page} of{" "}
+          {data.pagination.totalPages}.
+        </p>
+
+        <p className="mt-1">
+          Total filtered acknowledgement events:{" "}
+          {data.pagination.totalRecords}.
+        </p>
+      </section>
     </section>
   );
 }
