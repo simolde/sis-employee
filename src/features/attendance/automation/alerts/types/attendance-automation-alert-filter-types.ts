@@ -22,6 +22,10 @@ export const ATTENDANCE_AUTOMATION_ALERT_CODES =
     "HEALTH_CRON_RECEIPT_MISSING",
     "AUTOMATION_CRON_RECEIPT_ATTENTION",
     "HEALTH_CRON_RECEIPT_ATTENTION",
+    "CRON_RELIABILITY_CONFIGURATION",
+    "CRON_RELIABILITY_WARMING_UP",
+    "CRON_RELIABILITY_AT_RISK",
+    "CRON_RELIABILITY_BREACHED",
   ] as const satisfies readonly AttendanceAutomationAlertCode[];
 
 export type AttendanceAutomationAlertSeverityFilter =

@@ -150,7 +150,7 @@ function TaskResultCell({
         </span>
       </div>
 
-      <p className="text-xs font-bold text-[var(--starland-muted-text)]">
+      <p className="text-xs font-bold text-(--starland-muted-text)">
         Expected: {result.expectedAt}
       </p>
 

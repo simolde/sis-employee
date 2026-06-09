@@ -2,6 +2,8 @@ import { getAttendanceAutomationConfigurationData } from "@/features/attendance/
 import { getAttendanceAutomationHealthData } from "@/features/attendance/automation/health/server/attendance-automation-health-queries";
 import { getAttendanceAutomationLockHealthData } from "@/features/attendance/automation/health/server/attendance-automation-lock-health";
 import { getAttendanceAutomationSchedulerHeartbeatData } from "@/features/attendance/automation/scheduler/heartbeats/server/attendance-automation-scheduler-heartbeat-queries";
+import { getAttendanceAutomationCronReliabilityData } from "@/features/attendance/automation/scheduler/reliability/server/attendance-automation-cron-reliability-queries";
+import { buildAttendanceAutomationCronReliabilityAlerts } from "./attendance-automation-cron-reliability-alerts";
 import { buildAttendanceAutomationSchedulerHeartbeatAlerts } from "./attendance-automation-scheduler-heartbeat-alerts";
 import type {
   AttendanceAutomationAlertCenterData,
@@ -70,7 +72,7 @@ function buildOverallCopy(input: {
         "Immediate Attention Required",
 
       description:
-        "One or more critical automation conditions could prevent scheduled attendance processing.",
+        "One or more critical automation conditions could prevent reliable scheduled attendance processing.",
     };
   }
 
@@ -167,12 +169,15 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
     health,
     lock,
     schedulerHeartbeats,
+    schedulerReliability,
   ] = await Promise.all([
     getAttendanceAutomationHealthData(),
 
     getAttendanceAutomationLockHealthData(),
 
     getAttendanceAutomationSchedulerHeartbeatData(),
+
+    getAttendanceAutomationCronReliabilityData(),
   ]);
 
   const collector =
@@ -554,6 +559,20 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
     );
   }
 
+  const reliabilityAlerts =
+    buildAttendanceAutomationCronReliabilityAlerts(
+      schedulerReliability,
+    );
+
+  for (
+    const reliabilityAlert of
+    reliabilityAlerts
+  ) {
+    collector.addAlert(
+      reliabilityAlert,
+    );
+  }
+
   const derivedAlerts =
     collector.getAlerts();
 
@@ -624,6 +643,10 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
       warningAlerts,
     });
 
+  const sevenDayReliability =
+    schedulerReliability.windows
+      .last7Days;
+
   return {
     overallStatus:
       overallCopy.status,
@@ -674,6 +697,10 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
           .health
           .state,
 
+      schedulerReliabilityStatus:
+        schedulerReliability
+          .overallStatus,
+
       secretConfigured:
         configuration.secret.configured,
 
@@ -708,6 +735,32 @@ export async function getAttendanceAutomationAlertCenterData(): Promise<Attendan
           .health
           .latestReceipt
           ?.activityLogId ?? null,
+
+      cronReliabilityTargetPercent:
+        schedulerReliability
+          .configuration
+          .targetPercent,
+
+      cronHealthyDayRate7Days:
+        sevenDayReliability
+          .healthyDayRate,
+
+      cronAutomationCoverageRate7Days:
+        sevenDayReliability
+          .automationCoverageRate,
+
+      cronHealthCoverageRate7Days:
+        sevenDayReliability
+          .healthCoverageRate,
+
+      cronCriticalDays7Days:
+        sevenDayReliability
+          .criticalDays,
+
+      cronEffectiveMonitoringStartedOn:
+        schedulerReliability
+          .configuration
+          .effectiveMonitoringStartedOn,
     },
   };
 }

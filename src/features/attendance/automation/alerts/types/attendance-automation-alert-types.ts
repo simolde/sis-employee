@@ -4,6 +4,7 @@ import type {
 } from "../../health/types/attendance-automation-health-types";
 import type { AttendanceAutomationLockHealthStatus } from "../../health/types/attendance-automation-lock-health-types";
 import type { AttendanceAutomationSchedulerHeartbeatState } from "../../scheduler/heartbeats/types/attendance-automation-scheduler-heartbeat-types";
+import type { AttendanceAutomationCronReliabilityStatus } from "../../scheduler/reliability/types/attendance-automation-cron-reliability-types";
 
 export type AttendanceAutomationAlertSeverity =
   | "CRITICAL"
@@ -25,7 +26,11 @@ export type AttendanceAutomationAlertCode =
   | "AUTOMATION_CRON_RECEIPT_MISSING"
   | "HEALTH_CRON_RECEIPT_MISSING"
   | "AUTOMATION_CRON_RECEIPT_ATTENTION"
-  | "HEALTH_CRON_RECEIPT_ATTENTION";
+  | "HEALTH_CRON_RECEIPT_ATTENTION"
+  | "CRON_RELIABILITY_CONFIGURATION"
+  | "CRON_RELIABILITY_WARMING_UP"
+  | "CRON_RELIABILITY_AT_RISK"
+  | "CRON_RELIABILITY_BREACHED";
 
 export type AttendanceAutomationAlertAction = {
   label: string;
@@ -94,6 +99,9 @@ export type AttendanceAutomationAlertCenterData = {
     healthReceiptState:
       AttendanceAutomationSchedulerHeartbeatState;
 
+    schedulerReliabilityStatus:
+      AttendanceAutomationCronReliabilityStatus;
+
     secretConfigured: boolean;
 
     totalRuns: number;
@@ -111,5 +119,23 @@ export type AttendanceAutomationAlertCenterData = {
 
     latestHealthReceiptId:
       number | null;
+
+    cronReliabilityTargetPercent:
+      number;
+
+    cronHealthyDayRate7Days:
+      number;
+
+    cronAutomationCoverageRate7Days:
+      number;
+
+    cronHealthCoverageRate7Days:
+      number;
+
+    cronCriticalDays7Days:
+      number;
+
+    cronEffectiveMonitoringStartedOn:
+      string;
   };
 };
