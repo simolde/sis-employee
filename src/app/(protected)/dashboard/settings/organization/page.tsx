@@ -4,13 +4,13 @@ import {
   BadgeCheck,
   Building2,
   Network,
+  UsersRound,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
 import { OrganizationSettingsOverview } from "@/features/settings/organization/components/organization-settings-overview";
 import { getOrganizationSettingsOverviewData } from "@/features/settings/organization/server/organization-settings-queries";
 
-export const dynamic =
-  "force-dynamic";
+export const dynamic = "force-dynamic";
 
 export default async function OrganizationSettingsPage() {
   await requireCanManageEmployees();
@@ -76,6 +76,18 @@ export default async function OrganizationSettingsPage() {
           </Link>
 
           <Link
+            href="/dashboard/settings/organization/employee-types"
+            className="starland-btn starland-btn-soft"
+          >
+            <UsersRound
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Employee Types
+          </Link>
+
+          <Link
             href="/dashboard/settings"
             className="starland-btn starland-btn-soft"
           >
@@ -118,16 +130,17 @@ export default async function OrganizationSettingsPage() {
         </div>
 
         <div className="flex items-start gap-3 border-t border-white/10 bg-[var(--starland-modern-bg)] p-4">
-          <BadgeCheck
+          <UsersRound
             className="mt-0.5 h-5 w-5 shrink-0 text-[var(--starland-main-green)]"
             aria-hidden="true"
           />
 
           <p className="text-sm font-semibold leading-6 text-[var(--starland-muted-text)]">
-            Branch and Department Management are
-            operational. Designation Management now
-            includes exact database-schema discovery
-            before typed CRUD is enabled.
+            Branch, Department, and Designation
+            Management are operational. Employee
+            Type Management now includes exact
+            database-schema discovery before typed
+            CRUD is enabled.
           </p>
         </div>
       </section>

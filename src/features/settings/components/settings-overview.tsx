@@ -1,9 +1,9 @@
 import {
-  BadgeCheck,
   CheckCircle2,
   Clock3,
   Layers3,
   Settings2,
+  UsersRound,
 } from "lucide-react";
 import type {
   SettingsOverviewSummary,
@@ -52,9 +52,7 @@ export function SettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              summary.availableSections
-            }
+            {summary.availableSections}
           </p>
         </article>
 
@@ -84,32 +82,30 @@ export function SettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              summary.plannedSections
-            }
+            {summary.plannedSections}
           </p>
         </article>
       </section>
 
       <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
         <div className="flex items-start gap-3">
-          <BadgeCheck
+          <UsersRound
             className="mt-0.5 h-5 w-5 shrink-0 text-blue-700"
             aria-hidden="true"
           />
 
           <div>
             <h2 className="font-extrabold text-blue-900">
-              Next: Designation Management
+              Next: Employee Type Management
             </h2>
 
             <p className="mt-1 text-sm font-semibold leading-6 text-blue-800">
-              Branch and Department Management now
-              have complete CRUD. The next
-              organization implementation will use
-              the confirmed designations schema to
-              build exact job-title and position
-              management.
+              Branch, Department, and Designation
+              Management now have complete CRUD. The
+              final organization implementation will
+              use the confirmed employee-type schema
+              to build exact employment
+              classification management.
             </p>
           </div>
         </div>

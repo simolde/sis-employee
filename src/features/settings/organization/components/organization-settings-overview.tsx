@@ -1,9 +1,9 @@
 import {
-  BadgeCheck,
   CheckCircle2,
   CircleAlert,
   Database,
   Network,
+  UsersRound,
 } from "lucide-react";
 import type {
   OrganizationSettingsOverviewData,
@@ -137,24 +137,23 @@ export function OrganizationSettingsOverview({
 
       <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
         <div className="flex items-start gap-3">
-          <BadgeCheck
+          <UsersRound
             className="mt-0.5 h-5 w-5 shrink-0 text-blue-700"
             aria-hidden="true"
           />
 
           <div>
             <h2 className="font-extrabold text-blue-900">
-              Next: Designation Management
+              Next: Employee Type Management
             </h2>
 
             <p className="mt-1 text-sm font-semibold leading-6 text-blue-800">
-              Branch and Department Management now
-              support complete CRUD. The Designation
-              module will inspect the current schema
-              before adding job-title management,
-              duplicate prevention, status controls,
-              dependency protection, and audit
-              logging.
+              Branches, departments, and designations
+              now support complete CRUD. The final
+              Organization Structure module will
+              inspect the current employee-type
+              schema before adding validated
+              management operations.
             </p>
           </div>
         </div>

@@ -113,7 +113,8 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
 
       icon: "UsersRound",
 
-      href: null,
+      href:
+        "/dashboard/settings/organization/employee-types",
 
       developmentStep:
         "Step 151E",
@@ -121,8 +122,8 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
       features: [
         "Employment classifications",
         "Employee-type codes",
-        "Attendance-policy relationships",
-        "Active and inactive status",
+        "Employee profile relationships",
+        "Active, inactive, and archived status",
       ],
     },
   ];
