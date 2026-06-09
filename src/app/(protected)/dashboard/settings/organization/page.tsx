@@ -37,17 +37,31 @@ export default async function OrganizationSettingsPage() {
           </p>
         </div>
 
-        <Link
-          href="/dashboard/settings"
-          className="starland-btn starland-btn-soft"
-        >
-          <ArrowLeft
-            className="h-4 w-4"
-            aria-hidden="true"
-          />
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/settings/organization/branches"
+            className="starland-btn starland-btn-primary"
+          >
+            <Building2
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
 
-          Settings Overview
-        </Link>
+            Branch Management
+          </Link>
+
+          <Link
+            href="/dashboard/settings"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Settings Overview
+          </Link>
+        </div>
       </div>
 
       <section className="starland-card overflow-hidden">
@@ -85,11 +99,11 @@ export default async function OrganizationSettingsPage() {
           />
 
           <p className="text-sm font-semibold leading-6 text-[var(--starland-muted-text)]">
-            This readiness screen checks your
-            existing tables first. CRUD pages will
-            use the actual Prisma model fields instead
-            of creating conflicting organization
-            structures.
+            Branch Management now includes exact
+            database-schema discovery. Typed create,
+            edit, status, pagination, and audit
+            operations follow after the schema report
+            is confirmed.
           </p>
         </div>
       </section>
