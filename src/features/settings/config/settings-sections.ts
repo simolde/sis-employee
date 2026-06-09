@@ -17,19 +17,19 @@ export const SETTINGS_SECTIONS = [
       "AppWindow",
 
     status:
-      "NEXT",
+      "AVAILABLE",
 
     href:
-      null,
+      "/dashboard/settings/general",
 
     stepLabel:
-      "Step 150",
+      "Available now",
 
     features: [
       "Application and school names",
       "Timezone and locale",
       "Date and time formatting",
-      "Default dashboard behavior",
+      "Default table behavior",
     ],
   },
   {
@@ -45,7 +45,7 @@ export const SETTINGS_SECTIONS = [
       "Building2",
 
     status:
-      "PLANNED",
+      "NEXT",
 
     href:
       null,

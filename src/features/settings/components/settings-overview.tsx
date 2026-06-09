@@ -99,14 +99,14 @@ export function SettingsOverview({
 
           <div>
             <h2 className="font-extrabold text-blue-900">
-              Next: General Application Settings
+              Next: Organization Structure
             </h2>
 
             <p className="mt-1 text-sm font-semibold leading-6 text-blue-800">
-              The next step will add persistent
-              application identity, school identity,
-              timezone, locale, date formatting, and
-              default system behavior.
+              The next step will add management
+              pages and validated operations for
+              branches, departments, designations,
+              and employee types.
             </p>
           </div>
         </div>
@@ -119,10 +119,10 @@ export function SettingsOverview({
           </h2>
 
           <p className="mt-1 text-sm leading-6 text-[var(--starland-muted-text)]">
-            Categories will be activated in sequence
-            so that organization, attendance,
-            security, and integration settings share
-            a consistent structure and audit trail.
+            Categories are activated in sequence so
+            organization, attendance, security, and
+            integration settings share consistent
+            validation and auditing.
           </p>
         </div>
 
