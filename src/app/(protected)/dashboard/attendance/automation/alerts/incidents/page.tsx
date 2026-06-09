@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   BellRing,
+  FileClock,
   History,
   RefreshCw,
 } from "lucide-react";
@@ -40,6 +41,20 @@ export default async function AttendanceAutomationAlertIncidentsPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {data.latestSnapshot ? (
+            <Link
+              href={`/dashboard/attendance/automation/alerts/incidents/${data.latestSnapshot.activityLogId}`}
+              className="starland-btn starland-btn-primary"
+            >
+              <FileClock
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Latest Snapshot
+            </Link>
+          ) : null}
+
           <Link
             href="/dashboard/attendance/automation/alerts/incidents"
             className="starland-btn starland-btn-soft"
@@ -119,11 +134,10 @@ export default async function AttendanceAutomationAlertIncidentsPage() {
               </h2>
 
               <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-                A new activity-log snapshot is
-                created only when the active alert
-                fingerprint changes. Identical
-                evaluations reuse the latest
-                snapshot.
+                Open an individual snapshot to
+                compare its complete alert state
+                against the immediately preceding
+                immutable record.
               </p>
             </div>
           </div>
