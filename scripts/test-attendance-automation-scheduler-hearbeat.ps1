@@ -1,0 +1,352 @@
+param(
+    [string]$BaseUrl = "http://localhost:3000",
+
+    [string]$Secret = "",
+
+    [ValidateSet(
+        "AUTOMATION",
+        "HEALTH"
+    )]
+    [string]$Task = "AUTOMATION",
+
+    [ValidateSet(
+        "SUCCESS",
+        "ATTENTION",
+        "SKIPPED",
+        "FAILED"
+    )]
+    [string]$Outcome = "SUCCESS",
+
+    [ValidateSet(
+        "Authorization",
+        "XAttendance",
+        "XCron"
+    )]
+    [string]$HeaderMode = "XAttendance"
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+function Remove-SurroundingQuotes {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Value
+    )
+
+    $normalized = $Value.Trim()
+
+    if ($normalized.Length -lt 2) {
+        return $normalized
+    }
+
+    $firstCharacter =
+        $normalized.Substring(0, 1)
+
+    $lastCharacter =
+        $normalized.Substring(
+            $normalized.Length - 1,
+            1
+        )
+
+    $quotedWithDoubleQuotes = (
+        $firstCharacter -eq '"' -and
+        $lastCharacter -eq '"'
+    )
+
+    $quotedWithSingleQuotes = (
+        $firstCharacter -eq "'" -and
+        $lastCharacter -eq "'"
+    )
+
+    if (
+        $quotedWithDoubleQuotes -or
+        $quotedWithSingleQuotes
+    ) {
+        return $normalized.Substring(
+            1,
+            $normalized.Length - 2
+        )
+    }
+
+    return $normalized
+}
+
+function Get-EnvironmentValue {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$VariableName
+    )
+
+    $processValue =
+        [Environment]::GetEnvironmentVariable(
+            $VariableName,
+            "Process"
+        )
+
+    if (
+        -not [string]::IsNullOrWhiteSpace(
+            $processValue
+        )
+    ) {
+        return $processValue.Trim()
+    }
+
+    $environmentFiles = @(
+        ".env.development.local",
+        ".env.local",
+        ".env.development",
+        ".env"
+    )
+
+    $escapedVariableName =
+        [Regex]::Escape(
+            $VariableName
+        )
+
+    foreach ($environmentFile in $environmentFiles) {
+        if (
+            -not (
+                Test-Path `
+                    -LiteralPath $environmentFile
+            )
+        ) {
+            continue
+        }
+
+        $matchingLine =
+            Get-Content `
+                -LiteralPath $environmentFile |
+            Where-Object {
+                $_ -match "^\s*$escapedVariableName\s*="
+            } |
+            Select-Object -First 1
+
+        if (
+            [string]::IsNullOrWhiteSpace(
+                $matchingLine
+            )
+        ) {
+            continue
+        }
+
+        $parts =
+            $matchingLine -split "=", 2
+
+        if ($parts.Count -lt 2) {
+            continue
+        }
+
+        $value =
+            Remove-SurroundingQuotes `
+                -Value $parts[1]
+
+        if (
+            -not [string]::IsNullOrWhiteSpace(
+                $value
+            )
+        ) {
+            return $value.Trim()
+        }
+    }
+
+    return $null
+}
+
+if (
+    [string]::IsNullOrWhiteSpace(
+        $Secret
+    )
+) {
+    $Secret =
+        Get-EnvironmentValue `
+            -VariableName "ATTENDANCE_AUTOMATION_SECRET"
+}
+
+if (
+    [string]::IsNullOrWhiteSpace(
+        $Secret
+    )
+) {
+    $Secret =
+        Get-EnvironmentValue `
+            -VariableName "CRON_SECRET"
+}
+
+if (
+    [string]::IsNullOrWhiteSpace(
+        $Secret
+    )
+) {
+    throw @"
+No attendance automation secret was found.
+
+Configure ATTENDANCE_AUTOMATION_SECRET or run:
+
+.\scripts\test-attendance-automation-scheduler-heartbeat.ps1 -Secret "your-secret"
+"@
+}
+
+$uri = (
+    $BaseUrl.TrimEnd("/") +
+    "/api/automation/attendance/scheduler-heartbeat/test"
+)
+
+$executionId = (
+    "manual-test-" +
+    [Guid]::NewGuid().ToString("N")
+)
+
+$startedAt =
+    (Get-Date).
+    ToUniversalTime().
+    ToString("o")
+
+Start-Sleep -Milliseconds 300
+
+$finishedAt =
+    (Get-Date).
+    ToUniversalTime().
+    ToString("o")
+
+$headerValue = switch ($HeaderMode) {
+    "Authorization" {
+        "Authorization: Bearer $Secret"
+    }
+
+    "XAttendance" {
+        "X-Attendance-Automation-Secret: $Secret"
+    }
+
+    "XCron" {
+        "X-Cron-Secret: $Secret"
+    }
+}
+
+Write-Host ""
+Write-Host `
+    "Attendance scheduler heartbeat safe test" `
+    -ForegroundColor Cyan
+
+Write-Host "Endpoint: $uri"
+Write-Host "Task: $Task"
+Write-Host "Outcome: $Outcome"
+Write-Host "Execution ID: $executionId"
+Write-Host "Header mode: $HeaderMode"
+Write-Host "Secret length: $($Secret.Length)"
+Write-Host ""
+
+$curlArguments = @(
+    "--silent"
+    "--show-error"
+    "--request"
+    "POST"
+    "--header"
+    $headerValue
+    "--data-urlencode"
+    "executionId=$executionId"
+    "--data-urlencode"
+    "task=$Task"
+    "--data-urlencode"
+    "outcome=$Outcome"
+    "--data-urlencode"
+    "httpStatus=200"
+    "--data-urlencode"
+    "startedAt=$startedAt"
+    "--data-urlencode"
+    "finishedAt=$finishedAt"
+    "--data-urlencode"
+    "message=Safe Windows heartbeat validation test."
+    "--write-out"
+    "`n__HTTP_STATUS__:%{http_code}"
+    $uri
+)
+
+$curlOutput =
+    & curl.exe @curlArguments
+
+$curlExitCode =
+    $LASTEXITCODE
+
+if ($curlExitCode -ne 0) {
+    throw (
+        "curl.exe failed with exit code " +
+        "$curlExitCode."
+    )
+}
+
+$outputText =
+    $curlOutput -join "`n"
+
+$statusMatch =
+    [Regex]::Match(
+        $outputText,
+        "__HTTP_STATUS__:(\d{3})\s*$"
+    )
+
+if (-not $statusMatch.Success) {
+    throw "The HTTP status could not be read."
+}
+
+$statusCode =
+    [int]$statusMatch.Groups[1].Value
+
+$responseBody =
+    $outputText.Substring(
+        0,
+        $statusMatch.Index
+    ).Trim()
+
+$statusColor = switch ($statusCode) {
+    200 {
+        "Green"
+    }
+
+    401 {
+        "Red"
+    }
+
+    default {
+        "Yellow"
+    }
+}
+
+Write-Host `
+    "HTTP status: $statusCode" `
+    -ForegroundColor $statusColor
+
+Write-Host ""
+
+if (
+    -not [string]::IsNullOrWhiteSpace(
+        $responseBody
+    )
+) {
+    try {
+        $response =
+            $responseBody |
+            ConvertFrom-Json
+
+        $response |
+            ConvertTo-Json -Depth 20
+    }
+    catch {
+        Write-Host $responseBody
+    }
+}
+
+Write-Host ""
+
+if ($statusCode -eq 200) {
+    Write-Host `
+        "Heartbeat authentication and validation passed. No activity log was created." `
+        -ForegroundColor Green
+
+    exit 0
+}
+
+Write-Host `
+    "Heartbeat validation failed." `
+    -ForegroundColor Red
+
+exit 1

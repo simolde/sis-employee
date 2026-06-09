@@ -42,6 +42,8 @@ ENDPOINT="$BASE_URL/api/automation/attendance/approved-leave-excused?limit=$ATTE
 
 HEARTBEAT_ENDPOINT="$BASE_URL/api/automation/attendance/scheduler-heartbeat"
 
+EXECUTION_ID="automation-$(date -u '+%Y%m%dT%H%M%SZ')-$$"
+
 RESPONSE_FILE="$(mktemp)"
 
 cleanup() {
@@ -57,27 +59,49 @@ send_heartbeat() {
   heartbeat_finished_at="$4"
   heartbeat_message="$5"
 
-  curl \
-    --silent \
-    --show-error \
-    --location \
-    --output /dev/null \
-    --request POST \
-    --header "X-Attendance-Automation-Secret: $ATTENDANCE_AUTOMATION_SECRET" \
-    --data-urlencode "task=AUTOMATION" \
-    --data-urlencode "outcome=$heartbeat_outcome" \
-    --data-urlencode "httpStatus=$heartbeat_http_status" \
-    --data-urlencode "startedAt=$heartbeat_started_at" \
-    --data-urlencode "finishedAt=$heartbeat_finished_at" \
-    --data-urlencode "message=$heartbeat_message" \
-    "$HEARTBEAT_ENDPOINT"
+  heartbeat_response="$(
+    curl \
+      --silent \
+      --show-error \
+      --location \
+      --connect-timeout 15 \
+      --max-time 60 \
+      --output /dev/null \
+      --write-out "%{http_code}" \
+      --request POST \
+      --header "X-Attendance-Automation-Secret: $ATTENDANCE_AUTOMATION_SECRET" \
+      --data-urlencode "executionId=$EXECUTION_ID" \
+      --data-urlencode "task=AUTOMATION" \
+      --data-urlencode "outcome=$heartbeat_outcome" \
+      --data-urlencode "httpStatus=$heartbeat_http_status" \
+      --data-urlencode "startedAt=$heartbeat_started_at" \
+      --data-urlencode "finishedAt=$heartbeat_finished_at" \
+      --data-urlencode "message=$heartbeat_message" \
+      "$HEARTBEAT_ENDPOINT"
+  )"
 
-  return $?
+  heartbeat_curl_exit="$?"
+
+  if [ "$heartbeat_curl_exit" -ne 0 ]; then
+    return 1
+  fi
+
+  case "$heartbeat_response" in
+    200|201)
+      return 0
+      ;;
+
+    *)
+      printf '%s\n' "Heartbeat endpoint returned HTTP $heartbeat_response." >&2
+      return 1
+      ;;
+  esac
 }
 
 STARTED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
 printf '%s\n' "Starland attendance automation cron"
+printf '%s\n' "Execution ID: $EXECUTION_ID"
 printf '%s\n' "Endpoint: $ENDPOINT"
 printf '%s\n' "Started UTC: $STARTED_AT"
 
@@ -86,6 +110,8 @@ HTTP_STATUS="$(
     --silent \
     --show-error \
     --location \
+    --connect-timeout 15 \
+    --max-time 300 \
     --output "$RESPONSE_FILE" \
     --write-out "%{http_code}" \
     --request POST \
@@ -134,7 +160,7 @@ if ! send_heartbeat \
   "$STARTED_AT" \
   "$FINISHED_AT" \
   "$MESSAGE"; then
-  printf '%s\n' "Warning: scheduler heartbeat could not be recorded." >&2
+  printf '%s\n' "Warning: the V2 scheduler heartbeat could not be recorded." >&2
 fi
 
 printf '%s\n' "$MESSAGE"

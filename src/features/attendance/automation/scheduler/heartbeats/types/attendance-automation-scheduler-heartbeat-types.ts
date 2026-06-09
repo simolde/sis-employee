@@ -3,11 +3,26 @@ import type {
   AttendanceAutomationSchedulerMonitoringSource,
 } from "../../server/attendance-automation-scheduler-monitoring-config";
 
-export const ATTENDANCE_AUTOMATION_SCHEDULER_HEARTBEAT_ACTION =
+/*
+ * V1 records remain in activity_logs for audit
+ * purposes but are no longer used by the current
+ * heartbeat query or readiness checks.
+ */
+export const LEGACY_ATTENDANCE_AUTOMATION_SCHEDULER_HEARTBEAT_ACTION =
   "ATTENDANCE_AUTOMATION_SCHEDULER_HEARTBEAT";
 
-export const ATTENDANCE_AUTOMATION_SCHEDULER_HEARTBEAT_ENTITY_TYPE =
+export const LEGACY_ATTENDANCE_AUTOMATION_SCHEDULER_HEARTBEAT_ENTITY_TYPE =
   "attendance_automation_scheduler_heartbeat";
+
+/*
+ * V2 receipts require an execution ID and support
+ * idempotent recording.
+ */
+export const ATTENDANCE_AUTOMATION_SCHEDULER_HEARTBEAT_ACTION =
+  "ATTENDANCE_AUTOMATION_SCHEDULER_HEARTBEAT_V2";
+
+export const ATTENDANCE_AUTOMATION_SCHEDULER_HEARTBEAT_ENTITY_TYPE =
+  "attendance_automation_scheduler_heartbeat_v2";
 
 export type AttendanceAutomationSchedulerHeartbeatTask =
   | "AUTOMATION"

@@ -3,7 +3,6 @@ import {
   NextResponse,
 } from "next/server";
 import { parseAttendanceAutomationSchedulerHeartbeatFormData } from "@/features/attendance/automation/scheduler/heartbeats/server/attendance-automation-scheduler-heartbeat-request";
-import { recordAttendanceAutomationSchedulerHeartbeat } from "@/features/attendance/automation/scheduler/heartbeats/server/attendance-automation-scheduler-heartbeat-service";
 import { authorizeAutomationRequest } from "@/lib/security/automation-request-auth";
 
 export const runtime = "nodejs";
@@ -38,6 +37,7 @@ export async function POST(
     return jsonResponse(
       {
         ok: false,
+        persisted: false,
 
         message:
           "Attendance automation secret is not configured.",
@@ -58,9 +58,10 @@ export async function POST(
     return jsonResponse(
       {
         ok: false,
+        persisted: false,
 
         message:
-          "Unauthorized scheduler heartbeat request.",
+          "Unauthorized scheduler heartbeat test request.",
 
         ...(process.env.NODE_ENV !==
         "production"
@@ -83,6 +84,7 @@ export async function POST(
     return jsonResponse(
       {
         ok: false,
+        persisted: false,
 
         message:
           "The request body must use form-data or application/x-www-form-urlencoded.",
@@ -100,9 +102,10 @@ export async function POST(
     return jsonResponse(
       {
         ok: false,
+        persisted: false,
 
         message:
-          "The scheduler heartbeat payload is invalid.",
+          "The scheduler heartbeat test payload is invalid.",
 
         errors:
           parsed.errors,
@@ -111,64 +114,52 @@ export async function POST(
     );
   }
 
-  try {
-    const receipt =
-      await recordAttendanceAutomationSchedulerHeartbeat(
-        parsed.payload,
-      );
+  const durationMs =
+    parsed.payload.finishedAt.getTime() -
+    parsed.payload.startedAt.getTime();
 
-    return jsonResponse(
-      {
-        ok: true,
+  const receiptKeyPreview = [
+    "HOSTINGER_CRON",
+    parsed.payload.task,
+    parsed.payload.executionId,
+  ].join(":");
 
-        duplicate:
-          receipt.duplicate,
+  return jsonResponse(
+    {
+      ok: true,
 
-        message:
-          receipt.duplicate
-            ? "This scheduler heartbeat was already recorded. The existing receipt was returned."
-            : "Scheduler heartbeat receipt recorded.",
+      persisted: false,
 
-        data: {
-          activityLogId:
-            receipt.activityLogId,
+      message:
+        "Scheduler heartbeat authentication and payload validation passed. No activity log was created.",
 
-          receiptKey:
-            receipt.receiptKey,
+      data: {
+        executionId:
+          parsed.payload.executionId,
 
-          durationMs:
-            receipt.durationMs,
+        receiptKeyPreview,
 
-          receiptVersion: 2,
-        },
-      },
-      receipt.duplicate
-        ? 200
-        : 201,
-    );
-  } catch (error) {
-    console.error(
-      "Unable to record attendance automation scheduler heartbeat:",
-      error,
-    );
+        task:
+          parsed.payload.task,
 
-    return jsonResponse(
-      {
-        ok: false,
+        outcome:
+          parsed.payload.outcome,
+
+        httpStatus:
+          parsed.payload.httpStatus,
+
+        startedAt:
+          parsed.payload.startedAt.toISOString(),
+
+        finishedAt:
+          parsed.payload.finishedAt.toISOString(),
+
+        durationMs,
 
         message:
-          "The scheduler heartbeat could not be recorded.",
-
-        ...(process.env.NODE_ENV !==
-        "production" &&
-        error instanceof Error
-          ? {
-              error:
-                error.message,
-            }
-          : {}),
+          parsed.payload.message,
       },
-      500,
-    );
-  }
+    },
+    200,
+  );
 }
