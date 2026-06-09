@@ -3,64 +3,75 @@ import {
   ArrowLeft,
   BarChart3,
   CalendarClock,
-  RefreshCw,
-  ServerCog,
+  HeartPulse,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
-import { AttendanceAutomationSchedulerHeartbeatDashboard } from "@/features/attendance/automation/scheduler/heartbeats/components/attendance-automation-scheduler-heartbeat-dashboard";
-import { getAttendanceAutomationSchedulerHeartbeatData } from "@/features/attendance/automation/scheduler/heartbeats/server/attendance-automation-scheduler-heartbeat-queries";
+import { AttendanceAutomationCronReceiptReportDashboard } from "@/features/attendance/automation/scheduler/heartbeats/report/components/attendance-automation-cron-receipt-report-dashboard";
+import {
+  getAttendanceAutomationCronReceiptReportData,
+  parseAttendanceAutomationCronReceiptReportSearchParams,
+} from "@/features/attendance/automation/scheduler/heartbeats/report/server/attendance-automation-cron-receipt-report-queries";
 
 export const dynamic = "force-dynamic";
 
-export default async function AttendanceAutomationSchedulerHeartbeatsPage() {
+type AttendanceAutomationCronReceiptReportPageProps = {
+  searchParams: Promise<
+    Record<
+      string,
+      string | string[] | undefined
+    >
+  >;
+};
+
+export default async function AttendanceAutomationCronReceiptReportPage({
+  searchParams,
+}: AttendanceAutomationCronReceiptReportPageProps) {
   await requireCanManageEmployees();
 
+  const resolvedSearchParams =
+    await searchParams;
+
+  const filters =
+    parseAttendanceAutomationCronReceiptReportSearchParams(
+      resolvedSearchParams,
+    );
+
   const data =
-    await getAttendanceAutomationSchedulerHeartbeatData();
+    await getAttendanceAutomationCronReceiptReportData(
+      filters,
+    );
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-info">
-            Hostinger Cron Monitoring
+            Hostinger Cron Analytics
           </span>
 
           <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
-            Scheduler Execution Receipts
+            Cron Receipt Coverage Report
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Confirm that Hostinger invoked both the
-            attendance automation and post-grace
-            health-check shell scripts for their
-            expected daily scheduling windows.
+            Review daily Hostinger cron execution
+            coverage, timing, outcomes, HTTP
+            responses, and execution duration using
+            authenticated V2 scheduler receipts.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Link
-            href="/dashboard/attendance/automation/scheduler/heartbeats/report"
+            href="/dashboard/attendance/automation/scheduler/heartbeats"
             className="starland-btn starland-btn-primary"
           >
-            <BarChart3
+            <HeartPulse
               className="h-4 w-4"
               aria-hidden="true"
             />
 
-            Coverage Report
-          </Link>
-
-          <Link
-            href="/dashboard/attendance/automation/scheduler/heartbeats"
-            className="starland-btn starland-btn-soft"
-          >
-            <RefreshCw
-              className="h-4 w-4"
-              aria-hidden="true"
-            />
-
-            Refresh Receipts
+            Cron Receipts
           </Link>
 
           <Link
@@ -89,37 +100,36 @@ export default async function AttendanceAutomationSchedulerHeartbeatsPage() {
         </div>
       </div>
 
-      <section className="starland-card overflow-hidden">
+      <section className="starland-card overflow-hidden print:hidden">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <div className="flex items-start gap-3">
-            <ServerCog
+            <BarChart3
               className="mt-1 h-7 w-7 shrink-0"
               aria-hidden="true"
             />
 
             <div>
               <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-                Idempotent V2 Activity Logs
+                V2 Receipt History
               </span>
 
               <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-                Hostinger Cron Proof of Execution
+                Daily Cron Execution Coverage
               </h2>
 
               <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-                Each production shell script reports
-                its final result to a protected API.
-                V2 execution IDs prevent duplicate
-                receipt records and separate safe
-                validation tests from production
-                cron history.
+                Missing or failed receipts are
+                classified as critical. Successful
+                receipts outside the expected
+                scheduling tolerance are classified
+                as warning-level.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <AttendanceAutomationSchedulerHeartbeatDashboard
+      <AttendanceAutomationCronReceiptReportDashboard
         data={data}
       />
     </section>
