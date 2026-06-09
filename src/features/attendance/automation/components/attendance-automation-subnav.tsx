@@ -16,6 +16,7 @@ import {
   ListChecks,
   Settings2,
   ShieldCheck,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import type { AttendanceAutomationAlertOverallStatus } from "../alerts/types/attendance-automation-alert-types";
@@ -75,10 +76,22 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       exact: true,
     },
     {
+      label: "Cron Readiness",
+      href: "/dashboard/attendance/automation/scheduler/readiness",
+      icon: ShieldCheck,
+      exact: true,
+    },
+    {
+      label: "Cron Reliability",
+      href: "/dashboard/attendance/automation/scheduler/reliability",
+      icon: TrendingUp,
+      exact: true,
+    },
+    {
       label: "Cron Receipts",
       href: "/dashboard/attendance/automation/scheduler/heartbeats",
       icon: HeartPulse,
-      exact: true,
+      exact: false,
     },
     {
       label: "Diagnostics",
@@ -120,6 +133,7 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
 
 function isItemActive(input: {
   pathname: string;
+
   item:
     AttendanceAutomationNavigationItem;
 }): boolean {
@@ -157,7 +171,8 @@ export function AttendanceAutomationSubnav({
   alertCount = 0,
   alertStatus = "HEALTHY",
 }: AttendanceAutomationSubnavProps) {
-  const pathname = usePathname();
+  const pathname =
+    usePathname();
 
   return (
     <nav
@@ -166,12 +181,14 @@ export function AttendanceAutomationSubnav({
     >
       <div className="flex flex-wrap gap-2">
         {navigationItems.map((item) => {
-          const Icon = item.icon;
+          const Icon =
+            item.icon;
 
-          const active = isItemActive({
-            pathname,
-            item,
-          });
+          const active =
+            isItemActive({
+              pathname,
+              item,
+            });
 
           const showAlertBadge =
             item.showAlertBadge &&
@@ -203,7 +220,9 @@ export function AttendanceAutomationSubnav({
                 aria-hidden="true"
               />
 
-              <span>{item.label}</span>
+              <span>
+                {item.label}
+              </span>
 
               {showAlertBadge ? (
                 <span

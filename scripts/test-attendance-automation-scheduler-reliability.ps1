@@ -4,20 +4,6 @@ param(
     [string]$Secret = "",
 
     [ValidateSet(
-        "AUTOMATION",
-        "HEALTH"
-    )]
-    [string]$Task = "AUTOMATION",
-
-    [ValidateSet(
-        "SUCCESS",
-        "ATTENTION",
-        "SKIPPED",
-        "FAILED"
-    )]
-    [string]$Outcome = "SUCCESS",
-
-    [ValidateSet(
         "Authorization",
         "XAttendance",
         "XCron"
@@ -40,28 +26,24 @@ function Remove-SurroundingQuotes {
         return $normalized
     }
 
-    $firstCharacter =
+    $first =
         $normalized.Substring(0, 1)
 
-    $lastCharacter =
+    $last =
         $normalized.Substring(
             $normalized.Length - 1,
             1
         )
 
-    $quotedWithDoubleQuotes = (
-        $firstCharacter -eq '"' -and
-        $lastCharacter -eq '"'
-    )
-
-    $quotedWithSingleQuotes = (
-        $firstCharacter -eq "'" -and
-        $lastCharacter -eq "'"
-    )
-
     if (
-        $quotedWithDoubleQuotes -or
-        $quotedWithSingleQuotes
+        (
+            $first -eq '"' -and
+            $last -eq '"'
+        ) -or
+        (
+            $first -eq "'" -and
+            $last -eq "'"
+        )
     ) {
         return $normalized.Substring(
             1,
@@ -183,31 +165,14 @@ No attendance automation secret was found.
 
 Configure ATTENDANCE_AUTOMATION_SECRET or run:
 
-.\scripts\test-attendance-automation-scheduler-heartbeat.ps1 -Secret "your-secret"
+.\scripts\test-attendance-automation-scheduler-reliability.ps1 -Secret "your-secret"
 "@
 }
 
 $uri = (
     $BaseUrl.TrimEnd("/") +
-    "/api/automation/attendance/scheduler-heartbeat/test"
+    "/api/automation/attendance/scheduler-reliability"
 )
-
-$executionId = (
-    "manual-test-" +
-    [Guid]::NewGuid().ToString("N")
-)
-
-$startedAt =
-    (Get-Date).
-    ToUniversalTime().
-    ToString("o")
-
-Start-Sleep -Milliseconds 300
-
-$finishedAt =
-    (Get-Date).
-    ToUniversalTime().
-    ToString("o")
 
 $headerValue = switch ($HeaderMode) {
     "Authorization" {
@@ -225,13 +190,10 @@ $headerValue = switch ($HeaderMode) {
 
 Write-Host ""
 Write-Host `
-    "Attendance scheduler heartbeat safe test" `
+    "Attendance automation scheduler reliability" `
     -ForegroundColor Cyan
 
 Write-Host "Endpoint: $uri"
-Write-Host "Task: $Task"
-Write-Host "Outcome: $Outcome"
-Write-Host "Execution ID: $executionId"
 Write-Host "Header mode: $HeaderMode"
 Write-Host "Secret length: $($Secret.Length)"
 Write-Host ""
@@ -240,23 +202,9 @@ $curlArguments = @(
     "--silent"
     "--show-error"
     "--request"
-    "POST"
+    "GET"
     "--header"
     $headerValue
-    "--data-urlencode"
-    "executionId=$executionId"
-    "--data-urlencode"
-    "task=$Task"
-    "--data-urlencode"
-    "outcome=$Outcome"
-    "--data-urlencode"
-    "httpStatus=200"
-    "--data-urlencode"
-    "startedAt=$startedAt"
-    "--data-urlencode"
-    "finishedAt=$finishedAt"
-    "--data-urlencode"
-    "message=Safe Windows heartbeat validation test."
     "--write-out"
     "`n__HTTP_STATUS__:%{http_code}"
     $uri
@@ -285,7 +233,10 @@ $statusMatch =
     )
 
 if (-not $statusMatch.Success) {
-    throw "The HTTP status could not be read."
+    throw (
+        "The HTTP status could not be read " +
+        "from the endpoint response."
+    )
 }
 
 $statusCode =
@@ -302,12 +253,12 @@ $statusColor = switch ($statusCode) {
         "Green"
     }
 
-    401 {
-        "Red"
+    503 {
+        "Yellow"
     }
 
     default {
-        "Yellow"
+        "Red"
     }
 }
 
@@ -328,7 +279,7 @@ if (
             ConvertFrom-Json
 
         $response |
-            ConvertTo-Json -Depth 20
+            ConvertTo-Json -Depth 30
     }
     catch {
         Write-Host $responseBody
@@ -337,16 +288,36 @@ if (
 
 Write-Host ""
 
-if ($statusCode -eq 200) {
-    Write-Host `
-        "Heartbeat authentication and validation passed. No activity log was created." `
-        -ForegroundColor Green
+switch ($statusCode) {
+    200 {
+        Write-Host (
+            "Scheduler reliability is not breached."
+        ) -ForegroundColor Green
 
-    exit 0
+        exit 0
+    }
+
+    503 {
+        Write-Host (
+            "Scheduler reliability target is currently breached."
+        ) -ForegroundColor Yellow
+
+        exit 0
+    }
+
+    401 {
+        Write-Host (
+            "The automation secret was rejected."
+        ) -ForegroundColor Red
+
+        exit 1
+    }
+
+    default {
+        Write-Host (
+            "Scheduler reliability request failed."
+        ) -ForegroundColor Red
+
+        exit 1
+    }
 }
-
-Write-Host `
-    "Heartbeat validation failed." `
-    -ForegroundColor Red
-
-exit 1
