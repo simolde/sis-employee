@@ -29,17 +29,14 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
     {
       id: "branches",
 
-      title:
-        "Branches",
+      title: "Branches",
 
       description:
         "Manage school branches, branch codes, addresses, operational status, and attendance-location assignments.",
 
-      tableName:
-        "branches",
+      tableName: "branches",
 
-      icon:
-        "Building2",
+      icon: "Building2",
 
       href:
         "/dashboard/settings/organization/branches",
@@ -57,17 +54,14 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
     {
       id: "departments",
 
-      title:
-        "Departments",
+      title: "Departments",
 
       description:
         "Manage administrative, academic, maintenance, motorpool, accounting, and other organizational departments.",
 
-      tableName:
-        "departments",
+      tableName: "departments",
 
-      icon:
-        "Network",
+      icon: "Network",
 
       href:
         "/dashboard/settings/organization/departments",
@@ -85,48 +79,41 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
     {
       id: "designations",
 
-      title:
-        "Designations",
+      title: "Designations",
 
       description:
         "Manage employee job titles, positions, responsibilities, and organizational classifications.",
 
-      tableName:
-        "designations",
+      tableName: "designations",
 
-      icon:
-        "BadgeCheck",
+      icon: "BadgeCheck",
 
       href:
         "/dashboard/settings/organization/designations",
 
       developmentStep:
-        "Step 151D",
+        "Available",
 
       features: [
         "Job titles and codes",
-        "Position classifications",
-        "Department relationships",
+        "Employee relationships",
+        "Dependency-aware deletion",
         "Active, inactive, and archived status",
       ],
     },
     {
       id: "employee-types",
 
-      title:
-        "Employee Types",
+      title: "Employee Types",
 
       description:
         "Manage regular, probationary, contractual, part-time, faculty, maintenance, and other employment types.",
 
-      tableName:
-        "emp_types",
+      tableName: "emp_types",
 
-      icon:
-        "UsersRound",
+      icon: "UsersRound",
 
-      href:
-        null,
+      href: null,
 
       developmentStep:
         "Step 151E",
@@ -168,40 +155,19 @@ function normalizeCount(
     return 0;
   }
 
-  if (typeof value === "number") {
-    return Number.isFinite(value)
-      ? Math.max(
-          0,
-          Math.trunc(value),
-        )
-      : 0;
-  }
-
-  if (typeof value === "bigint") {
-    const converted =
-      Number(value);
-
-    return Number.isSafeInteger(
-      converted,
-    )
-      ? Math.max(
-          0,
-          converted,
-        )
-      : 0;
-  }
-
   const converted =
     Number(value);
 
-  return Number.isSafeInteger(
-    converted,
-  )
-    ? Math.max(
-        0,
-        converted,
-      )
-    : 0;
+  if (
+    !Number.isSafeInteger(
+      converted,
+    ) ||
+    converted < 0
+  ) {
+    return 0;
+  }
+
+  return converted;
 }
 
 function getErrorMessage(
@@ -285,23 +251,19 @@ async function buildReadySection(
     return {
       ...definition,
 
-      status:
-        "READY",
+      status: "READY",
 
       recordCount,
 
-      errorMessage:
-        null,
+      errorMessage: null,
     };
   } catch (error) {
     return {
       ...definition,
 
-      status:
-        "ERROR",
+      status: "ERROR",
 
-      recordCount:
-        null,
+      recordCount: null,
 
       errorMessage:
         getErrorMessage(error),
@@ -323,11 +285,9 @@ function buildUnavailableSection(
 
     status,
 
-    recordCount:
-      null,
+    recordCount: null,
 
-    errorMessage:
-      message,
+    errorMessage: message,
   };
 }
 
@@ -386,24 +346,19 @@ export async function getOrganizationSettingsOverviewData(): Promise<Organizatio
       generatedAtIso:
         generatedAt.toISOString(),
 
-      databaseReachable:
-        false,
+      databaseReachable: false,
 
       summary: {
         totalSections:
           sections.length,
 
-        readySections:
-          0,
-
-        missingSections:
-          0,
+        readySections: 0,
+        missingSections: 0,
 
         errorSections:
           sections.length,
 
-        totalRecords:
-          0,
+        totalRecords: 0,
       },
 
       sections,
@@ -413,9 +368,7 @@ export async function getOrganizationSettingsOverviewData(): Promise<Organizatio
   const sections =
     await Promise.all(
       ORGANIZATION_SECTION_DEFINITIONS.map(
-        async (
-          definition,
-        ) => {
+        async (definition) => {
           if (
             !existingTables.has(
               definition.tableName,
@@ -458,8 +411,7 @@ export async function getOrganizationSettingsOverviewData(): Promise<Organizatio
     generatedAtIso:
       generatedAt.toISOString(),
 
-    databaseReachable:
-      true,
+    databaseReachable: true,
 
     summary: {
       totalSections:

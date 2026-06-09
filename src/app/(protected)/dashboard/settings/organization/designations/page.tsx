@@ -1,22 +1,155 @@
 import Link from "next/link";
 import {
+  Archive,
   ArrowLeft,
   BadgeCheck,
+  CheckCircle2,
+  CircleOff,
   DatabaseSearch,
+  Plus,
+  Search,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
-import { OrganizationTableSchemaDashboard } from "@/features/settings/organization/schema/components/organization-table-schema-dashboard";
-import { getOrganizationTableSchemaInspectionData } from "@/features/settings/organization/schema/server/organization-table-schema-queries";
+import { DesignationManagementTable } from "@/features/settings/organization/designations/components/designation-management-table";
+import { getDesignationListData } from "@/features/settings/organization/designations/server/designation-management-queries";
+import {
+  DESIGNATION_PAGE_SIZES,
+  DESIGNATION_STATUSES,
+  type DesignationListRawFilters,
+} from "@/features/settings/organization/designations/types/designation-management-types";
 
 export const dynamic =
   "force-dynamic";
 
-export default async function DesignationSettingsPage() {
+type DesignationSettingsPageProps = {
+  searchParams: Promise<
+    DesignationListRawFilters & {
+      notice?:
+        | string
+        | string[];
+
+      designationId?:
+        | string
+        | string[];
+    }
+  >;
+};
+
+function firstValue(
+  value:
+    | string
+    | string[]
+    | undefined,
+): string {
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
+}
+
+function getNotice(
+  value: string,
+): {
+  style: string;
+  message: string;
+} | null {
+  switch (value) {
+    case "created":
+      return {
+        style:
+          "border-green-200 bg-green-50 text-green-800",
+
+        message:
+          "The designation was created successfully.",
+      };
+
+    case "updated":
+      return {
+        style:
+          "border-green-200 bg-green-50 text-green-800",
+
+        message:
+          "The designation was updated successfully.",
+      };
+
+    case "status-updated":
+      return {
+        style:
+          "border-green-200 bg-green-50 text-green-800",
+
+        message:
+          "The designation status was updated successfully.",
+      };
+
+    case "no-change":
+      return {
+        style:
+          "border-blue-200 bg-blue-50 text-blue-800",
+
+        message:
+          "The designation already has the selected status.",
+      };
+
+    case "deleted":
+      return {
+        style:
+          "border-green-200 bg-green-50 text-green-800",
+
+        message:
+          "The unused designation was permanently deleted.",
+      };
+
+    case "delete-error":
+      return {
+        style:
+          "border-red-200 bg-red-50 text-red-800",
+
+        message:
+          "The designation could not be deleted. It may still be referenced by an employee.",
+      };
+
+    case "status-error":
+      return {
+        style:
+          "border-red-200 bg-red-50 text-red-800",
+
+        message:
+          "The designation status could not be updated.",
+      };
+
+    case "invalid-request":
+      return {
+        style:
+          "border-red-200 bg-red-50 text-red-800",
+
+        message:
+          "The designation request was invalid.",
+      };
+
+    default:
+      return null;
+  }
+}
+
+export default async function DesignationSettingsPage({
+  searchParams,
+}: DesignationSettingsPageProps) {
   await requireCanManageEmployees();
 
+  const resolvedSearchParams =
+    await searchParams;
+
   const data =
-    await getOrganizationTableSchemaInspectionData(
-      "designations",
+    await getDesignationListData(
+      resolvedSearchParams,
+    );
+
+  const notice =
+    getNotice(
+      firstValue(
+        resolvedSearchParams.notice,
+      ),
     );
 
   return (
@@ -32,70 +165,255 @@ export default async function DesignationSettingsPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Inspect the exact designation database
-            structure before enabling creation,
-            editing, duplicate prevention, status
-            controls, and dependency-aware deletion.
+            Manage employee job titles, positions,
+            designation codes, and operational
+            status.
           </p>
         </div>
 
-        <Link
-          href="/dashboard/settings/organization"
-          className="starland-btn starland-btn-soft"
-        >
-          <ArrowLeft
-            className="h-4 w-4"
-            aria-hidden="true"
-          />
-
-          Organization Structure
-        </Link>
-      </div>
-
-      <section className="starland-card overflow-hidden">
-        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
-          <div className="flex items-start gap-3">
-            <BadgeCheck
-              className="mt-1 h-7 w-7 shrink-0"
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/settings/organization/designations/new"
+            className="starland-btn starland-btn-primary"
+          >
+            <Plus
+              className="h-4 w-4"
               aria-hidden="true"
             />
 
-            <div>
-              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-                Step 151D-1
-              </span>
+            New Designation
+          </Link>
 
-              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-                Exact Designation Schema Discovery
-              </h2>
+          <Link
+            href="/dashboard/settings/organization/designations/schema"
+            className="starland-btn starland-btn-soft"
+          >
+            <DatabaseSearch
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
 
-              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-                The application reads the current
-                MySQL metadata so the upcoming
-                designation CRUD matches the real
-                identifier, code, title, department
-                relationship, status, timestamps,
-                and database constraints.
-              </p>
-            </div>
-          </div>
+            Schema Inspector
+          </Link>
+
+          <Link
+            href="/dashboard/settings/organization"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Organization Structure
+          </Link>
         </div>
+      </div>
 
-        <div className="flex items-start gap-3 border-t border-white/10 bg-[var(--starland-modern-bg)] p-4">
-          <DatabaseSearch
-            className="mt-0.5 h-5 w-5 shrink-0 text-[var(--starland-main-green)]"
+      {notice ? (
+        <section
+          role="status"
+          className={[
+            "rounded-2xl border p-4 text-sm font-semibold leading-6",
+            notice.style,
+          ].join(" ")}
+        >
+          {notice.message}
+        </section>
+      ) : null}
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article className="starland-card p-4">
+          <BadgeCheck
+            className="h-7 w-7 text-[var(--starland-main-green)]"
             aria-hidden="true"
           />
 
-          <p className="text-sm font-semibold leading-6 text-[var(--starland-muted-text)]">
-            This page is read-only. It does not
-            insert, update, delete, migrate, or alter
-            designation records.
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Total Designations
           </p>
-        </div>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {
+              data.summary
+                .totalDesignations
+            }
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <CheckCircle2
+            className="h-7 w-7 text-[var(--starland-success)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Active
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {
+              data.summary
+                .activeDesignations
+            }
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <CircleOff
+            className="h-7 w-7 text-[var(--starland-warning)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Inactive
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {
+              data.summary
+                .inactiveDesignations
+            }
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <Archive
+            className="h-7 w-7 text-slate-600"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Archived
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {
+              data.summary
+                .archivedDesignations
+            }
+          </p>
+        </article>
       </section>
 
-      <OrganizationTableSchemaDashboard
+      <section className="starland-card p-4">
+        <form
+          method="get"
+          className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px_160px_auto]"
+        >
+          <div>
+            <label
+              htmlFor="q"
+              className="text-sm font-bold text-[var(--starland-dark-text)]"
+            >
+              Search
+            </label>
+
+            <div className="relative mt-2">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--starland-muted-text)]"
+                aria-hidden="true"
+              />
+
+              <input
+                id="q"
+                name="q"
+                type="search"
+                className="starland-input pl-9"
+                defaultValue={
+                  data.filters.q
+                }
+                placeholder="Designation code or name"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="status"
+              className="text-sm font-bold text-[var(--starland-dark-text)]"
+            >
+              Status
+            </label>
+
+            <select
+              id="status"
+              name="status"
+              className="starland-input mt-2"
+              defaultValue={
+                data.filters.status
+              }
+            >
+              <option value="">
+                All statuses
+              </option>
+
+              {DESIGNATION_STATUSES.map(
+                (status) => (
+                  <option
+                    key={status}
+                    value={status}
+                  >
+                    {status}
+                  </option>
+                ),
+              )}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="pageSize"
+              className="text-sm font-bold text-[var(--starland-dark-text)]"
+            >
+              Rows
+            </label>
+
+            <select
+              id="pageSize"
+              name="pageSize"
+              className="starland-input mt-2"
+              defaultValue={String(
+                data.filters.pageSize,
+              )}
+            >
+              {DESIGNATION_PAGE_SIZES.map(
+                (pageSize) => (
+                  <option
+                    key={pageSize}
+                    value={pageSize}
+                  >
+                    {pageSize}
+                  </option>
+                ),
+              )}
+            </select>
+          </div>
+
+          <div className="flex items-end gap-2">
+            <button
+              type="submit"
+              className="starland-btn starland-btn-primary"
+            >
+              <Search
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Apply
+            </button>
+
+            <Link
+              href="/dashboard/settings/organization/designations"
+              className="starland-btn starland-btn-soft"
+            >
+              Reset
+            </Link>
+          </div>
+        </form>
+      </section>
+
+      <DesignationManagementTable
         data={data}
       />
     </section>
