@@ -17,6 +17,7 @@ import {
   Settings2,
   ShieldCheck,
   Siren,
+  TimerReset,
   TrendingUp,
   type LucideIcon,
 } from "lucide-react";
@@ -40,99 +41,169 @@ type AttendanceAutomationNavigationItem = {
 const navigationItems: AttendanceAutomationNavigationItem[] =
   [
     {
-      label: "Automation Overview",
-      href: "/dashboard/attendance/automation",
+      label:
+        "Automation Overview",
+
+      href:
+        "/dashboard/attendance/automation",
+
       icon: Gauge,
       exact: true,
     },
     {
       label: "Alerts",
-      href: "/dashboard/attendance/automation/alerts",
+
+      href:
+        "/dashboard/attendance/automation/alerts",
+
       icon: BellRing,
       exact: true,
+
       showAlertBadge: true,
     },
     {
-      label: "Alert Incidents",
-      href: "/dashboard/attendance/automation/alerts/incidents",
+      label:
+        "Alert Incidents",
+
+      href:
+        "/dashboard/attendance/automation/alerts/incidents",
+
       icon: Siren,
       exact: true,
     },
     {
-      label: "Acknowledgements",
-      href: "/dashboard/attendance/automation/alerts/acknowledgements",
+      label:
+        "Incident Lifecycle",
+
+      href:
+        "/dashboard/attendance/automation/alerts/incidents/lifecycle",
+
+      icon: TimerReset,
+      exact: true,
+    },
+    {
+      label:
+        "Acknowledgements",
+
+      href:
+        "/dashboard/attendance/automation/alerts/acknowledgements",
+
       icon: ShieldCheck,
       exact: true,
     },
     {
-      label: "Automation Health",
-      href: "/dashboard/attendance/automation/health",
+      label:
+        "Automation Health",
+
+      href:
+        "/dashboard/attendance/automation/health",
+
       icon: Activity,
       exact: true,
     },
     {
       label: "Readiness",
-      href: "/dashboard/attendance/automation/readiness",
+
+      href:
+        "/dashboard/attendance/automation/readiness",
+
       icon: ClipboardCheck,
       exact: true,
     },
     {
       label: "Scheduler",
-      href: "/dashboard/attendance/automation/scheduler",
+
+      href:
+        "/dashboard/attendance/automation/scheduler",
+
       icon: CalendarClock,
       exact: true,
     },
     {
-      label: "Cron Readiness",
-      href: "/dashboard/attendance/automation/scheduler/readiness",
+      label:
+        "Cron Readiness",
+
+      href:
+        "/dashboard/attendance/automation/scheduler/readiness",
+
       icon: ShieldCheck,
       exact: true,
     },
     {
-      label: "Cron Reliability",
-      href: "/dashboard/attendance/automation/scheduler/reliability",
+      label:
+        "Cron Reliability",
+
+      href:
+        "/dashboard/attendance/automation/scheduler/reliability",
+
       icon: TrendingUp,
       exact: true,
     },
     {
-      label: "Cron Receipts",
-      href: "/dashboard/attendance/automation/scheduler/heartbeats",
+      label:
+        "Cron Receipts",
+
+      href:
+        "/dashboard/attendance/automation/scheduler/heartbeats",
+
       icon: HeartPulse,
       exact: false,
     },
     {
       label: "Diagnostics",
-      href: "/dashboard/attendance/automation/diagnostics",
+
+      href:
+        "/dashboard/attendance/automation/diagnostics",
+
       icon: DatabaseZap,
       exact: true,
     },
     {
       label: "Reports",
-      href: "/dashboard/attendance/automation/reports",
+
+      href:
+        "/dashboard/attendance/automation/reports",
+
       icon: BarChart3,
       exact: true,
     },
     {
-      label: "Configuration",
-      href: "/dashboard/attendance/automation/configuration",
+      label:
+        "Configuration",
+
+      href:
+        "/dashboard/attendance/automation/configuration",
+
       icon: Settings2,
       exact: true,
     },
     {
-      label: "Approved Leave EXCUSED",
-      href: "/dashboard/attendance/automation/approved-leave-excused",
+      label:
+        "Approved Leave EXCUSED",
+
+      href:
+        "/dashboard/attendance/automation/approved-leave-excused",
+
       icon: CalendarCheck,
       exact: true,
     },
     {
-      label: "Run History",
-      href: "/dashboard/attendance/automation/approved-leave-excused/history",
+      label:
+        "Run History",
+
+      href:
+        "/dashboard/attendance/automation/approved-leave-excused/history",
+
       icon: ListChecks,
       exact: false,
     },
     {
-      label: "Attendance Audit",
-      href: "/dashboard/attendance/audit",
+      label:
+        "Attendance Audit",
+
+      href:
+        "/dashboard/attendance/audit",
+
       icon: History,
       exact: false,
     },
