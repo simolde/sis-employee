@@ -1,0 +1,298 @@
+import Link from "next/link";
+import {
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+} from "lucide-react";
+import type {
+  BranchListData,
+  BranchStatus,
+} from "../types/branch-management-types";
+import { BranchRowActions } from "./branch-row-actions";
+
+type BranchManagementTableProps = {
+  data:
+    BranchListData;
+};
+
+function statusBadgeClass(
+  status:
+    BranchStatus,
+): string {
+  switch (status) {
+    case "ACTIVE":
+      return "starland-badge-success";
+
+    case "INACTIVE":
+      return "starland-badge-warning";
+
+    case "ARCHIVED":
+      return "bg-slate-100 text-slate-700";
+  }
+}
+
+function paginationHref(
+  data:
+    BranchListData,
+
+  page: number,
+): string {
+  const parameters =
+    new URLSearchParams();
+
+  if (data.filters.q) {
+    parameters.set(
+      "q",
+      data.filters.q,
+    );
+  }
+
+  if (
+    data.filters.status
+  ) {
+    parameters.set(
+      "status",
+      data.filters.status,
+    );
+  }
+
+  parameters.set(
+    "page",
+    String(page),
+  );
+
+  parameters.set(
+    "pageSize",
+    String(
+      data.filters.pageSize,
+    ),
+  );
+
+  return (
+    "/dashboard/settings/organization/branches?" +
+    parameters.toString()
+  );
+}
+
+export function BranchManagementTable({
+  data,
+}: BranchManagementTableProps) {
+  return (
+    <section className="starland-card overflow-hidden">
+      <div className="border-b border-[var(--starland-border)] px-5 py-4">
+        <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+          Organization Branches
+        </h2>
+
+        <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+          Showing{" "}
+          {data.pagination.firstRecord}–
+          {data.pagination.lastRecord} of{" "}
+          {data.pagination.totalRecords} matching
+          records.
+        </p>
+      </div>
+
+      <div className="starland-scroll-x">
+        <table className="starland-table">
+          <thead>
+            <tr>
+              <th>Branch</th>
+              <th>Status</th>
+              <th>Address</th>
+              <th>Geofence</th>
+              <th>Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {data.branches.length >
+            0 ? (
+              data.branches.map(
+                (branch) => (
+                  <tr
+                    key={
+                      branch.branchId
+                    }
+                  >
+                    <td>
+                      <p className="font-extrabold text-[var(--starland-dark-text)]">
+                        {branch.name}
+                      </p>
+
+                      <code className="mt-1 block text-xs font-bold text-[var(--starland-muted-text)]">
+                        {branch.branchCode}
+                      </code>
+
+                      <p className="mt-1 text-xs text-[var(--starland-muted-text)]">
+                        ID:{" "}
+                        {branch.branchId}
+                      </p>
+                    </td>
+
+                    <td>
+                      <span
+                        className={[
+                          "starland-badge",
+                          statusBadgeClass(
+                            branch.status,
+                          ),
+                        ].join(" ")}
+                      >
+                        {branch.status}
+                      </span>
+                    </td>
+
+                    <td>
+                      <p className="max-w-sm whitespace-normal text-sm leading-6 text-[var(--starland-muted-text)]">
+                        {branch.address ??
+                          "No address configured"}
+                      </p>
+                    </td>
+
+                    <td>
+                      {branch.latitude &&
+                      branch.longitude ? (
+                        <div className="min-w-44">
+                          <div className="flex items-center gap-2">
+                            <MapPin
+                              className="h-4 w-4 text-[var(--starland-info)]"
+                              aria-hidden="true"
+                            />
+
+                            <span className="font-bold text-[var(--starland-dark-text)]">
+                              Configured
+                            </span>
+                          </div>
+
+                          <p className="mt-1 text-xs text-[var(--starland-muted-text)]">
+                            {branch.latitude},{" "}
+                            {branch.longitude}
+                          </p>
+
+                          <p className="mt-1 text-xs text-[var(--starland-muted-text)]">
+                            Radius:{" "}
+                            {branch.radiusM ??
+                              "Not set"}{" "}
+                            {branch.radiusM
+                              ? "m"
+                              : ""}
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-[var(--starland-muted-text)]">
+                          Not configured
+                        </span>
+                      )}
+                    </td>
+
+                    <td>
+                      <p className="min-w-44 text-sm">
+                        {branch.updatedAt}
+                      </p>
+                    </td>
+
+                    <td>
+                      <BranchRowActions
+                        branchId={
+                          branch.branchId
+                        }
+                        branchName={
+                          branch.name
+                        }
+                        status={
+                          branch.status
+                        }
+                      />
+                    </td>
+                  </tr>
+                ),
+              )
+            ) : (
+              <tr>
+                <td colSpan={6}>
+                  <div className="p-8 text-center">
+                    <p className="font-extrabold text-[var(--starland-dark-text)]">
+                      No branches found
+                    </p>
+
+                    <p className="mt-2 text-sm text-[var(--starland-muted-text)]">
+                      Change the filters or create a
+                      new branch.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-[var(--starland-border)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm font-semibold text-[var(--starland-muted-text)]">
+          Page {data.pagination.page} of{" "}
+          {data.pagination.totalPages}
+        </p>
+
+        <div className="flex gap-2">
+          {data.pagination
+            .hasPreviousPage ? (
+            <Link
+              href={paginationHref(
+                data,
+                data.pagination.page -
+                  1,
+              )}
+              className="starland-btn starland-btn-soft starland-btn-sm"
+            >
+              <ChevronLeft
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Previous
+            </Link>
+          ) : (
+            <span className="starland-btn starland-btn-soft starland-btn-sm pointer-events-none opacity-50">
+              <ChevronLeft
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Previous
+            </span>
+          )}
+
+          {data.pagination
+            .hasNextPage ? (
+            <Link
+              href={paginationHref(
+                data,
+                data.pagination.page +
+                  1,
+              )}
+              className="starland-btn starland-btn-soft starland-btn-sm"
+            >
+              Next
+
+              <ChevronRight
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+            </Link>
+          ) : (
+            <span className="starland-btn starland-btn-soft starland-btn-sm pointer-events-none opacity-50">
+              Next
+
+              <ChevronRight
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+            </span>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
