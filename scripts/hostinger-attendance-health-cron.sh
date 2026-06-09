@@ -35,9 +35,11 @@ esac
 
 BASE_URL="${ATTENDANCE_AUTOMATION_BASE_URL%/}"
 
-ENDPOINT="$BASE_URL/api/automation/attendance/health?mode=$ATTENDANCE_AUTOMATION_HEALTH_MODE"
+HEALTH_ENDPOINT="$BASE_URL/api/automation/attendance/health?mode=$ATTENDANCE_AUTOMATION_HEALTH_MODE"
 
 HEARTBEAT_ENDPOINT="$BASE_URL/api/automation/attendance/scheduler-heartbeat"
+
+ALERT_SNAPSHOT_ENDPOINT="$BASE_URL/api/automation/attendance/alerts/snapshot"
 
 EXECUTION_ID="health-$(date -u '+%Y%m%dT%H%M%SZ')-$$"
 
@@ -95,11 +97,45 @@ send_heartbeat() {
   esac
 }
 
+record_alert_snapshot() {
+  snapshot_response="$(
+    curl \
+      --silent \
+      --show-error \
+      --location \
+      --connect-timeout 15 \
+      --max-time 180 \
+      --output /dev/null \
+      --write-out "%{http_code}" \
+      --request POST \
+      --header "Accept: application/json" \
+      --header "X-Attendance-Automation-Secret: $ATTENDANCE_AUTOMATION_SECRET" \
+      "$ALERT_SNAPSHOT_ENDPOINT"
+  )"
+
+  snapshot_curl_exit="$?"
+
+  if [ "$snapshot_curl_exit" -ne 0 ]; then
+    return 1
+  fi
+
+  case "$snapshot_response" in
+    200|201)
+      return 0
+      ;;
+
+    *)
+      printf '%s\n' "Alert snapshot endpoint returned HTTP $snapshot_response." >&2
+      return 1
+      ;;
+  esac
+}
+
 STARTED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
 printf '%s\n' "Starland attendance automation health cron"
 printf '%s\n' "Execution ID: $EXECUTION_ID"
-printf '%s\n' "Endpoint: $ENDPOINT"
+printf '%s\n' "Health endpoint: $HEALTH_ENDPOINT"
 printf '%s\n' "Started UTC: $STARTED_AT"
 
 HTTP_STATUS="$(
@@ -114,7 +150,7 @@ HTTP_STATUS="$(
     --request GET \
     --header "Accept: application/json" \
     --header "X-Attendance-Automation-Secret: $ATTENDANCE_AUTOMATION_SECRET" \
-    "$ENDPOINT"
+    "$HEALTH_ENDPOINT"
 )"
 
 CURL_EXIT_CODE="$?"
@@ -157,6 +193,12 @@ if ! send_heartbeat \
   "$FINISHED_AT" \
   "$MESSAGE"; then
   printf '%s\n' "Warning: the V2 scheduler heartbeat could not be recorded." >&2
+fi
+
+if ! record_alert_snapshot; then
+  printf '%s\n' "Warning: the automation alert snapshot could not be recorded." >&2
+else
+  printf '%s\n' "Automation alert snapshot evaluation completed."
 fi
 
 printf '%s\n' "$MESSAGE"

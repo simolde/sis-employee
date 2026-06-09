@@ -16,6 +16,7 @@ import {
   ListChecks,
   Settings2,
   ShieldCheck,
+  Siren,
   TrendingUp,
   type LucideIcon,
 } from "lucide-react";
@@ -50,6 +51,12 @@ const navigationItems: AttendanceAutomationNavigationItem[] =
       icon: BellRing,
       exact: true,
       showAlertBadge: true,
+    },
+    {
+      label: "Alert Incidents",
+      href: "/dashboard/attendance/automation/alerts/incidents",
+      icon: Siren,
+      exact: true,
     },
     {
       label: "Acknowledgements",
