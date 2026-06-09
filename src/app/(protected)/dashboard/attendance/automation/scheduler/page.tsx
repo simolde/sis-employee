@@ -5,10 +5,13 @@ import {
   CalendarClock,
   ClipboardCheck,
   ServerCog,
+  ShieldCheck,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
 import { AttendanceAutomationHostingerScheduler } from "@/features/attendance/automation/scheduler/components/attendance-automation-hostinger-scheduler";
+import { AttendanceAutomationSchedulerActivationCard } from "@/features/attendance/automation/scheduler/components/attendance-automation-scheduler-activation-card";
 import { getAttendanceAutomationSchedulerData } from "@/features/attendance/automation/scheduler/server/attendance-automation-scheduler-queries";
+import { getAttendanceAutomationSchedulerMonitoringConfiguration } from "@/features/attendance/automation/scheduler/server/attendance-automation-scheduler-monitoring-config";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +20,9 @@ export default async function AttendanceAutomationSchedulerPage() {
 
   const data =
     getAttendanceAutomationSchedulerData();
+
+  const monitoringConfiguration =
+    getAttendanceAutomationSchedulerMonitoringConfiguration();
 
   return (
     <section className="starland-page space-y-5">
@@ -31,18 +37,30 @@ export default async function AttendanceAutomationSchedulerPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Configure the production automation and
-            health-monitoring cron jobs using the
-            correct UTC schedule, private
-            credentials, and deployment shell
-            scripts.
+            Configure and activate the production
+            automation and health-monitoring cron
+            jobs using the correct UTC schedule,
+            private credentials, and deployment
+            shell scripts.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Link
-            href="/dashboard/attendance/automation/readiness"
+            href="/dashboard/attendance/automation/scheduler/readiness"
             className="starland-btn starland-btn-primary"
+          >
+            <ShieldCheck
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Cron Readiness
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/readiness"
+            className="starland-btn starland-btn-soft"
           >
             <ClipboardCheck
               className="h-4 w-4"
@@ -96,10 +114,10 @@ export default async function AttendanceAutomationSchedulerPage() {
               </h2>
 
               <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-                The displayed cron expressions are
-                converted automatically from the
-                configured Asia/Manila automation
-                schedule to Hostinger UTC time.
+                Run the cron-readiness preflight
+                before enabling receipt enforcement.
+                Monitoring should remain disabled
+                during local development.
               </p>
             </div>
           </div>
@@ -119,7 +137,10 @@ export default async function AttendanceAutomationSchedulerPage() {
             </span>
 
             <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-              Queue: Synchronous
+              Monitoring:{" "}
+              {monitoringConfiguration.enabled
+                ? "Enabled"
+                : "Disabled"}
             </span>
 
             <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
@@ -128,6 +149,12 @@ export default async function AttendanceAutomationSchedulerPage() {
           </div>
         </div>
       </section>
+
+      <AttendanceAutomationSchedulerActivationCard
+        configuration={
+          monitoringConfiguration
+        }
+      />
 
       <AttendanceAutomationHostingerScheduler
         data={data}
