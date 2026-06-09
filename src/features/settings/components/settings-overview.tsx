@@ -51,9 +51,7 @@ export function SettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              summary.availableSections
-            }
+            {summary.availableSections}
           </p>
         </article>
 
@@ -83,9 +81,7 @@ export function SettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              summary.plannedSections
-            }
+            {summary.plannedSections}
           </p>
         </article>
       </section>
@@ -99,14 +95,15 @@ export function SettingsOverview({
 
           <div>
             <h2 className="font-extrabold text-blue-900">
-              Next: Organization Structure
+              Next: Branch Management
             </h2>
 
             <p className="mt-1 text-sm font-semibold leading-6 text-blue-800">
-              The next step will add management
-              pages and validated operations for
-              branches, departments, designations,
-              and employee types.
+              Organization Structure is now
+              available. The next implementation
+              will add validated branch listing,
+              creation, editing, status management,
+              pagination, and audit logging.
             </p>
           </div>
         </div>

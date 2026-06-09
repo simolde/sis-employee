@@ -45,13 +45,13 @@ export const SETTINGS_SECTIONS = [
       "Building2",
 
     status:
-      "NEXT",
+      "AVAILABLE",
 
     href:
-      null,
+      "/dashboard/settings/organization",
 
     stepLabel:
-      "Step 151",
+      "Available now",
 
     features: [
       "School and branch information",
@@ -73,7 +73,7 @@ export const SETTINGS_SECTIONS = [
       "CalendarClock",
 
     status:
-      "PLANNED",
+      "NEXT",
 
     href:
       null,
