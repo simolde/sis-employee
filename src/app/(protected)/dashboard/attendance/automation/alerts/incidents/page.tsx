@@ -6,6 +6,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationAlertIncidentActions } from "@/features/attendance/automation/alerts/incidents/components/attendance-automation-alert-incident-actions";
 import { AttendanceAutomationAlertIncidentDashboard } from "@/features/attendance/automation/alerts/incidents/components/attendance-automation-alert-incident-dashboard";
 import { getAttendanceAutomationAlertIncidentData } from "@/features/attendance/automation/alerts/incidents/server/attendance-automation-alert-incident-queries";
 
@@ -20,7 +21,7 @@ export default async function AttendanceAutomationAlertIncidentsPage() {
 
   return (
     <section className="starland-page space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="starland-badge starland-badge-info">
             Automation Incident History
@@ -41,7 +42,7 @@ export default async function AttendanceAutomationAlertIncidentsPage() {
         <div className="flex flex-wrap gap-2">
           <Link
             href="/dashboard/attendance/automation/alerts/incidents"
-            className="starland-btn starland-btn-primary"
+            className="starland-btn starland-btn-soft"
           >
             <RefreshCw
               className="h-4 w-4"
@@ -77,7 +78,30 @@ export default async function AttendanceAutomationAlertIncidentsPage() {
         </div>
       </div>
 
-      <section className="starland-card overflow-hidden">
+      <section className="hidden border-b border-black pb-4 print:block">
+        <h1 className="text-2xl font-extrabold">
+          Starland Attendance Automation
+          Alert Incident Timeline
+        </h1>
+
+        <p className="mt-2 text-sm">
+          Generated: {data.generatedAt}
+        </p>
+
+        <p className="mt-1 text-sm">
+          Monitoring window:{" "}
+          {data.monitoringWindowDays} days
+        </p>
+
+        <p className="mt-1 text-sm">
+          Latest snapshot:{" "}
+          {data.latestSnapshot
+            ? `#${data.latestSnapshot.activityLogId} — ${data.latestSnapshot.overallStatus}`
+            : "No snapshot"}
+        </p>
+      </section>
+
+      <section className="starland-card overflow-hidden print:hidden">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <div className="flex items-start gap-3">
             <History
@@ -103,6 +127,25 @@ export default async function AttendanceAutomationAlertIncidentsPage() {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="starland-card p-4 print:hidden">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-extrabold text-[var(--starland-dark-text)]">
+              Incident Report Actions
+            </h2>
+
+            <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+              Export the complete incident timeline
+              to CSV or generate a printable report.
+            </p>
+          </div>
+
+          <AttendanceAutomationAlertIncidentActions
+            data={data}
+          />
         </div>
       </section>
 
