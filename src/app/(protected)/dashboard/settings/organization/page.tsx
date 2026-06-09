@@ -30,10 +30,10 @@ export default async function OrganizationSettingsPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Review and manage the branches,
-            departments, designations, and employee
-            types used throughout the Starland
-            Employee Attendance System.
+            Review and manage branches, departments,
+            designations, and employee types used
+            throughout the Starland Employee
+            Attendance System.
           </p>
         </div>
 
@@ -48,6 +48,18 @@ export default async function OrganizationSettingsPage() {
             />
 
             Branch Management
+          </Link>
+
+          <Link
+            href="/dashboard/settings/organization/departments"
+            className="starland-btn starland-btn-soft"
+          >
+            <Network
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Department Management
           </Link>
 
           <Link
@@ -99,11 +111,10 @@ export default async function OrganizationSettingsPage() {
           />
 
           <p className="text-sm font-semibold leading-6 text-[var(--starland-muted-text)]">
-            Branch Management now includes exact
-            database-schema discovery. Typed create,
-            edit, status, pagination, and audit
-            operations follow after the schema report
-            is confirmed.
+            Branch Management is operational.
+            Department Management now includes exact
+            database-schema discovery before typed
+            CRUD is enabled.
           </p>
         </div>
       </section>

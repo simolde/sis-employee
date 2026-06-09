@@ -5,7 +5,9 @@ import {
   Database,
   Network,
 } from "lucide-react";
-import type { OrganizationSettingsOverviewData } from "../types/organization-settings-types";
+import type {
+  OrganizationSettingsOverviewData,
+} from "../types/organization-settings-types";
 import { OrganizationSettingsSectionCard } from "./organization-settings-section-card";
 
 type OrganizationSettingsOverviewProps = {
@@ -71,7 +73,10 @@ export function OrganizationSettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {data.summary.totalSections}
+            {
+              data.summary
+                .totalSections
+            }
           </p>
         </article>
 
@@ -86,7 +91,10 @@ export function OrganizationSettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {data.summary.readySections}
+            {
+              data.summary
+                .readySections
+            }
           </p>
         </article>
 
@@ -101,7 +109,10 @@ export function OrganizationSettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {data.summary.totalRecords}
+            {
+              data.summary
+                .totalRecords
+            }
           </p>
         </article>
 
@@ -116,8 +127,10 @@ export function OrganizationSettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {data.summary.missingSections +
-              data.summary.errorSections}
+            {data.summary
+              .missingSections +
+              data.summary
+                .errorSections}
           </p>
         </article>
       </section>
@@ -131,15 +144,16 @@ export function OrganizationSettingsOverview({
 
           <div>
             <h2 className="font-extrabold text-blue-900">
-              Next: Branch Management
+              Next: Department Management
             </h2>
 
             <p className="mt-1 text-sm font-semibold leading-6 text-blue-800">
-              The next step will inspect the actual
-              Prisma Branch model and add validated,
-              paginated branch management without
-              changing or duplicating your existing
-              database structure.
+              Branch Management now supports
+              complete CRUD. The Department module
+              will inspect the current schema first,
+              then add listing, creation, editing,
+              duplicate prevention, status controls,
+              and dependency-aware deletion.
             </p>
           </div>
         </div>
@@ -152,8 +166,8 @@ export function OrganizationSettingsOverview({
           </h2>
 
           <p className="mt-1 text-sm leading-6 text-[var(--starland-muted-text)]">
-            These master records will be used by
-            employee profiles, attendance branches,
+            These master records are used by employee
+            profiles, attendance branches,
             schedules, reports, permissions, and
             filtering.
           </p>

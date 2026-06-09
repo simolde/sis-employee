@@ -29,40 +29,48 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
     {
       id: "branches",
 
-      title: "Branches",
+      title:
+        "Branches",
 
       description:
         "Manage school branches, branch codes, addresses, operational status, and attendance-location assignments.",
 
-      tableName: "branches",
+      tableName:
+        "branches",
 
-      icon: "Building2",
+      icon:
+        "Building2",
 
-      href: null,
+      href:
+        "/dashboard/settings/organization/branches",
 
       developmentStep:
-        "Step 151B",
+        "Available",
 
       features: [
         "Branch names and codes",
         "Branch addresses",
-        "Active and inactive status",
-        "Attendance branch assignment",
+        "Attendance geofences",
+        "Active, inactive, and archived status",
       ],
     },
     {
       id: "departments",
 
-      title: "Departments",
+      title:
+        "Departments",
 
       description:
         "Manage administrative, academic, maintenance, motorpool, accounting, and other organizational departments.",
 
-      tableName: "departments",
+      tableName:
+        "departments",
 
-      icon: "Network",
+      icon:
+        "Network",
 
-      href: null,
+      href:
+        "/dashboard/settings/organization/departments",
 
       developmentStep:
         "Step 151C",
@@ -77,16 +85,20 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
     {
       id: "designations",
 
-      title: "Designations",
+      title:
+        "Designations",
 
       description:
         "Manage employee job titles, positions, responsibilities, and organizational classifications.",
 
-      tableName: "designations",
+      tableName:
+        "designations",
 
-      icon: "BadgeCheck",
+      icon:
+        "BadgeCheck",
 
-      href: null,
+      href:
+        null,
 
       developmentStep:
         "Step 151D",
@@ -101,16 +113,20 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
     {
       id: "employee-types",
 
-      title: "Employee Types",
+      title:
+        "Employee Types",
 
       description:
         "Manage regular, probationary, contractual, part-time, faculty, maintenance, and other employment types.",
 
-      tableName: "emp_types",
+      tableName:
+        "emp_types",
 
-      icon: "UsersRound",
+      icon:
+        "UsersRound",
 
-      href: null,
+      href:
+        null,
 
       developmentStep:
         "Step 151E",
@@ -136,7 +152,8 @@ function formatDateTime(
       hour: "numeric",
       minute: "2-digit",
       second: "2-digit",
-      timeZone: "Asia/Manila",
+      timeZone:
+        "Asia/Manila",
     },
   ).format(value);
 }
@@ -269,19 +286,23 @@ async function buildReadySection(
     return {
       ...definition,
 
-      status: "READY",
+      status:
+        "READY",
 
       recordCount,
 
-      errorMessage: null,
+      errorMessage:
+        null,
     };
   } catch (error) {
     return {
       ...definition,
 
-      status: "ERROR",
+      status:
+        "ERROR",
 
-      recordCount: null,
+      recordCount:
+        null,
 
       errorMessage:
         errorMessage(error),
@@ -303,9 +324,11 @@ function buildUnavailableSection(
 
     status,
 
-    recordCount: null,
+    recordCount:
+      null,
 
-    errorMessage: message,
+    errorMessage:
+      message,
   };
 }
 
@@ -364,19 +387,24 @@ export async function getOrganizationSettingsOverviewData(): Promise<Organizatio
       generatedAtIso:
         generatedAt.toISOString(),
 
-      databaseReachable: false,
+      databaseReachable:
+        false,
 
       summary: {
         totalSections:
           sections.length,
 
-        readySections: 0,
-        missingSections: 0,
+        readySections:
+          0,
+
+        missingSections:
+          0,
 
         errorSections:
           sections.length,
 
-        totalRecords: 0,
+        totalRecords:
+          0,
       },
 
       sections,
@@ -386,7 +414,9 @@ export async function getOrganizationSettingsOverviewData(): Promise<Organizatio
   const sections =
     await Promise.all(
       ORGANIZATION_SECTION_DEFINITIONS.map(
-        async (definition) => {
+        async (
+          definition,
+        ) => {
           if (
             !existingTables.has(
               definition.tableName,
@@ -429,7 +459,8 @@ export async function getOrganizationSettingsOverviewData(): Promise<Organizatio
     generatedAtIso:
       generatedAt.toISOString(),
 
-    databaseReachable: true,
+    databaseReachable:
+      true,
 
     summary: {
       totalSections:

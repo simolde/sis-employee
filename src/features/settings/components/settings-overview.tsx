@@ -51,7 +51,9 @@ export function SettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {summary.availableSections}
+            {
+              summary.availableSections
+            }
           </p>
         </article>
 
@@ -81,7 +83,9 @@ export function SettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {summary.plannedSections}
+            {
+              summary.plannedSections
+            }
           </p>
         </article>
       </section>
@@ -95,15 +99,15 @@ export function SettingsOverview({
 
           <div>
             <h2 className="font-extrabold text-blue-900">
-              Next: Branch Management
+              Next: Department Management
             </h2>
 
             <p className="mt-1 text-sm font-semibold leading-6 text-blue-800">
-              Organization Structure is now
-              available. The next implementation
-              will add validated branch listing,
-              creation, editing, status management,
-              pagination, and audit logging.
+              Branch Management now has complete
+              CRUD and geofence controls. The next
+              organization implementation will use
+              the confirmed departments schema to
+              build exact department management.
             </p>
           </div>
         </div>
