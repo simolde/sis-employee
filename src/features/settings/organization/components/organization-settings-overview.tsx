@@ -1,9 +1,9 @@
 import {
+  CalendarClock,
   CheckCircle2,
   CircleAlert,
   Database,
   Network,
-  UsersRound,
 } from "lucide-react";
 import type {
   OrganizationSettingsOverviewData,
@@ -73,10 +73,7 @@ export function OrganizationSettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              data.summary
-                .totalSections
-            }
+            {data.summary.totalSections}
           </p>
         </article>
 
@@ -91,10 +88,7 @@ export function OrganizationSettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              data.summary
-                .readySections
-            }
+            {data.summary.readySections}
           </p>
         </article>
 
@@ -109,10 +103,7 @@ export function OrganizationSettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {
-              data.summary
-                .totalRecords
-            }
+            {data.summary.totalRecords}
           </p>
         </article>
 
@@ -127,33 +118,53 @@ export function OrganizationSettingsOverview({
           </p>
 
           <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
-            {data.summary
-              .missingSections +
-              data.summary
-                .errorSections}
+            {data.summary.missingSections +
+              data.summary.errorSections}
           </p>
         </article>
       </section>
 
+      <section className="rounded-2xl border border-green-200 bg-green-50 p-4">
+        <div className="flex items-start gap-3">
+          <CheckCircle2
+            className="mt-0.5 h-5 w-5 shrink-0 text-green-700"
+            aria-hidden="true"
+          />
+
+          <div>
+            <h2 className="font-extrabold text-green-900">
+              Organization Structure Complete
+            </h2>
+
+            <p className="mt-1 text-sm font-semibold leading-6 text-green-800">
+              Branches, departments, designations,
+              and employee types now support
+              validated CRUD, status controls,
+              dependency protection, schema
+              inspection, and activity logging.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
         <div className="flex items-start gap-3">
-          <UsersRound
+          <CalendarClock
             className="mt-0.5 h-5 w-5 shrink-0 text-blue-700"
             aria-hidden="true"
           />
 
           <div>
             <h2 className="font-extrabold text-blue-900">
-              Next: Employee Type Management
+              Next: Attendance Policies
             </h2>
 
             <p className="mt-1 text-sm font-semibold leading-6 text-blue-800">
-              Branches, departments, and designations
-              now support complete CRUD. The final
-              Organization Structure module will
-              inspect the current employee-type
-              schema before adding validated
-              management operations.
+              The next settings category will manage
+              attendance source permissions, photo
+              and location requirements, grace
+              periods, late rules, manual attendance,
+              and default branch behavior.
             </p>
           </div>
         </div>

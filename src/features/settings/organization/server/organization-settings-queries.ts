@@ -46,8 +46,8 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
 
       features: [
         "Branch names and codes",
-        "Branch addresses",
-        "Attendance geofences",
+        "Branch addresses and geofences",
+        "Dependency-aware deletion",
         "Active, inactive, and archived status",
       ],
     },
@@ -71,8 +71,8 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
 
       features: [
         "Department names and codes",
-        "Employee relationships",
-        "Notice audience relationships",
+        "Employee and notice relationships",
+        "Dependency-aware deletion",
         "Active, inactive, and archived status",
       ],
     },
@@ -117,12 +117,12 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
         "/dashboard/settings/organization/employee-types",
 
       developmentStep:
-        "Step 151E",
+        "Available",
 
       features: [
         "Employment classifications",
-        "Employee-type codes",
-        "Employee profile relationships",
+        "Employee-type names and codes",
+        "Employee relationships",
         "Active, inactive, and archived status",
       ],
     },
@@ -160,9 +160,7 @@ function normalizeCount(
     Number(value);
 
   if (
-    !Number.isSafeInteger(
-      converted,
-    ) ||
+    !Number.isSafeInteger(converted) ||
     converted < 0
   ) {
     return 0;
@@ -340,9 +338,7 @@ export async function getOrganizationSettingsOverviewData(): Promise<Organizatio
 
     return {
       generatedAt:
-        formatDateTime(
-          generatedAt,
-        ),
+        formatDateTime(generatedAt),
 
       generatedAtIso:
         generatedAt.toISOString(),
@@ -391,23 +387,15 @@ export async function getOrganizationSettingsOverviewData(): Promise<Organizatio
 
   const totalRecords =
     sections.reduce(
-      (
-        total,
-        section,
-      ) =>
+      (total, section) =>
         total +
-        (
-          section.recordCount ??
-          0
-        ),
+        (section.recordCount ?? 0),
       0,
     );
 
   return {
     generatedAt:
-      formatDateTime(
-        generatedAt,
-      ),
+      formatDateTime(generatedAt),
 
     generatedAtIso:
       generatedAt.toISOString(),
@@ -421,22 +409,19 @@ export async function getOrganizationSettingsOverviewData(): Promise<Organizatio
       readySections:
         sections.filter(
           (section) =>
-            section.status ===
-            "READY",
+            section.status === "READY",
         ).length,
 
       missingSections:
         sections.filter(
           (section) =>
-            section.status ===
-            "MISSING",
+            section.status === "MISSING",
         ).length,
 
       errorSections:
         sections.filter(
           (section) =>
-            section.status ===
-            "ERROR",
+            section.status === "ERROR",
         ).length,
 
       totalRecords,
