@@ -1,4 +1,5 @@
 import {
+  BadgeCheck,
   CheckCircle2,
   Clock3,
   Layers3,
@@ -92,22 +93,23 @@ export function SettingsOverview({
 
       <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
         <div className="flex items-start gap-3">
-          <Clock3
+          <BadgeCheck
             className="mt-0.5 h-5 w-5 shrink-0 text-blue-700"
             aria-hidden="true"
           />
 
           <div>
             <h2 className="font-extrabold text-blue-900">
-              Next: Department Management
+              Next: Designation Management
             </h2>
 
             <p className="mt-1 text-sm font-semibold leading-6 text-blue-800">
-              Branch Management now has complete
-              CRUD and geofence controls. The next
+              Branch and Department Management now
+              have complete CRUD. The next
               organization implementation will use
-              the confirmed departments schema to
-              build exact department management.
+              the confirmed designations schema to
+              build exact job-title and position
+              management.
             </p>
           </div>
         </div>

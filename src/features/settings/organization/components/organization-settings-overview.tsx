@@ -1,5 +1,5 @@
 import {
-  Building2,
+  BadgeCheck,
   CheckCircle2,
   CircleAlert,
   Database,
@@ -137,23 +137,24 @@ export function OrganizationSettingsOverview({
 
       <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
         <div className="flex items-start gap-3">
-          <Building2
+          <BadgeCheck
             className="mt-0.5 h-5 w-5 shrink-0 text-blue-700"
             aria-hidden="true"
           />
 
           <div>
             <h2 className="font-extrabold text-blue-900">
-              Next: Department Management
+              Next: Designation Management
             </h2>
 
             <p className="mt-1 text-sm font-semibold leading-6 text-blue-800">
-              Branch Management now supports
-              complete CRUD. The Department module
-              will inspect the current schema first,
-              then add listing, creation, editing,
+              Branch and Department Management now
+              support complete CRUD. The Designation
+              module will inspect the current schema
+              before adding job-title management,
               duplicate prevention, status controls,
-              and dependency-aware deletion.
+              dependency protection, and audit
+              logging.
             </p>
           </div>
         </div>
@@ -167,9 +168,8 @@ export function OrganizationSettingsOverview({
 
           <p className="mt-1 text-sm leading-6 text-[var(--starland-muted-text)]">
             These master records are used by employee
-            profiles, attendance branches,
-            schedules, reports, permissions, and
-            filtering.
+            profiles, attendance, schedules, reports,
+            permissions, notices, and filtering.
           </p>
         </div>
 

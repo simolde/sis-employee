@@ -73,13 +73,13 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
         "/dashboard/settings/organization/departments",
 
       developmentStep:
-        "Step 151C",
+        "Available",
 
       features: [
-        "Department names",
-        "Department codes",
-        "Branch relationships",
-        "Active and inactive status",
+        "Department names and codes",
+        "Employee relationships",
+        "Notice audience relationships",
+        "Active, inactive, and archived status",
       ],
     },
     {
@@ -98,16 +98,16 @@ const ORGANIZATION_SECTION_DEFINITIONS: readonly OrganizationSectionDefinition[]
         "BadgeCheck",
 
       href:
-        null,
+        "/dashboard/settings/organization/designations",
 
       developmentStep:
         "Step 151D",
 
       features: [
-        "Job titles",
+        "Job titles and codes",
         "Position classifications",
         "Department relationships",
-        "Active and inactive status",
+        "Active, inactive, and archived status",
       ],
     },
     {
@@ -152,8 +152,7 @@ function formatDateTime(
       hour: "numeric",
       minute: "2-digit",
       second: "2-digit",
-      timeZone:
-        "Asia/Manila",
+      timeZone: "Asia/Manila",
     },
   ).format(value);
 }
@@ -205,7 +204,7 @@ function normalizeCount(
     : 0;
 }
 
-function errorMessage(
+function getErrorMessage(
   error: unknown,
 ): string {
   if (error instanceof Error) {
@@ -305,7 +304,7 @@ async function buildReadySection(
         null,
 
       errorMessage:
-        errorMessage(error),
+        getErrorMessage(error),
     };
   }
 }
@@ -366,7 +365,7 @@ export async function getOrganizationSettingsOverviewData(): Promise<Organizatio
       );
   } catch (error) {
     const message =
-      errorMessage(error);
+      getErrorMessage(error);
 
     const sections =
       ORGANIZATION_SECTION_DEFINITIONS.map(

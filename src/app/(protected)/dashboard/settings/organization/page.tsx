@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  BadgeCheck,
   Building2,
   Network,
 } from "lucide-react";
@@ -47,7 +48,7 @@ export default async function OrganizationSettingsPage() {
               aria-hidden="true"
             />
 
-            Branch Management
+            Branches
           </Link>
 
           <Link
@@ -59,7 +60,19 @@ export default async function OrganizationSettingsPage() {
               aria-hidden="true"
             />
 
-            Department Management
+            Departments
+          </Link>
+
+          <Link
+            href="/dashboard/settings/organization/designations"
+            className="starland-btn starland-btn-soft"
+          >
+            <BadgeCheck
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Designations
           </Link>
 
           <Link
@@ -96,7 +109,7 @@ export default async function OrganizationSettingsPage() {
               <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
                 Organization records connect employee
                 profiles to branches, departments,
-                job titles, employment types,
+                job titles, employee types,
                 attendance policies, schedules, and
                 reports.
               </p>
@@ -105,16 +118,16 @@ export default async function OrganizationSettingsPage() {
         </div>
 
         <div className="flex items-start gap-3 border-t border-white/10 bg-[var(--starland-modern-bg)] p-4">
-          <Building2
+          <BadgeCheck
             className="mt-0.5 h-5 w-5 shrink-0 text-[var(--starland-main-green)]"
             aria-hidden="true"
           />
 
           <p className="text-sm font-semibold leading-6 text-[var(--starland-muted-text)]">
-            Branch Management is operational.
-            Department Management now includes exact
-            database-schema discovery before typed
-            CRUD is enabled.
+            Branch and Department Management are
+            operational. Designation Management now
+            includes exact database-schema discovery
+            before typed CRUD is enabled.
           </p>
         </div>
       </section>
