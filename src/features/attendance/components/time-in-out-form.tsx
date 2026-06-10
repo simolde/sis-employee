@@ -304,27 +304,17 @@ export function TimeInOutForm({
 
   useEffect(() => {
     if (!requireLocation) {
-      setIsLocating(false);
       return;
     }
 
-    const timer =
-      window.setTimeout(
-        () => {
-          void captureLocation();
-        },
-        0,
-      );
+    const timer = window.setTimeout(() => {
+      void captureLocation();
+    }, 0);
 
     return () => {
-      window.clearTimeout(
-        timer,
-      );
+      window.clearTimeout(timer);
     };
-  }, [
-    captureLocation,
-    requireLocation,
-  ]);
+  }, [captureLocation, requireLocation]);
 
   const canPunch =
     pageData.punchState ===
