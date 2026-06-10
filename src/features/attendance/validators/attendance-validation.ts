@@ -1,42 +1,221 @@
-import { z } from "zod";
+import {
+  z,
+} from "zod";
+import {
+  isAttendancePhotoPathAllowed,
+} from "@/features/attendance/policies/server/attendance-evidence-policy";
 
-function emptyToNull(value: unknown): unknown {
-  if (value === "" || value === undefined) {
+export type OdlAttendanceValidationOptions = {
+  requirePhoto: boolean;
+  requireLocation: boolean;
+  photoDirectory: string;
+};
+
+function emptyToNull(
+  value: unknown,
+): unknown {
+  if (
+    value === "" ||
+    value === undefined ||
+    value === null
+  ) {
     return null;
   }
 
   return value;
 }
 
-const requiredCoordinateSchema = z
-  .string()
-  .trim()
-  .min(1, "GPS location is required.")
-  .regex(/^-?\d+(\.\d+)?$/, "Enter a valid coordinate.");
+function coordinateSchema(input: {
+  minimum: number;
+  maximum: number;
+  label: string;
+}) {
+  return z.preprocess(
+    emptyToNull,
+    z
+      .string()
+      .trim()
+      .regex(
+        /^-?\d+(\.\d+)?$/u,
+        `Enter a valid ${input.label.toLowerCase()}.`,
+      )
+      .refine(
+        (value) => {
+          const converted =
+            Number(value);
 
-const optionalTextSchema = z.preprocess(
-  emptyToNull,
-  z.string().trim().max(1000, "This field is too long.").nullable(),
-);
+          return (
+            Number.isFinite(
+              converted,
+            ) &&
+            converted >=
+              input.minimum &&
+            converted <=
+              input.maximum
+          );
+        },
+        `${input.label} is outside the valid range.`,
+      )
+      .nullable(),
+  );
+}
 
-export const odlAttendanceValidationSchema = z.object({
-  latitude: requiredCoordinateSchema,
-  longitude: requiredCoordinateSchema,
+const latitudeSchema =
+  coordinateSchema({
+    minimum: -90,
+    maximum: 90,
+    label: "Latitude",
+  });
 
-  address: z
-    .string()
-    .trim()
-    .min(1, "Full address is required.")
-    .max(1000, "Address is too long."),
+const longitudeSchema =
+  coordinateSchema({
+    minimum: -180,
+    maximum: 180,
+    label: "Longitude",
+  });
 
-  photoPath: z
-    .string()
-    .trim()
-    .min(1, "Selfie photo is required.")
-    .max(255, "Photo path is too long."),
+const optionalLongTextSchema =
+  z.preprocess(
+    emptyToNull,
+    z
+      .string()
+      .trim()
+      .max(
+        1000,
+        "This field is too long.",
+      )
+      .nullable(),
+  );
 
-  remarks: optionalTextSchema,
-  reason: optionalTextSchema,
-});
+const optionalPhotoPathSchema =
+  z.preprocess(
+    emptyToNull,
+    z
+      .string()
+      .trim()
+      .max(
+        255,
+        "Photo path is too long.",
+      )
+      .nullable(),
+  );
 
-export type OdlAttendanceInput = z.infer<typeof odlAttendanceValidationSchema>;
+export function createOdlAttendanceValidationSchema(
+  options:
+    OdlAttendanceValidationOptions,
+) {
+  return z
+    .object({
+      latitude:
+        latitudeSchema,
+
+      longitude:
+        longitudeSchema,
+
+      address:
+        optionalLongTextSchema,
+
+      photoPath:
+        optionalPhotoPathSchema,
+
+      remarks:
+        optionalLongTextSchema,
+
+      reason:
+        optionalLongTextSchema,
+    })
+    .superRefine(
+      (
+        data,
+        context,
+      ) => {
+        if (
+          options.requireLocation
+        ) {
+          if (!data.latitude) {
+            context.addIssue({
+              code:
+                "custom",
+
+              path: [
+                "latitude",
+              ],
+
+              message:
+                "GPS latitude is required.",
+            });
+          }
+
+          if (!data.longitude) {
+            context.addIssue({
+              code:
+                "custom",
+
+              path: [
+                "longitude",
+              ],
+
+              message:
+                "GPS longitude is required.",
+            });
+          }
+
+          if (!data.address) {
+            context.addIssue({
+              code:
+                "custom",
+
+              path: [
+                "address",
+              ],
+
+              message:
+                "Full address is required.",
+            });
+          }
+        }
+
+        if (
+          options.requirePhoto &&
+          !data.photoPath
+        ) {
+          context.addIssue({
+            code: "custom",
+
+            path: [
+              "photoPath",
+            ],
+
+            message:
+              "Selfie photo is required.",
+          });
+        }
+
+        if (
+          data.photoPath &&
+          !isAttendancePhotoPathAllowed(
+            data.photoPath,
+            options.photoDirectory,
+          )
+        ) {
+          context.addIssue({
+            code: "custom",
+
+            path: [
+              "photoPath",
+            ],
+
+            message:
+              "The attendance photo path is invalid or was not created by the configured upload service.",
+          });
+        }
+      },
+    );
+}
+
+export type OdlAttendanceInput =
+  z.infer<
+    ReturnType<
+      typeof createOdlAttendanceValidationSchema
+    >
+  >;

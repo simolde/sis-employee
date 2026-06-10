@@ -20,7 +20,12 @@ import {
   calculateTotalMinutes,
   getManilaDateOnly,
 } from "./attendance-calculations";
-import { odlAttendanceValidationSchema } from "../validators/attendance-validation";
+import {
+  createOdlAttendanceValidationSchema,
+} from "../validators/attendance-validation";
+import {
+  buildAttendanceEvidenceErrorMessage,
+} from "@/features/attendance/policies/server/attendance-evidence-policy";
 import type { AttendanceActionState } from "../types/attendance-action-state";
 
 const MINUTES_BEFORE_TIMEOUT = 30;
@@ -549,8 +554,20 @@ export async function recordOdlAttendanceAction(
     };
   }
 
+  const attendanceSchema =
+  createOdlAttendanceValidationSchema({
+    requirePhoto:
+      policy.requirePhoto,
+
+    requireLocation:
+      policy.requireLocation,
+
+    photoDirectory:
+      policy.photoDirectory,
+  });
+
   const parsed =
-    odlAttendanceValidationSchema.safeParse(
+    attendanceSchema.safeParse(
       formDataToObject(
         formData,
       ),
@@ -561,7 +578,13 @@ export async function recordOdlAttendanceAction(
       ok: false,
 
       message:
-        "Selfie, GPS coordinates, and full address are required before submitting.",
+        buildAttendanceEvidenceErrorMessage({
+          requirePhoto:
+            policy.requirePhoto,
+
+          requireLocation:
+            policy.requireLocation,
+        }),
 
       fieldErrors:
         parsed.error.flatten()
