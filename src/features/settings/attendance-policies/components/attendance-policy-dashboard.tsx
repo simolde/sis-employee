@@ -9,11 +9,11 @@ import {
 } from "lucide-react";
 import {
   buildAttendancePolicyDiscoveryCopyReport,
-} from "../server/attendance-policy-discovery-queries";
+} from "../server/attendance-policy-queries";
 import type {
   AttendancePolicyDiscoveryData,
-} from "../types/attendance-policy-discovery-types";
-import { AttendancePolicyDiscoveryCopyButton } from "./attendance-policy-discovery-copy-button";
+} from "../types/attendance-policy-types";
+import { AttendancePolicyDiscoveryCopyButton } from "./attendance-policy-copy-button";
 
 type AttendancePolicyDiscoveryDashboardProps = {
   data:

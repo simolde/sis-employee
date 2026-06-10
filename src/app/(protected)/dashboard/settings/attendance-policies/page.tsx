@@ -2,20 +2,56 @@ import Link from "next/link";
 import {
   ArrowLeft,
   CalendarClock,
-  DatabaseSearch,
+  CheckCircle2,
+  CircleAlert,
+  Database,
+  ShieldCheck,
 } from "lucide-react";
 import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
-import { AttendancePolicyDiscoveryDashboard } from "@/features/settings/attendance-policies/components/attendance-policy-discovery-dashboard";
-import { getAttendancePolicyDiscoveryData } from "@/features/settings/attendance-policies/server/attendance-policy-discovery-queries";
+import { AttendancePolicyForm } from "@/features/settings/attendance-policies/components/attendance-policy-form";
+import { getAttendancePolicySettingsPageData } from "@/features/settings/attendance-policies/server/attendance-policy-queries";
 
 export const dynamic =
   "force-dynamic";
 
-export default async function AttendancePoliciesPage() {
+type AttendancePoliciesPageProps = {
+  searchParams: Promise<{
+    notice?:
+      | string
+      | string[];
+  }>;
+};
+
+function firstValue(
+  value:
+    | string
+    | string[]
+    | undefined,
+): string {
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
+}
+
+export default async function AttendancePoliciesPage({
+  searchParams,
+}: AttendancePoliciesPageProps) {
   await requireCanManageEmployees();
 
-  const data =
-    await getAttendancePolicyDiscoveryData();
+  const [
+    data,
+    resolvedSearchParams,
+  ] = await Promise.all([
+    getAttendancePolicySettingsPageData(),
+    searchParams,
+  ]);
+
+  const updated =
+    firstValue(
+      resolvedSearchParams.notice,
+    ) === "updated";
 
   return (
     <section className="starland-page space-y-5">
@@ -30,9 +66,10 @@ export default async function AttendancePoliciesPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Inspect the current environment
-            configuration and database storage before
-            enabling editable attendance rules.
+            Manage attendance source permissions,
+            photo and location requirements, branch
+            defaults, late grace periods, and missing
+            time-out automation.
           </p>
         </div>
 
@@ -49,6 +86,16 @@ export default async function AttendancePoliciesPage() {
         </Link>
       </div>
 
+      {updated ? (
+        <section
+          role="status"
+          className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-semibold leading-6 text-green-800"
+        >
+          Attendance Policies were updated
+          successfully.
+        </section>
+      ) : null}
+
       <section className="starland-card overflow-hidden">
         <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
           <div className="flex items-start gap-3">
@@ -59,42 +106,137 @@ export default async function AttendancePoliciesPage() {
 
             <div>
               <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
-                Step 152A-1
+                Step 152A-2
               </span>
 
               <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-                Attendance Policy Source Discovery
+                Persistent Attendance Configuration
               </h2>
 
               <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-                Determine whether attendance behavior
-                is controlled by environment
-                variables, an existing database
-                settings table, or a combination of
-                both.
+                Database policy values take priority.
+                Environment variables remain
+                available as safe fallbacks when a
+                setting is missing.
               </p>
             </div>
           </div>
         </div>
+      </section>
 
-        <div className="flex items-start gap-3 border-t border-white/10 bg-[var(--starland-modern-bg)] p-4">
-          <DatabaseSearch
-            className="mt-0.5 h-5 w-5 shrink-0 text-[var(--starland-main-green)]"
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article className="starland-card p-4">
+          <Database
+            className="h-7 w-7 text-[var(--starland-main-green)]"
             aria-hidden="true"
           />
 
-          <p className="text-sm font-semibold leading-6 text-[var(--starland-muted-text)]">
-            This page is read-only. It does not alter
-            environment variables, create database
-            tables, update policies, or change
-            attendance processing.
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Policy Storage
           </p>
-        </div>
+
+          <div className="mt-2">
+            <span
+              className={[
+                "starland-badge",
+                data.resolved.tableExists
+                  ? "starland-badge-success"
+                  : "starland-badge-danger",
+              ].join(" ")}
+            >
+              {data.resolved.tableExists
+                ? "DATABASE READY"
+                : "TABLE MISSING"}
+            </span>
+          </div>
+        </article>
+
+        <article className="starland-card p-4">
+          <ShieldCheck
+            className="h-7 w-7 text-[var(--starland-success)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Stored Policies
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {
+              data.resolved
+                .databaseRowCount
+            }
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <CheckCircle2
+            className="h-7 w-7 text-[var(--starland-info)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Active Branches
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {data.branches.length}
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <CircleAlert
+            className="h-7 w-7 text-[var(--starland-warning)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Configuration Warnings
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {
+              data.resolved
+                .warnings.length
+            }
+          </p>
+        </article>
       </section>
 
-      <AttendancePolicyDiscoveryDashboard
-        data={data}
-      />
+      {data.resolved.warnings.length >
+      0 ? (
+        <section className="space-y-3">
+          {data.resolved.warnings.map(
+            (warning) => (
+              <article
+                key={warning}
+                className="rounded-2xl border border-amber-200 bg-amber-50 p-4"
+              >
+                <p className="text-sm font-semibold leading-6 text-amber-800">
+                  {warning}
+                </p>
+              </article>
+            ),
+          )}
+        </section>
+      ) : null}
+
+      {data.resolved.tableExists ? (
+        <AttendancePolicyForm
+          data={data}
+        />
+      ) : (
+        <section className="rounded-2xl border border-red-200 bg-red-50 p-5">
+          <h2 className="font-extrabold text-red-900">
+            Migration Required
+          </h2>
+
+          <p className="mt-2 text-sm font-semibold leading-6 text-red-800">
+            Apply the Attendance Policy migration
+            before editing these settings.
+          </p>
+        </section>
+      )}
     </section>
   );
 }

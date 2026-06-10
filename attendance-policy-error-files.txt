@@ -1,0 +1,2629 @@
+
+============================================================
+FILE: src\features\settings\attendance-policies\components\attendance-policy-dashboard.tsx
+============================================================
+
+import {
+  Building2,
+  CheckCircle2,
+  CircleAlert,
+  Database,
+  FileCog,
+  ListTree,
+  Settings2,
+} from "lucide-react";
+import {
+  buildAttendancePolicyDiscoveryCopyReport,
+} from "../server/attendance-policy-queries";
+import type {
+  AttendancePolicyDiscoveryData,
+} from "../types/attendance-policy-types";
+import { AttendancePolicyDiscoveryCopyButton } from "./attendance-policy-copy-button";
+
+type AttendancePolicyDiscoveryDashboardProps = {
+  data:
+    AttendancePolicyDiscoveryData;
+};
+
+function statusContainerClass(
+  status:
+    AttendancePolicyDiscoveryData["status"],
+): string {
+  switch (status) {
+    case "EXISTING_TABLE_FOUND":
+      return "border-green-200 bg-green-50 text-green-800";
+
+    case "NEEDS_DATABASE_STORAGE":
+      return "border-blue-200 bg-blue-50 text-blue-800";
+
+    case "MULTIPLE_TABLES_FOUND":
+      return "border-amber-200 bg-amber-50 text-amber-800";
+
+    case "ERROR":
+      return "border-red-200 bg-red-50 text-red-800";
+  }
+}
+
+function settingStatusClass(
+  configured: boolean,
+  valid: boolean,
+): string {
+  if (!valid) {
+    return "border-red-200 bg-red-50 text-red-700";
+  }
+
+  if (configured) {
+    return "border-green-200 bg-green-50 text-green-700";
+  }
+
+  return "border-slate-200 bg-slate-50 text-slate-700";
+}
+
+export function AttendancePolicyDiscoveryDashboard({
+  data,
+}: AttendancePolicyDiscoveryDashboardProps) {
+  const copyReport =
+    buildAttendancePolicyDiscoveryCopyReport(
+      data,
+    );
+
+  const existingTables =
+    data.candidateTables.filter(
+      (candidateTable) =>
+        candidateTable.exists,
+    );
+
+  const configuredEnvironmentCount =
+    data.environmentSettings.filter(
+      (setting) =>
+        setting.configured,
+    ).length;
+
+  const invalidEnvironmentCount =
+    data.environmentSettings.filter(
+      (setting) =>
+        !setting.valid,
+    ).length;
+
+  return (
+    <div className="space-y-5">
+      <section
+        className={[
+          "rounded-2xl border p-5",
+          statusContainerClass(
+            data.status,
+          ),
+        ].join(" ")}
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            {data.status ===
+            "EXISTING_TABLE_FOUND" ? (
+              <CheckCircle2
+                className="h-8 w-8 shrink-0"
+                aria-hidden="true"
+              />
+            ) : (
+              <CircleAlert
+                className="h-8 w-8 shrink-0"
+                aria-hidden="true"
+              />
+            )}
+
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-wide">
+                Attendance Policy Readiness
+              </p>
+
+              <h2 className="mt-1 text-xl font-extrabold">
+                {data.statusLabel}
+              </h2>
+
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6">
+                {data.statusDescription}
+              </p>
+
+              <p className="mt-3 text-xs font-bold">
+                Checked: {data.generatedAt}
+              </p>
+            </div>
+          </div>
+
+          {data.status !== "ERROR" ? (
+            <AttendancePolicyDiscoveryCopyButton
+              report={copyReport}
+            />
+          ) : null}
+        </div>
+      </section>
+
+      {data.errorMessage ? (
+        <section
+          role="alert"
+          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold leading-6 text-red-800"
+        >
+          {data.errorMessage}
+        </section>
+      ) : null}
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article className="starland-card p-4">
+          <Database
+            className="h-7 w-7 text-[var(--starland-main-green)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Database
+          </p>
+
+          <p className="mt-1 break-words text-lg font-extrabold text-[var(--starland-dark-text)]">
+            {data.databaseName ??
+              "Unknown"}
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <Settings2
+            className="h-7 w-7 text-[var(--starland-info)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Configured Environment Values
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {configuredEnvironmentCount}
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <ListTree
+            className="h-7 w-7 text-[var(--starland-warning)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Existing Candidate Tables
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {existingTables.length}
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <CircleAlert
+            className="h-7 w-7 text-[var(--starland-danger)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Configuration Problems
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {invalidEnvironmentCount +
+              data.warnings.length}
+          </p>
+        </article>
+      </section>
+
+      <section className="starland-card overflow-hidden">
+        <div className="border-b border-[var(--starland-border)] px-5 py-4">
+          <div className="flex items-center gap-2">
+            <FileCog
+              className="h-5 w-5 text-[var(--starland-main-green)]"
+              aria-hidden="true"
+            />
+
+            <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+              Current Environment Configuration
+            </h2>
+          </div>
+        </div>
+
+        <div className="starland-scroll-x">
+          <table className="starland-table">
+            <thead>
+              <tr>
+                <th>Variable</th>
+                <th>Purpose</th>
+                <th>Configured</th>
+                <th>Value</th>
+                <th>Validation</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {data.environmentSettings.map(
+                (setting) => (
+                  <tr key={setting.key}>
+                    <td>
+                      <code className="text-xs font-bold">
+                        {setting.key}
+                      </code>
+                    </td>
+
+                    <td>
+                      <div className="min-w-72">
+                        <p className="font-bold text-[var(--starland-dark-text)]">
+                          {setting.label}
+                        </p>
+
+                        <p className="mt-1 whitespace-normal text-xs leading-5 text-[var(--starland-muted-text)]">
+                          {setting.description}
+                        </p>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span
+                        className={[
+                          "inline-flex rounded-full border px-2.5 py-1 text-xs font-bold",
+                          settingStatusClass(
+                            setting.configured,
+                            setting.valid,
+                          ),
+                        ].join(" ")}
+                      >
+                        {setting.configured
+                          ? "Configured"
+                          : "Not configured"}
+                      </span>
+                    </td>
+
+                    <td>
+                      <code className="break-all text-xs">
+                        {setting.rawValue ??
+                          "—"}
+                      </code>
+                    </td>
+
+                    <td>
+                      {setting.valid ? (
+                        <span className="starland-badge starland-badge-success">
+                          Valid
+                        </span>
+                      ) : (
+                        <div className="min-w-52">
+                          <span className="starland-badge starland-badge-danger">
+                            Invalid
+                          </span>
+
+                          <p className="mt-2 whitespace-normal text-xs text-red-700">
+                            {setting.issue}
+                          </p>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ),
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="starland-card overflow-hidden">
+        <div className="border-b border-[var(--starland-border)] px-5 py-4">
+          <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+            Candidate Policy Tables
+          </h2>
+
+          <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+            Common attendance and application
+            settings-table names checked in the
+            current database.
+          </p>
+        </div>
+
+        <div className="starland-scroll-x">
+          <table className="starland-table">
+            <thead>
+              <tr>
+                <th>Table</th>
+                <th>Exists</th>
+                <th>Records</th>
+                <th>Columns</th>
+                <th>Indexes</th>
+                <th>Relationships</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {data.candidateTables.map(
+                (candidateTable) => (
+                  <tr
+                    key={
+                      candidateTable.tableName
+                    }
+                  >
+                    <td>
+                      <code className="text-xs font-bold">
+                        {
+                          candidateTable.tableName
+                        }
+                      </code>
+                    </td>
+
+                    <td>
+                      <span
+                        className={[
+                          "starland-badge",
+                          candidateTable.exists
+                            ? "starland-badge-success"
+                            : "bg-slate-100 text-slate-700",
+                        ].join(" ")}
+                      >
+                        {candidateTable.exists
+                          ? "YES"
+                          : "NO"}
+                      </span>
+                    </td>
+
+                    <td>
+                      {candidateTable.recordCount ??
+                        "—"}
+                    </td>
+
+                    <td>
+                      {
+                        candidateTable.columns
+                          .length
+                      }
+                    </td>
+
+                    <td>
+                      {
+                        candidateTable.indexes
+                          .length
+                      }
+                    </td>
+
+                    <td>
+                      {candidateTable.foreignKeys
+                        .length +
+                        candidateTable
+                          .incomingForeignKeys
+                          .length}
+                    </td>
+                  </tr>
+                ),
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {existingTables.map(
+        (candidateTable) => (
+          <section
+            key={
+              candidateTable.tableName
+            }
+            className="starland-card overflow-hidden"
+          >
+            <div className="border-b border-[var(--starland-border)] px-5 py-4">
+              <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+                {
+                  candidateTable.tableName
+                }{" "}
+                Columns
+              </h2>
+            </div>
+
+            <div className="starland-scroll-x">
+              <table className="starland-table">
+                <thead>
+                  <tr>
+                    <th>Position</th>
+                    <th>Column</th>
+                    <th>SQL Type</th>
+                    <th>Nullable</th>
+                    <th>Default</th>
+                    <th>Key</th>
+                    <th>Extra</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {candidateTable.columns.map(
+                    (column) => (
+                      <tr
+                        key={column.name}
+                      >
+                        <td>
+                          {
+                            column.ordinalPosition
+                          }
+                        </td>
+
+                        <td>
+                          <code className="text-xs font-bold">
+                            {column.name}
+                          </code>
+                        </td>
+
+                        <td>
+                          <code className="text-xs">
+                            {
+                              column.columnType
+                            }
+                          </code>
+                        </td>
+
+                        <td>
+                          {column.nullable
+                            ? "YES"
+                            : "NO"}
+                        </td>
+
+                        <td>
+                          {column.defaultValue ??
+                            "NULL"}
+                        </td>
+
+                        <td>
+                          {column.keyType ??
+                            "—"}
+                        </td>
+
+                        <td>
+                          {column.extra ??
+                            "—"}
+                        </td>
+                      </tr>
+                    ),
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ),
+      )}
+
+      <section className="grid gap-5 xl:grid-cols-2">
+        <article className="starland-card p-5">
+          <div className="flex items-start gap-3">
+            <Building2
+              className="mt-0.5 h-6 w-6 shrink-0 text-[var(--starland-main-green)]"
+              aria-hidden="true"
+            />
+
+            <div>
+              <h2 className="font-extrabold text-[var(--starland-dark-text)]">
+                Default Attendance Branch
+              </h2>
+
+              {data.defaultBranch ? (
+                <div className="mt-3">
+                  <p className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+                    {data.defaultBranch.name}
+                  </p>
+
+                  <code className="mt-1 block text-xs font-bold text-[var(--starland-muted-text)]">
+                    {
+                      data.defaultBranch
+                        .branchCode
+                    }
+                  </code>
+
+                  <p className="mt-2 text-sm text-[var(--starland-muted-text)]">
+                    Branch ID:{" "}
+                    {
+                      data.defaultBranch
+                        .branchId
+                    }
+                  </p>
+
+                  <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+                    Status:{" "}
+                    {
+                      data.defaultBranch
+                        .status
+                    }
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm leading-6 text-[var(--starland-muted-text)]">
+                  No valid default attendance branch
+                  was resolved from the current
+                  environment configuration.
+                </p>
+              )}
+            </div>
+          </div>
+        </article>
+
+        <article className="starland-card p-5">
+          <div className="flex items-start gap-3">
+            <Database
+              className="mt-0.5 h-6 w-6 shrink-0 text-[var(--starland-info)]"
+              aria-hidden="true"
+            />
+
+            <div>
+              <h2 className="font-extrabold text-[var(--starland-dark-text)]">
+                Related Database Tables
+              </h2>
+
+              {data.relatedTableNames.length >
+              0 ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {data.relatedTableNames.map(
+                    (tableName) => (
+                      <code
+                        key={tableName}
+                        className="rounded-lg border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] px-3 py-2 text-xs font-bold"
+                      >
+                        {tableName}
+                      </code>
+                    ),
+                  )}
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-[var(--starland-muted-text)]">
+                  No table names containing
+                  “setting”, “policy”, or “config”
+                  were discovered.
+                </p>
+              )}
+            </div>
+          </div>
+        </article>
+      </section>
+
+      {data.warnings.length > 0 ? (
+        <section className="space-y-3">
+          {data.warnings.map(
+            (warning) => (
+              <article
+                key={warning}
+                className="rounded-2xl border border-amber-200 bg-amber-50 p-4"
+              >
+                <p className="text-sm font-semibold leading-6 text-amber-800">
+                  {warning}
+                </p>
+              </article>
+            ),
+          )}
+        </section>
+      ) : null}
+
+      <section className="rounded-2xl border border-blue-200 bg-blue-50 p-5">
+        <h2 className="font-extrabold text-blue-900">
+          Recommended Next Action
+        </h2>
+
+        <p className="mt-2 text-sm font-semibold leading-6 text-blue-800">
+          {data.recommendation}
+        </p>
+      </section>
+    </div>
+  );
+}
+
+============================================================
+FILE: src\features\settings\attendance-policies\server\attendance-policy-queries.ts
+============================================================
+
+import { prisma } from "@/lib/db/prisma";
+import {
+  ATTENDANCE_POLICY_KEYS,
+  type AttendancePolicyBranchOption,
+  type AttendancePolicyConfig,
+  type AttendancePolicyDatabaseRow,
+  type AttendancePolicyKey,
+  type AttendancePolicyResolvedConfig,
+  type AttendancePolicySettingsPageData,
+  type AttendancePolicySourceMap,
+  type AttendancePolicyValueSource,
+} from "../types/attendance-policy-types";
+import { DEFAULT_ATTENDANCE_POLICY_CONFIG } from "./attendance-policy-definitions";
+
+type TableCountRow = {
+  tableCount:
+    | number
+    | bigint
+    | string;
+};
+
+type BranchDatabaseRow = {
+  branchId:
+    | number
+    | bigint
+    | string;
+
+  branchCode: string;
+  name: string;
+
+  status: string;
+};
+
+type ResolvedValue<TValue> = {
+  value: TValue;
+
+  source:
+    AttendancePolicyValueSource;
+};
+
+const TRUE_VALUES =
+  new Set([
+    "true",
+    "1",
+    "yes",
+    "on",
+  ]);
+
+const FALSE_VALUES =
+  new Set([
+    "false",
+    "0",
+    "no",
+    "off",
+  ]);
+
+function normalizeNonNegativeInteger(
+  value:
+    | number
+    | bigint
+    | string
+    | undefined,
+
+  fallback = 0,
+): number {
+  if (value === undefined) {
+    return fallback;
+  }
+
+  const converted =
+    Number(value);
+
+  if (
+    !Number.isSafeInteger(converted) ||
+    converted < 0
+  ) {
+    return fallback;
+  }
+
+  return converted;
+}
+
+function parseBoolean(
+  value:
+    string | undefined,
+): boolean | null {
+  if (value === undefined) {
+    return null;
+  }
+
+  const normalized =
+    value.trim().toLowerCase();
+
+  if (TRUE_VALUES.has(normalized)) {
+    return true;
+  }
+
+  if (FALSE_VALUES.has(normalized)) {
+    return false;
+  }
+
+  return null;
+}
+
+function parseInteger(
+  value:
+    string | undefined,
+
+  minimum: number,
+  maximum: number,
+): number | null {
+  if (value === undefined) {
+    return null;
+  }
+
+  const converted =
+    Number(value);
+
+  if (
+    !Number.isSafeInteger(converted) ||
+    converted < minimum ||
+    converted > maximum
+  ) {
+    return null;
+  }
+
+  return converted;
+}
+
+function databaseValue(
+  values:
+    ReadonlyMap<string, string>,
+
+  key:
+    AttendancePolicyKey,
+): string | undefined {
+  return values.get(key);
+}
+
+function resolveBoolean(input: {
+  databaseValues:
+    ReadonlyMap<string, string>;
+
+  key:
+    AttendancePolicyKey;
+
+  environmentName: string;
+
+  defaultValue: boolean;
+
+  warnings: string[];
+}): ResolvedValue<boolean> {
+  const databaseRaw =
+    databaseValue(
+      input.databaseValues,
+      input.key,
+    );
+
+  if (databaseRaw !== undefined) {
+    const parsed =
+      parseBoolean(databaseRaw);
+
+    if (parsed !== null) {
+      return {
+        value: parsed,
+        source: "DATABASE",
+      };
+    }
+
+    input.warnings.push(
+      `${input.key} has an invalid database boolean value. The fallback value was used.`,
+    );
+  }
+
+  const environmentRaw =
+    process.env[
+      input.environmentName
+    ];
+
+  const environmentValue =
+    parseBoolean(
+      environmentRaw,
+    );
+
+  if (environmentValue !== null) {
+    return {
+      value:
+        environmentValue,
+
+      source:
+        "ENVIRONMENT",
+    };
+  }
+
+  if (
+    environmentRaw !== undefined &&
+    environmentRaw.trim().length > 0
+  ) {
+    input.warnings.push(
+      `${input.environmentName} has an invalid boolean value.`,
+    );
+  }
+
+  return {
+    value:
+      input.defaultValue,
+
+    source:
+      "DEFAULT",
+  };
+}
+
+function resolveInteger(input: {
+  databaseValues:
+    ReadonlyMap<string, string>;
+
+  key:
+    AttendancePolicyKey;
+
+  environmentName: string;
+
+  defaultValue: number;
+
+  minimum: number;
+  maximum: number;
+
+  warnings: string[];
+}): ResolvedValue<number> {
+  const databaseRaw =
+    databaseValue(
+      input.databaseValues,
+      input.key,
+    );
+
+  if (databaseRaw !== undefined) {
+    const parsed =
+      parseInteger(
+        databaseRaw,
+        input.minimum,
+        input.maximum,
+      );
+
+    if (parsed !== null) {
+      return {
+        value: parsed,
+        source: "DATABASE",
+      };
+    }
+
+    input.warnings.push(
+      `${input.key} has an invalid database integer value. The fallback value was used.`,
+    );
+  }
+
+  const environmentRaw =
+    process.env[
+      input.environmentName
+    ];
+
+  const environmentValue =
+    parseInteger(
+      environmentRaw,
+      input.minimum,
+      input.maximum,
+    );
+
+  if (environmentValue !== null) {
+    return {
+      value:
+        environmentValue,
+
+      source:
+        "ENVIRONMENT",
+    };
+  }
+
+  if (
+    environmentRaw !== undefined &&
+    environmentRaw.trim().length > 0
+  ) {
+    input.warnings.push(
+      `${input.environmentName} has an invalid integer value.`,
+    );
+  }
+
+  return {
+    value:
+      input.defaultValue,
+
+    source:
+      "DEFAULT",
+  };
+}
+
+function resolveNullablePositiveInteger(input: {
+  databaseValues:
+    ReadonlyMap<string, string>;
+
+  key:
+    AttendancePolicyKey;
+
+  environmentName: string;
+
+  warnings: string[];
+}): ResolvedValue<number | null> {
+  const databaseRaw =
+    databaseValue(
+      input.databaseValues,
+      input.key,
+    );
+
+  if (databaseRaw !== undefined) {
+    const parsed =
+      parseInteger(
+        databaseRaw,
+        1,
+        Number.MAX_SAFE_INTEGER,
+      );
+
+    if (parsed !== null) {
+      return {
+        value: parsed,
+        source: "DATABASE",
+      };
+    }
+
+    input.warnings.push(
+      `${input.key} does not contain a valid positive branch ID.`,
+    );
+  }
+
+  const environmentRaw =
+    process.env[
+      input.environmentName
+    ];
+
+  const environmentValue =
+    parseInteger(
+      environmentRaw,
+      1,
+      Number.MAX_SAFE_INTEGER,
+    );
+
+  if (environmentValue !== null) {
+    return {
+      value:
+        environmentValue,
+
+      source:
+        "ENVIRONMENT",
+    };
+  }
+
+  return {
+    value: null,
+    source: "DEFAULT",
+  };
+}
+
+function resolveText(input: {
+  databaseValues:
+    ReadonlyMap<string, string>;
+
+  key:
+    AttendancePolicyKey;
+
+  environmentName: string;
+
+  defaultValue: string;
+
+  warnings: string[];
+}): ResolvedValue<string> {
+  const databaseRaw =
+    databaseValue(
+      input.databaseValues,
+      input.key,
+    )?.trim();
+
+  if (
+    databaseRaw !== undefined &&
+    databaseRaw.length > 0
+  ) {
+    return {
+      value: databaseRaw,
+      source: "DATABASE",
+    };
+  }
+
+  if (databaseRaw !== undefined) {
+    input.warnings.push(
+      `${input.key} is empty. The fallback value was used.`,
+    );
+  }
+
+  const environmentRaw =
+    process.env[
+      input.environmentName
+    ]?.trim();
+
+  if (
+    environmentRaw !== undefined &&
+    environmentRaw.length > 0
+  ) {
+    return {
+      value:
+        environmentRaw,
+
+      source:
+        "ENVIRONMENT",
+    };
+  }
+
+  return {
+    value:
+      input.defaultValue,
+
+    source:
+      "DEFAULT",
+  };
+}
+
+async function attendancePolicyTableExists(): Promise<boolean> {
+  const rows =
+    await prisma.$queryRaw<
+      TableCountRow[]
+    >`
+      SELECT
+        COUNT(*) AS tableCount
+      FROM information_schema.TABLES
+      WHERE
+        TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME =
+          'attendance_policy_settings'
+    `;
+
+  return (
+    normalizeNonNegativeInteger(
+      rows[0]?.tableCount,
+    ) > 0
+  );
+}
+
+async function getDatabaseRows(): Promise<AttendancePolicyDatabaseRow[]> {
+  return prisma.$queryRaw<
+    AttendancePolicyDatabaseRow[]
+  >`
+    SELECT
+      setting_key AS settingKey,
+      setting_value AS settingValue,
+      value_type AS valueType
+    FROM attendance_policy_settings
+    ORDER BY setting_key ASC
+  `;
+}
+
+export async function getAttendancePolicyRuntimeConfig(): Promise<AttendancePolicyResolvedConfig> {
+  const warnings:
+    string[] = [];
+
+  const tableExists =
+    await attendancePolicyTableExists();
+
+  const rows =
+    tableExists
+      ? await getDatabaseRows()
+      : [];
+
+  if (!tableExists) {
+    warnings.push(
+      "The attendance_policy_settings table does not exist. Environment variables and application defaults are being used.",
+    );
+  }
+
+  const databaseValues =
+    new Map(
+      rows.map(
+        (row) => [
+          row.settingKey,
+          row.settingValue,
+        ],
+      ),
+    );
+
+  const defaultBranchId =
+    resolveNullablePositiveInteger({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.DEFAULT_BRANCH_ID,
+
+      environmentName:
+        "ATTENDANCE_DEFAULT_BRANCH_ID",
+
+      warnings,
+    });
+
+  const allowWebTimeIn =
+    resolveBoolean({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.ALLOW_WEB_TIME_IN,
+
+      environmentName:
+        "ATTENDANCE_ALLOW_WEB_TIME_IN",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.allowWebTimeIn,
+
+      warnings,
+    });
+
+  const allowManualTimeIn =
+    resolveBoolean({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.ALLOW_MANUAL_TIME_IN,
+
+      environmentName:
+        "ATTENDANCE_ALLOW_MANUAL_TIME_IN",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.allowManualTimeIn,
+
+      warnings,
+    });
+
+  const requirePhoto =
+    resolveBoolean({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.REQUIRE_PHOTO,
+
+      environmentName:
+        "ATTENDANCE_REQUIRE_PHOTO",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.requirePhoto,
+
+      warnings,
+    });
+
+  const requireLocation =
+    resolveBoolean({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.REQUIRE_LOCATION,
+
+      environmentName:
+        "ATTENDANCE_REQUIRE_LOCATION",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.requireLocation,
+
+      warnings,
+    });
+
+  const photoDirectory =
+    resolveText({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.PHOTO_DIRECTORY,
+
+      environmentName:
+        "ATTENDANCE_PHOTO_DIR",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.photoDirectory,
+
+      warnings,
+    });
+
+  const maxPhotoSizeMb =
+    resolveInteger({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.MAX_PHOTO_SIZE_MB,
+
+      environmentName:
+        "ATTENDANCE_MAX_FILE_SIZE_MB",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.maxPhotoSizeMb,
+
+      minimum: 1,
+      maximum: 25,
+
+      warnings,
+    });
+
+  const lateGraceMinutes =
+    resolveInteger({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.LATE_GRACE_MINUTES,
+
+      environmentName:
+        "ATTENDANCE_LATE_GRACE_MINUTES",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.lateGraceMinutes,
+
+      minimum: 0,
+      maximum: 180,
+
+      warnings,
+    });
+
+  const autoMarkMissingTimeout =
+    resolveBoolean({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.AUTO_MARK_MISSING_TIMEOUT,
+
+      environmentName:
+        "ATTENDANCE_AUTO_MARK_MISSING_TIMEOUT",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.autoMarkMissingTimeout,
+
+      warnings,
+    });
+
+  const missingTimeoutMinutes =
+    resolveInteger({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.MISSING_TIMEOUT_MINUTES,
+
+      environmentName:
+        "ATTENDANCE_MISSING_TIMEOUT_MINUTES",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.missingTimeoutMinutes,
+
+      minimum: 60,
+      maximum: 2880,
+
+      warnings,
+    });
+
+  const config:
+    AttendancePolicyConfig = {
+      defaultBranchId:
+        defaultBranchId.value,
+
+      allowWebTimeIn:
+        allowWebTimeIn.value,
+
+      allowManualTimeIn:
+        allowManualTimeIn.value,
+
+      requirePhoto:
+        requirePhoto.value,
+
+      requireLocation:
+        requireLocation.value,
+
+      photoDirectory:
+        photoDirectory.value,
+
+      maxPhotoSizeMb:
+        maxPhotoSizeMb.value,
+
+      lateGraceMinutes:
+        lateGraceMinutes.value,
+
+      autoMarkMissingTimeout:
+        autoMarkMissingTimeout.value,
+
+      missingTimeoutMinutes:
+        missingTimeoutMinutes.value,
+    };
+
+  const sourceMap:
+    AttendancePolicySourceMap = {
+      defaultBranchId:
+        defaultBranchId.source,
+
+      allowWebTimeIn:
+        allowWebTimeIn.source,
+
+      allowManualTimeIn:
+        allowManualTimeIn.source,
+
+      requirePhoto:
+        requirePhoto.source,
+
+      requireLocation:
+        requireLocation.source,
+
+      photoDirectory:
+        photoDirectory.source,
+
+      maxPhotoSizeMb:
+        maxPhotoSizeMb.source,
+
+      lateGraceMinutes:
+        lateGraceMinutes.source,
+
+      autoMarkMissingTimeout:
+        autoMarkMissingTimeout.source,
+
+      missingTimeoutMinutes:
+        missingTimeoutMinutes.source,
+    };
+
+  return {
+    tableExists,
+
+    databaseRowCount:
+      rows.length,
+
+    config,
+
+    sourceMap,
+
+    warnings,
+  };
+}
+
+export async function getAttendancePolicySettingsPageData(): Promise<AttendancePolicySettingsPageData> {
+  const [
+    resolved,
+    branchRows,
+  ] = await Promise.all([
+    getAttendancePolicyRuntimeConfig(),
+
+    prisma.$queryRaw<
+      BranchDatabaseRow[]
+    >`
+      SELECT
+        branch_id AS branchId,
+        branch_code AS branchCode,
+        name,
+        status
+      FROM branches
+      WHERE status = 'ACTIVE'
+      ORDER BY name ASC
+    `,
+  ]);
+
+  const branches:
+    AttendancePolicyBranchOption[] =
+    branchRows.map(
+      (row) => ({
+        branchId:
+          normalizeNonNegativeInteger(
+            row.branchId,
+          ),
+
+        branchCode:
+          row.branchCode,
+
+        name:
+          row.name,
+
+        status:
+          row.status,
+      }),
+    );
+
+  return {
+    resolved,
+    branches,
+  };
+}
+
+============================================================
+FILE: src\features\settings\attendance-policies\types\attendance-policy-types.ts
+============================================================
+
+export const ATTENDANCE_POLICY_KEYS = {
+  DEFAULT_BRANCH_ID:
+    "DEFAULT_BRANCH_ID",
+
+  ALLOW_WEB_TIME_IN:
+    "ALLOW_WEB_TIME_IN",
+
+  ALLOW_MANUAL_TIME_IN:
+    "ALLOW_MANUAL_TIME_IN",
+
+  REQUIRE_PHOTO:
+    "REQUIRE_PHOTO",
+
+  REQUIRE_LOCATION:
+    "REQUIRE_LOCATION",
+
+  PHOTO_DIRECTORY:
+    "PHOTO_DIRECTORY",
+
+  MAX_PHOTO_SIZE_MB:
+    "MAX_PHOTO_SIZE_MB",
+
+  LATE_GRACE_MINUTES:
+    "LATE_GRACE_MINUTES",
+
+  AUTO_MARK_MISSING_TIMEOUT:
+    "AUTO_MARK_MISSING_TIMEOUT",
+
+  MISSING_TIMEOUT_MINUTES:
+    "MISSING_TIMEOUT_MINUTES",
+} as const;
+
+export type AttendancePolicyKey =
+  (typeof ATTENDANCE_POLICY_KEYS)[keyof typeof ATTENDANCE_POLICY_KEYS];
+
+export type AttendancePolicyValueType =
+  | "BOOLEAN"
+  | "INTEGER"
+  | "TEXT";
+
+export type AttendancePolicyValueSource =
+  | "DATABASE"
+  | "ENVIRONMENT"
+  | "DEFAULT";
+
+export type AttendancePolicyConfig = {
+  defaultBranchId: number | null;
+
+  allowWebTimeIn: boolean;
+  allowManualTimeIn: boolean;
+
+  requirePhoto: boolean;
+  requireLocation: boolean;
+
+  photoDirectory: string;
+  maxPhotoSizeMb: number;
+
+  lateGraceMinutes: number;
+
+  autoMarkMissingTimeout: boolean;
+  missingTimeoutMinutes: number;
+};
+
+export type AttendancePolicySourceMap = {
+  defaultBranchId:
+    AttendancePolicyValueSource;
+
+  allowWebTimeIn:
+    AttendancePolicyValueSource;
+
+  allowManualTimeIn:
+    AttendancePolicyValueSource;
+
+  requirePhoto:
+    AttendancePolicyValueSource;
+
+  requireLocation:
+    AttendancePolicyValueSource;
+
+  photoDirectory:
+    AttendancePolicyValueSource;
+
+  maxPhotoSizeMb:
+    AttendancePolicyValueSource;
+
+  lateGraceMinutes:
+    AttendancePolicyValueSource;
+
+  autoMarkMissingTimeout:
+    AttendancePolicyValueSource;
+
+  missingTimeoutMinutes:
+    AttendancePolicyValueSource;
+};
+
+export type AttendancePolicyDatabaseRow = {
+  settingKey: string;
+  settingValue: string;
+  valueType: string;
+};
+
+export type AttendancePolicyResolvedConfig = {
+  tableExists: boolean;
+
+  databaseRowCount: number;
+
+  config: AttendancePolicyConfig;
+
+  sourceMap: AttendancePolicySourceMap;
+
+  warnings: string[];
+};
+
+export type AttendancePolicyBranchOption = {
+  branchId: number;
+
+  branchCode: string;
+  name: string;
+
+  status: string;
+};
+
+export type AttendancePolicySettingsPageData = {
+  resolved:
+    AttendancePolicyResolvedConfig;
+
+  branches:
+    AttendancePolicyBranchOption[];
+};
+
+export type AttendancePolicyFormInput = {
+  defaultBranchId: number;
+
+  allowWebTimeIn: boolean;
+  allowManualTimeIn: boolean;
+
+  requirePhoto: boolean;
+  requireLocation: boolean;
+
+  photoDirectory: string;
+  maxPhotoSizeMb: number;
+
+  lateGraceMinutes: number;
+
+  autoMarkMissingTimeout: boolean;
+  missingTimeoutMinutes: number;
+};
+
+export type AttendancePolicyFormField =
+  keyof AttendancePolicyFormInput;
+
+export type AttendancePolicyActionState = {
+  status:
+    | "IDLE"
+    | "SUCCESS"
+    | "ERROR";
+
+  message: string;
+
+  fieldErrors: Partial<
+    Record<
+      AttendancePolicyFormField,
+      string[]
+    >
+  >;
+};
+
+============================================================
+FILE: src\app\(protected)\dashboard\settings\attendance-policies\page.tsx
+============================================================
+
+import Link from "next/link";
+import {
+  ArrowLeft,
+  CalendarClock,
+  CheckCircle2,
+  CircleAlert,
+  Database,
+  ShieldCheck,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendancePolicyForm } from "@/features/settings/attendance-policies/components/attendance-policy-form";
+import { getAttendancePolicySettingsPageData } from "@/features/settings/attendance-policies/server/attendance-policy-queries";
+
+export const dynamic =
+  "force-dynamic";
+
+type AttendancePoliciesPageProps = {
+  searchParams: Promise<{
+    notice?:
+      | string
+      | string[];
+  }>;
+};
+
+function firstValue(
+  value:
+    | string
+    | string[]
+    | undefined,
+): string {
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
+}
+
+export default async function AttendancePoliciesPage({
+  searchParams,
+}: AttendancePoliciesPageProps) {
+  await requireCanManageEmployees();
+
+  const [
+    data,
+    resolvedSearchParams,
+  ] = await Promise.all([
+    getAttendancePolicySettingsPageData(),
+    searchParams,
+  ]);
+
+  const updated =
+    firstValue(
+      resolvedSearchParams.notice,
+    ) === "updated";
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Attendance Configuration
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Attendance Policies
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Manage attendance source permissions,
+            photo and location requirements, branch
+            defaults, late grace periods, and missing
+            time-out automation.
+          </p>
+        </div>
+
+        <Link
+          href="/dashboard/settings"
+          className="starland-btn starland-btn-soft"
+        >
+          <ArrowLeft
+            className="h-4 w-4"
+            aria-hidden="true"
+          />
+
+          Settings Overview
+        </Link>
+      </div>
+
+      {updated ? (
+        <section
+          role="status"
+          className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-semibold leading-6 text-green-800"
+        >
+          Attendance Policies were updated
+          successfully.
+        </section>
+      ) : null}
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <CalendarClock
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                Step 152A-2
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Persistent Attendance Configuration
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Database policy values take priority.
+                Environment variables remain
+                available as safe fallbacks when a
+                setting is missing.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article className="starland-card p-4">
+          <Database
+            className="h-7 w-7 text-[var(--starland-main-green)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Policy Storage
+          </p>
+
+          <div className="mt-2">
+            <span
+              className={[
+                "starland-badge",
+                data.resolved.tableExists
+                  ? "starland-badge-success"
+                  : "starland-badge-danger",
+              ].join(" ")}
+            >
+              {data.resolved.tableExists
+                ? "DATABASE READY"
+                : "TABLE MISSING"}
+            </span>
+          </div>
+        </article>
+
+        <article className="starland-card p-4">
+          <ShieldCheck
+            className="h-7 w-7 text-[var(--starland-success)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Stored Policies
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {
+              data.resolved
+                .databaseRowCount
+            }
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <CheckCircle2
+            className="h-7 w-7 text-[var(--starland-info)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Active Branches
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {data.branches.length}
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <CircleAlert
+            className="h-7 w-7 text-[var(--starland-warning)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Configuration Warnings
+          </p>
+
+          <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+            {
+              data.resolved
+                .warnings.length
+            }
+          </p>
+        </article>
+      </section>
+
+      {data.resolved.warnings.length >
+      0 ? (
+        <section className="space-y-3">
+          {data.resolved.warnings.map(
+            (warning) => (
+              <article
+                key={warning}
+                className="rounded-2xl border border-amber-200 bg-amber-50 p-4"
+              >
+                <p className="text-sm font-semibold leading-6 text-amber-800">
+                  {warning}
+                </p>
+              </article>
+            ),
+          )}
+        </section>
+      ) : null}
+
+      {data.resolved.tableExists ? (
+        <AttendancePolicyForm
+          data={data}
+        />
+      ) : (
+        <section className="rounded-2xl border border-red-200 bg-red-50 p-5">
+          <h2 className="font-extrabold text-red-900">
+            Migration Required
+          </h2>
+
+          <p className="mt-2 text-sm font-semibold leading-6 text-red-800">
+            Apply the Attendance Policy migration
+            before editing these settings.
+          </p>
+        </section>
+      )}
+    </section>
+  );
+}
+
+============================================================
+FILE: src\features\settings\attendance-policies\components\attendance-policy-form.tsx
+============================================================
+
+"use client";
+
+import {
+  useActionState,
+} from "react";
+import {
+  Building2,
+  Camera,
+  Clock3,
+  FileImage,
+  Globe2,
+  MapPin,
+  Save,
+  Settings2,
+  ShieldCheck,
+} from "lucide-react";
+import {
+  useFormStatus,
+} from "react-dom";
+import type {
+  AttendancePolicyActionState,
+  AttendancePolicySettingsPageData,
+  AttendancePolicyValueSource,
+} from "../types/attendance-policy-types";
+import { updateAttendancePolicyAction } from "../server/attendance-policy-actions";
+import { INITIAL_ATTENDANCE_POLICY_ACTION_STATE } from "../validators/attendance-policy-validation";
+
+type AttendancePolicyFormProps = {
+  data:
+    AttendancePolicySettingsPageData;
+};
+
+function FieldErrors({
+  errors,
+}: {
+  errors:
+    string[] | undefined;
+}) {
+  if (
+    !errors ||
+    errors.length === 0
+  ) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 space-y-1">
+      {errors.map(
+        (error) => (
+          <p
+            key={error}
+            className="text-xs font-semibold text-red-700"
+          >
+            {error}
+          </p>
+        ),
+      )}
+    </div>
+  );
+}
+
+function SourceBadge({
+  source,
+}: {
+  source:
+    AttendancePolicyValueSource;
+}) {
+  const className =
+    source === "DATABASE"
+      ? "starland-badge-success"
+      : source === "ENVIRONMENT"
+        ? "starland-badge-info"
+        : "starland-badge-warning";
+
+  return (
+    <span
+      className={[
+        "starland-badge",
+        className,
+      ].join(" ")}
+    >
+      {source}
+    </span>
+  );
+}
+
+function CheckboxField({
+  id,
+  name,
+  label,
+  description,
+  defaultChecked,
+  source,
+}: {
+  id: string;
+  name: string;
+
+  label: string;
+  description: string;
+
+  defaultChecked: boolean;
+
+  source:
+    AttendancePolicyValueSource;
+}) {
+  return (
+    <label
+      htmlFor={id}
+      className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[var(--starland-border)] bg-white p-4"
+    >
+      <input
+        id={id}
+        name={name}
+        type="checkbox"
+        defaultChecked={
+          defaultChecked
+        }
+        className="mt-1 h-4 w-4 shrink-0 accent-[var(--starland-main-green)]"
+      />
+
+      <span className="min-w-0 flex-1">
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="font-extrabold text-[var(--starland-dark-text)]">
+            {label}
+          </span>
+
+          <SourceBadge
+            source={source}
+          />
+        </span>
+
+        <span className="mt-1 block text-sm leading-6 text-[var(--starland-muted-text)]">
+          {description}
+        </span>
+      </span>
+    </label>
+  );
+}
+
+function SubmitButton() {
+  const {
+    pending,
+  } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      className="starland-btn starland-btn-primary"
+      disabled={pending}
+    >
+      <Save
+        className="h-4 w-4"
+        aria-hidden="true"
+      />
+
+      {pending
+        ? "Saving Policies..."
+        : "Save Attendance Policies"}
+    </button>
+  );
+}
+
+export function AttendancePolicyForm({
+  data,
+}: AttendancePolicyFormProps) {
+  const [
+    state,
+    formAction,
+  ] = useActionState<
+    AttendancePolicyActionState,
+    FormData
+  >(
+    updateAttendancePolicyAction,
+    INITIAL_ATTENDANCE_POLICY_ACTION_STATE,
+  );
+
+  const {
+    config,
+    sourceMap,
+  } = data.resolved;
+
+  return (
+    <form
+      action={formAction}
+      className="space-y-5"
+    >
+      {state.status === "ERROR" ? (
+        <section
+          role="alert"
+          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold leading-6 text-red-800"
+        >
+          {state.message}
+        </section>
+      ) : null}
+
+      <section className="starland-card overflow-hidden">
+        <div className="border-b border-[var(--starland-border)] px-5 py-4">
+          <div className="flex items-start gap-3">
+            <Building2
+              className="mt-0.5 h-5 w-5 shrink-0 text-[var(--starland-main-green)]"
+              aria-hidden="true"
+            />
+
+            <div>
+              <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+                Default Attendance Branch
+              </h2>
+
+              <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+                Used when a punch source does not
+                explicitly provide a branch.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <label
+              htmlFor="defaultBranchId"
+              className="text-sm font-bold text-[var(--starland-dark-text)]"
+            >
+              Active Branch
+            </label>
+
+            <SourceBadge
+              source={
+                sourceMap.defaultBranchId
+              }
+            />
+          </div>
+
+          <select
+            id="defaultBranchId"
+            name="defaultBranchId"
+            className="starland-input mt-2"
+            defaultValue={
+              config.defaultBranchId ??
+              ""
+            }
+            required
+          >
+            <option value="">
+              Select an active branch
+            </option>
+
+            {data.branches.map(
+              (branch) => (
+                <option
+                  key={
+                    branch.branchId
+                  }
+                  value={
+                    branch.branchId
+                  }
+                >
+                  {branch.name} (
+                  {branch.branchCode})
+                </option>
+              ),
+            )}
+          </select>
+
+          <FieldErrors
+            errors={
+              state.fieldErrors
+                .defaultBranchId
+            }
+          />
+        </div>
+      </section>
+
+      <section className="starland-card overflow-hidden">
+        <div className="border-b border-[var(--starland-border)] px-5 py-4">
+          <div className="flex items-start gap-3">
+            <Globe2
+              className="mt-0.5 h-5 w-5 shrink-0 text-[var(--starland-info)]"
+              aria-hidden="true"
+            />
+
+            <div>
+              <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+                Attendance Sources
+              </h2>
+
+              <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+                Control which attendance entry
+                methods are available.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 p-5 md:grid-cols-2">
+          <CheckboxField
+            id="allowWebTimeIn"
+            name="allowWebTimeIn"
+            label="Allow Web Time-In"
+            description="Allow authorized employees to submit attendance through the web application."
+            defaultChecked={
+              config.allowWebTimeIn
+            }
+            source={
+              sourceMap.allowWebTimeIn
+            }
+          />
+
+          <CheckboxField
+            id="allowManualTimeIn"
+            name="allowManualTimeIn"
+            label="Allow Manual Attendance"
+            description="Allow authorized staff to manually create or correct attendance records."
+            defaultChecked={
+              config.allowManualTimeIn
+            }
+            source={
+              sourceMap.allowManualTimeIn
+            }
+          />
+        </div>
+      </section>
+
+      <section className="starland-card overflow-hidden">
+        <div className="border-b border-[var(--starland-border)] px-5 py-4">
+          <div className="flex items-start gap-3">
+            <ShieldCheck
+              className="mt-0.5 h-5 w-5 shrink-0 text-[var(--starland-main-green)]"
+              aria-hidden="true"
+            />
+
+            <div>
+              <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+                Attendance Evidence
+              </h2>
+
+              <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+                Configure photo and location
+                requirements for attendance
+                submissions.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 p-5 md:grid-cols-2">
+          <CheckboxField
+            id="requirePhoto"
+            name="requirePhoto"
+            label="Require Photo"
+            description="Require photo evidence for attendance submissions."
+            defaultChecked={
+              config.requirePhoto
+            }
+            source={
+              sourceMap.requirePhoto
+            }
+          />
+
+          <CheckboxField
+            id="requireLocation"
+            name="requireLocation"
+            label="Require Location"
+            description="Require latitude and longitude for attendance submissions."
+            defaultChecked={
+              config.requireLocation
+            }
+            source={
+              sourceMap.requireLocation
+            }
+          />
+        </div>
+
+        <div className="grid gap-5 border-t border-[var(--starland-border)] p-5 md:grid-cols-2">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <label
+                htmlFor="photoDirectory"
+                className="text-sm font-bold text-[var(--starland-dark-text)]"
+              >
+                Photo Directory
+              </label>
+
+              <SourceBadge
+                source={
+                  sourceMap.photoDirectory
+                }
+              />
+            </div>
+
+            <div className="relative mt-2">
+              <Camera
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--starland-muted-text)]"
+                aria-hidden="true"
+              />
+
+              <input
+                id="photoDirectory"
+                name="photoDirectory"
+                type="text"
+                className="starland-input pl-9"
+                defaultValue={
+                  config.photoDirectory
+                }
+                maxLength={191}
+                required
+              />
+            </div>
+
+            <FieldErrors
+              errors={
+                state.fieldErrors
+                  .photoDirectory
+              }
+            />
+          </div>
+
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <label
+                htmlFor="maxPhotoSizeMb"
+                className="text-sm font-bold text-[var(--starland-dark-text)]"
+              >
+                Maximum Photo Size
+              </label>
+
+              <SourceBadge
+                source={
+                  sourceMap.maxPhotoSizeMb
+                }
+              />
+            </div>
+
+            <div className="relative mt-2">
+              <FileImage
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--starland-muted-text)]"
+                aria-hidden="true"
+              />
+
+              <input
+                id="maxPhotoSizeMb"
+                name="maxPhotoSizeMb"
+                type="number"
+                className="starland-input pl-9"
+                defaultValue={
+                  config.maxPhotoSizeMb
+                }
+                min={1}
+                max={25}
+                step={1}
+                required
+              />
+            </div>
+
+            <p className="mt-2 text-xs text-[var(--starland-muted-text)]">
+              Allowed range: 1–25 MB.
+            </p>
+
+            <FieldErrors
+              errors={
+                state.fieldErrors
+                  .maxPhotoSizeMb
+              }
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="starland-card overflow-hidden">
+        <div className="border-b border-[var(--starland-border)] px-5 py-4">
+          <div className="flex items-start gap-3">
+            <Clock3
+              className="mt-0.5 h-5 w-5 shrink-0 text-[var(--starland-warning)]"
+              aria-hidden="true"
+            />
+
+            <div>
+              <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+                Late and Missing Time-Out Rules
+              </h2>
+
+              <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+                Configure grace periods and open
+                attendance-record handling.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-5 p-5 md:grid-cols-2">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <label
+                htmlFor="lateGraceMinutes"
+                className="text-sm font-bold text-[var(--starland-dark-text)]"
+              >
+                Late Grace Minutes
+              </label>
+
+              <SourceBadge
+                source={
+                  sourceMap.lateGraceMinutes
+                }
+              />
+            </div>
+
+            <input
+              id="lateGraceMinutes"
+              name="lateGraceMinutes"
+              type="number"
+              className="starland-input mt-2"
+              defaultValue={
+                config.lateGraceMinutes
+              }
+              min={0}
+              max={180}
+              step={1}
+              required
+            />
+
+            <p className="mt-2 text-xs text-[var(--starland-muted-text)]">
+              Use 0 to mark attendance late
+              immediately after the scheduled start.
+            </p>
+
+            <FieldErrors
+              errors={
+                state.fieldErrors
+                  .lateGraceMinutes
+              }
+            />
+          </div>
+
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <label
+                htmlFor="missingTimeoutMinutes"
+                className="text-sm font-bold text-[var(--starland-dark-text)]"
+              >
+                Missing Time-Out Threshold
+              </label>
+
+              <SourceBadge
+                source={
+                  sourceMap.missingTimeoutMinutes
+                }
+              />
+            </div>
+
+            <input
+              id="missingTimeoutMinutes"
+              name="missingTimeoutMinutes"
+              type="number"
+              className="starland-input mt-2"
+              defaultValue={
+                config.missingTimeoutMinutes
+              }
+              min={60}
+              max={2880}
+              step={1}
+              required
+            />
+
+            <p className="mt-2 text-xs text-[var(--starland-muted-text)]">
+              720 minutes equals 12 hours.
+            </p>
+
+            <FieldErrors
+              errors={
+                state.fieldErrors
+                  .missingTimeoutMinutes
+              }
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <CheckboxField
+              id="autoMarkMissingTimeout"
+              name="autoMarkMissingTimeout"
+              label="Automatically Mark Missing Time-Out"
+              description="Allow automation to update eligible open attendance records after the configured threshold."
+              defaultChecked={
+                config.autoMarkMissingTimeout
+              }
+              source={
+                sourceMap.autoMarkMissingTimeout
+              }
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="starland-card p-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <Settings2
+              className="mt-0.5 h-5 w-5 shrink-0 text-[var(--starland-main-green)]"
+              aria-hidden="true"
+            />
+
+            <div>
+              <p className="font-extrabold text-[var(--starland-dark-text)]">
+                Save Global Attendance Policies
+              </p>
+
+              <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+                The update is stored in MySQL and
+                recorded in the activity log.
+              </p>
+            </div>
+          </div>
+
+          <SubmitButton />
+        </div>
+      </section>
+    </form>
+  );
+}
+
+============================================================
+FILE: src\features\settings\components\settings-section-card.tsx
+============================================================
+
+import Link from "next/link";
+import {
+  AppWindow,
+  BellRing,
+  Bot,
+  Building2,
+  Cable,
+  CalendarClock,
+  CheckCircle2,
+  Clock3,
+  HardDriveUpload,
+  ShieldCheck,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react";
+import type {
+  SettingsSection,
+  SettingsSectionIcon,
+  SettingsSectionStatus,
+} from "../types/settings-types";
+
+type SettingsSectionCardProps = {
+  section: SettingsSection;
+};
+
+const SETTINGS_ICON_MAP: Record<
+  SettingsSectionIcon,
+  LucideIcon
+> = {
+  AppWindow,
+  Building2,
+  CalendarClock,
+  Bot,
+  ShieldCheck,
+  BellRing,
+  HardDriveUpload,
+  Cable,
+  Wrench,
+};
+
+function statusBadgeClass(
+  status: SettingsSectionStatus,
+): string {
+  switch (status) {
+    case "AVAILABLE":
+      return "starland-badge-success";
+
+    case "NEXT":
+      return "starland-badge-info";
+
+    case "PLANNED":
+      return "bg-slate-100 text-slate-700";
+  }
+}
+
+function StatusIcon({
+  status,
+}: {
+  status: SettingsSectionStatus;
+}) {
+  switch (status) {
+    case "AVAILABLE":
+      return (
+        <CheckCircle2
+          className="h-4 w-4"
+          aria-hidden="true"
+        />
+      );
+
+    case "NEXT":
+    case "PLANNED":
+      return (
+        <Clock3
+          className="h-4 w-4"
+          aria-hidden="true"
+        />
+      );
+  }
+}
+
+function SettingsSectionCardContent({
+  section,
+}: SettingsSectionCardProps) {
+  const Icon =
+    SETTINGS_ICON_MAP[
+      section.icon
+    ];
+
+  return (
+    <>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--starland-light-bg)] text-[var(--starland-main-green)]">
+          <Icon
+            className="h-6 w-6"
+            aria-hidden="true"
+          />
+        </div>
+
+        <span
+          className={[
+            "starland-badge",
+            statusBadgeClass(
+              section.status,
+            ),
+          ].join(" ")}
+        >
+          <StatusIcon
+            status={section.status}
+          />
+
+          {section.status}
+        </span>
+      </div>
+
+      <div className="mt-4">
+        <p className="text-xs font-extrabold uppercase tracking-wide text-[var(--starland-muted-text)]">
+          {section.stepLabel}
+        </p>
+
+        <h2 className="mt-1 text-lg font-extrabold text-[var(--starland-dark-text)]">
+          {section.title}
+        </h2>
+
+        <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
+          {section.description}
+        </p>
+      </div>
+
+      <ul className="mt-4 space-y-2">
+        {section.features.map(
+          (feature) => (
+            <li
+              key={feature}
+              className="flex items-start gap-2 text-sm text-[var(--starland-muted-text)]"
+            >
+              <span
+                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--starland-soft-green)]"
+                aria-hidden="true"
+              />
+
+              <span>
+                {feature}
+              </span>
+            </li>
+          ),
+        )}
+      </ul>
+
+      <div className="mt-auto pt-5">
+        {section.href ? (
+          <span className="starland-btn starland-btn-primary w-full justify-center">
+            Open Settings
+          </span>
+        ) : section.status ===
+          "NEXT" ? (
+          <span className="starland-btn starland-btn-soft pointer-events-none w-full justify-center">
+            Next Development Step
+          </span>
+        ) : (
+          <span className="starland-btn starland-btn-soft pointer-events-none w-full justify-center opacity-60">
+            Planned
+          </span>
+        )}
+      </div>
+    </>
+  );
+}
+
+export function SettingsSectionCard({
+  section,
+}: SettingsSectionCardProps) {
+  const className =
+    "starland-card flex h-full flex-col p-5 transition-transform duration-200 hover:-translate-y-0.5";
+
+  if (section.href) {
+    return (
+      <Link
+        href={section.href}
+        className={className}
+      >
+        <SettingsSectionCardContent
+          section={section}
+        />
+      </Link>
+    );
+  }
+
+  return (
+    <article
+      className={className}
+      aria-disabled="true"
+    >
+      <SettingsSectionCardContent
+        section={section}
+      />
+    </article>
+  );
+}

@@ -713,3 +713,17 @@ model AttendanceExceptionDate {
   @@index([status])
   @@map("attendance_exception_dates")
 }
+
+model AttendancePolicySetting {
+  settingId    Int      @id @default(autoincrement()) @map("setting_id")
+  settingKey   String   @unique(map: "attendance_policy_settings_setting_key_key") @map("setting_key") @db.VarChar(100)
+  settingValue String   @map("setting_value") @db.Text
+  valueType    String   @map("value_type") @db.VarChar(20)
+  description  String?  @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@index([valueType], map: "attendance_policy_settings_value_type_idx")
+  @@map("attendance_policy_settings")
+}
+
