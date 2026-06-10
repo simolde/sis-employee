@@ -1,0 +1,4683 @@
+============================================================
+AUTOMATION ROUTE TREE
+============================================================
+
+FullName                                                                                                                                  PSIsContainer
+--------                                                                                                                                  -------------
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts                                                           True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\approved-leave-excused                                           True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\configuration                                                    True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\diagnostics                                                      True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\health                                                           True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\readiness                                                        True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\reports                                                          True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler                                                        True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\layout.tsx                                                      False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\page.tsx                                                        False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\acknowledgements                                          True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents                                                 True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\page.tsx                                                 False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\acknowledgements\page.tsx                                False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\lifecycle                                       True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\sla                                             True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\[activityLogId]                                 True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\page.tsx                                       False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\lifecycle\page.tsx                             False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\sla\page.tsx                                   False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\[activityLogId]\page.tsx                       False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\approved-leave-excused\history                                   True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\approved-leave-excused\page.tsx                                 False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\approved-leave-excused\history\[activityLogId]                   True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\approved-leave-excused\history\page.tsx                         False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\approved-leave-excused\history\[activityLogId]\page.tsx         False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\configuration\page.tsx                                          False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\diagnostics\page.tsx                                            False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\health\page.tsx                                                 False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\readiness\page.tsx                                              False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\reports\page.tsx                                                False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\heartbeats                                             True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\readiness                                              True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\reliability                                            True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\page.tsx                                              False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\heartbeats\report                                      True
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\heartbeats\page.tsx                                   False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\heartbeats\report\page.tsx                            False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\readiness\page.tsx                                    False
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\reliability\page.tsx                                  False
+
+
+
+
+============================================================
+AUTOMATION RUNNER USAGE
+============================================================
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\page.tsx:81: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\page.tsx:110: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\acknowledgements\page.tsx:99: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\page.tsx:91: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\lifecycle\page.tsx:89: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\sla\page.tsx:100: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\configuration\page.tsx:100: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\diagnostics\page.tsx:272: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\readiness\page.tsx:304: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\reports\page.tsx:241: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\page.tsx:94: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\heartbeats\page.tsx:87: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\heartbeats\report\page.tsx:98: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\readiness\page.tsx:87: Automation Overview
+D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\reliability\page.tsx:101: Automation Overview
+D:\NextJS\starland-attendance\src\app\api\cron\mark-missing-timeouts\route.ts:5: import { markEligibleMissingTimeouts } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
+D:\NextJS\starland-attendance\src\app\api\cron\mark-missing-timeouts\route.ts:158: await markEligibleMissingTimeouts({
+D:\NextJS\starland-attendance\src\features\attendance\automation\components\attendance-automation-runner.tsx:8: type AttendanceAutomationRunnerProps = {
+D:\NextJS\starland-attendance\src\features\attendance\automation\components\attendance-automation-runner.tsx:10: eligibleMissingTimeouts: number;
+D:\NextJS\starland-attendance\src\features\attendance\automation\components\attendance-automation-runner.tsx:13: export function AttendanceAutomationRunner({
+D:\NextJS\starland-attendance\src\features\attendance\automation\components\attendance-automation-runner.tsx:15: eligibleMissingTimeouts,
+D:\NextJS\starland-attendance\src\features\attendance\automation\components\attendance-automation-runner.tsx:16: }: AttendanceAutomationRunnerProps) {
+D:\NextJS\starland-attendance\src\features\attendance\automation\components\attendance-automation-runner.tsx:47: disabled={isPending || eligibleMissingTimeouts === 0}
+D:\NextJS\starland-attendance\src\features\attendance\automation\components\attendance-automation-runner.tsx:59: {eligibleMissingTimeouts === 0 ? (
+D:\NextJS\starland-attendance\src\features\attendance\automation\components\attendance-automation-runner.tsx:65: {eligibleMissingTimeouts} eligible record(s) can be processed. Batch
+D:\NextJS\starland-attendance\src\features\attendance\automation\components\attendance-automation-subnav.tsx:45: label: "Automation Overview",
+D:\NextJS\starland-attendance\src\features\attendance\automation\server\attendance-automation-actions.ts:10: import { markEligibleMissingTimeouts } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
+D:\NextJS\starland-attendance\src\features\attendance\automation\server\attendance-automation-actions.ts:106: await markEligibleMissingTimeouts({
+D:\NextJS\starland-attendance\src\features\attendance\automation\server\attendance-automation-queries.ts:30: export async function getAttendanceAutomationStatus(): Promise<AttendanceAutomationStatus> {
+D:\NextJS\starland-attendance\src\features\attendance\automation\server\attendance-automation-queries.ts:69: eligibleMissingTimeouts,
+D:\NextJS\starland-attendance\src\features\attendance\automation\server\attendance-automation-queries.ts:147: eligibleMissingTimeouts,
+D:\NextJS\starland-attendance\src\features\attendance\automation\types\attendance-automation-types.ts:7: eligibleMissingTimeouts: number;
+D:\NextJS\starland-attendance\src\features\attendance\maintenance\server\missing-timeout-actions.ts:10: import { markEligibleMissingTimeouts } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
+D:\NextJS\starland-attendance\src\features\attendance\maintenance\server\missing-timeout-actions.ts:58: await markEligibleMissingTimeouts({
+D:\NextJS\starland-attendance\src\features\attendance\missing-timeouts\server\missing-timeout-actions.ts:13: markEligibleMissingTimeouts,
+D:\NextJS\starland-attendance\src\features\attendance\missing-timeouts\server\missing-timeout-actions.ts:165: await markEligibleMissingTimeouts({
+D:\NextJS\starland-attendance\src\features\attendance\missing-timeouts\server\missing-timeout-queries.ts:257: eligibleMissingTimeouts,
+D:\NextJS\starland-attendance\src\features\attendance\missing-timeouts\server\missing-timeout-queries.ts:359: eligibleMissingTimeouts,
+D:\NextJS\starland-attendance\src\features\attendance\missing-timeouts\server\missing-timeout-service.ts:403: export async function markEligibleMissingTimeouts(
+D:\NextJS\starland-attendance\src\features\attendance\missing-timeouts\types\missing-timeout-types.ts:31: eligibleMissingTimeouts: number;
+
+============================================================
+AUTOMATION PAGE FILES
+============================================================
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  Activity,
+  ArrowLeft,
+  CalendarClock,
+  ClipboardCheck,
+  ServerCog,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationHostingerScheduler } from "@/features/attendance/automation/scheduler/components/attendance-automation-hostinger-scheduler";
+import { AttendanceAutomationSchedulerActivationCard } from "@/features/attendance/automation/scheduler/components/attendance-automation-scheduler-activation-card";
+import { getAttendanceAutomationSchedulerData } from "@/features/attendance/automation/scheduler/server/attendance-automation-scheduler-queries";
+import { getAttendanceAutomationSchedulerMonitoringConfiguration } from "@/features/attendance/automation/scheduler/server/attendance-automation-scheduler-monitoring-config";
+
+export const dynamic = "force-dynamic";
+
+export default async function AttendanceAutomationSchedulerPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    getAttendanceAutomationSchedulerData();
+
+  const monitoringConfiguration =
+    getAttendanceAutomationSchedulerMonitoringConfiguration();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Hostinger Cron Setup
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Attendance Automation Scheduler
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Configure and activate the production
+            automation and health-monitoring cron
+            jobs using the correct UTC schedule,
+            private credentials, and deployment
+            shell scripts.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/readiness"
+            className="starland-btn starland-btn-primary"
+          >
+            <ClipboardCheck
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Production Readiness
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/health"
+            className="starland-btn starland-btn-soft"
+          >
+            <Activity
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Health
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <CalendarClock
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                UTC-Aware Scheduling
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Hostinger Production Cron Jobs
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Cron monitoring should remain
+                disabled during local development
+                and should only be enabled after both
+                Hostinger jobs and their heartbeat
+                scripts are deployed.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              <ServerCog
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
+
+              Hostinger: UTC
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Application: Asia/Manila
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Monitoring:{" "}
+              {monitoringConfiguration.enabled
+                ? "Enabled"
+                : "Disabled"}
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Redis: Not Required
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationSchedulerActivationCard
+        configuration={
+          monitoringConfiguration
+        }
+      />
+
+      <AttendanceAutomationHostingerScheduler
+        data={data}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  Activity,
+  ArrowLeft,
+  BellRing,
+  RefreshCw,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationAlertActions } from "@/features/attendance/automation/alerts/components/attendance-automation-alert-actions";
+import { AttendanceAutomationAlertEndpointCard } from "@/features/attendance/automation/alerts/components/attendance-automation-alert-endpoint-card";
+import { AttendanceAutomationAlertFilters } from "@/features/attendance/automation/alerts/components/attendance-automation-alert-filters";
+import { AttendanceAutomationAlertList } from "@/features/attendance/automation/alerts/components/attendance-automation-alert-list";
+import { AttendanceAutomationAlertSummary } from "@/features/attendance/automation/alerts/components/attendance-automation-alert-summary";
+import { AttendanceAutomationFilteredAlertSummary } from "@/features/attendance/automation/alerts/components/attendance-automation-filtered-alert-summary";
+import {
+  getFilteredAttendanceAutomationAlerts,
+  parseAttendanceAutomationAlertSearchParams,
+} from "@/features/attendance/automation/alerts/server/attendance-automation-alert-filter-queries";
+
+export const dynamic = "force-dynamic";
+
+type AttendanceAutomationAlertsPageProps = {
+  searchParams: Promise<
+    Record<
+      string,
+      string | string[] | undefined
+    >
+  >;
+};
+
+export default async function AttendanceAutomationAlertsPage({
+  searchParams,
+}: AttendanceAutomationAlertsPageProps) {
+  await requireCanManageEmployees();
+
+  const resolvedSearchParams =
+    await searchParams;
+
+  const filters =
+    parseAttendanceAutomationAlertSearchParams(
+      resolvedSearchParams,
+    );
+
+  const result =
+    await getFilteredAttendanceAutomationAlerts(
+      filters,
+    );
+
+  const data = result.source;
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Operations Monitoring
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Attendance Automation Alerts
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Search, filter, print, and export active
+            automation configuration, scheduler,
+            failure, reliability, and execution-lock
+            conditions.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2 sm:items-end">
+          <AttendanceAutomationAlertActions
+            result={result}
+          />
+
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/attendance/automation/alerts"
+              className="starland-btn starland-btn-soft"
+            >
+              <RefreshCw
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Refresh
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/automation/health"
+              className="starland-btn starland-btn-soft"
+            >
+              <Activity
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Automation Health
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/automation"
+              className="starland-btn starland-btn-soft"
+            >
+              <ArrowLeft
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Automation Overview
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden print:shadow-none">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <BellRing
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                Live Derived Alerts
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Automation Operations Center
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Alerts are generated from server
+                configuration, automation health,
+                scheduler compliance, recent run
+                history, and the execution lock.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Health:{" "}
+              {data.signals.healthStatus}
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Schedule:{" "}
+              {data.signals.scheduleStatus}
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Lock:{" "}
+              {data.signals.lockStatus}
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Overall: {data.overallStatus}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationAlertSummary
+        data={data}
+      />
+
+      <AttendanceAutomationAlertEndpointCard
+        data={data}
+      />
+
+      <AttendanceAutomationAlertFilters
+        result={result}
+      />
+
+      <AttendanceAutomationFilteredAlertSummary
+        result={result}
+      />
+
+      <AttendanceAutomationAlertList
+        alerts={result.alerts}
+        filtered={
+          result.summary.hasActiveFilters
+        }
+        emptyTitle={
+          result.summary.hasActiveFilters
+            ? "No alerts match the filters"
+            : "No active automation alerts"
+        }
+        emptyDescription={
+          result.summary.hasActiveFilters
+            ? "Change or reset the search, severity, or alert-code filters to display other active automation alerts."
+            : "The current secret, scheduler, execution history, reliability, and lock checks have no active alert conditions."
+        }
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\acknowledgements\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  ArrowLeft,
+  BellRing,
+  History,
+  ShieldCheck,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationAcknowledgementHistoryActions } from "@/features/attendance/automation/alerts/acknowledgements/components/attendance-automation-acknowledgement-history-actions";
+import { AttendanceAutomationAcknowledgementHistoryFilters } from "@/features/attendance/automation/alerts/acknowledgements/components/attendance-automation-acknowledgement-history-filters";
+import { AttendanceAutomationAcknowledgementHistorySummary } from "@/features/attendance/automation/alerts/acknowledgements/components/attendance-automation-acknowledgement-history-summary";
+import { AttendanceAutomationAcknowledgementHistoryTable } from "@/features/attendance/automation/alerts/acknowledgements/components/attendance-automation-acknowledgement-history-table";
+import { AttendanceAutomationAcknowledgementPrintHeader } from "@/features/attendance/automation/alerts/acknowledgements/components/attendance-automation-acknowledgement-print-header";
+import {
+  getAttendanceAutomationAcknowledgementHistoryData,
+  parseAttendanceAutomationAcknowledgementHistorySearchParams,
+} from "@/features/attendance/automation/alerts/acknowledgements/server/attendance-automation-alert-acknowledgement-history-queries";
+
+export const dynamic = "force-dynamic";
+
+type AttendanceAutomationAcknowledgementHistoryPageProps = {
+  searchParams: Promise<
+    Record<
+      string,
+      string | string[] | undefined
+    >
+  >;
+};
+
+export default async function AttendanceAutomationAcknowledgementHistoryPage({
+  searchParams,
+}: AttendanceAutomationAcknowledgementHistoryPageProps) {
+  await requireCanManageEmployees();
+
+  const resolvedSearchParams =
+    await searchParams;
+
+  const filters =
+    parseAttendanceAutomationAcknowledgementHistorySearchParams(
+      resolvedSearchParams,
+    );
+
+  const data =
+    await getAttendanceAutomationAcknowledgementHistoryData(
+      filters,
+    );
+
+  return (
+    <section className="starland-page space-y-5">
+      <AttendanceAutomationAcknowledgementPrintHeader
+        data={data}
+      />
+
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Alert Audit Trail
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Alert Acknowledgement History
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Review, print, and export automation
+            alert acknowledgement, expiration,
+            replacement, and manual clearing
+            activity.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2 sm:items-end">
+          <AttendanceAutomationAcknowledgementHistoryActions
+            data={data}
+          />
+
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/attendance/automation/alerts"
+              className="starland-btn starland-btn-soft"
+            >
+              <BellRing
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Active Alerts
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/automation"
+              className="starland-btn starland-btn-soft"
+            >
+              <ArrowLeft
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Automation Overview
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden print:hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <History
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                Immutable Activity Logs
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Automation Alert Review History
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Acknowledging an alert does not
+                resolve its underlying condition.
+                This history records who reviewed
+                each alert and whether the
+                acknowledgement expired, was
+                cleared, or was replaced.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              <ShieldCheck
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
+
+              Active:{" "}
+              {
+                data.summary
+                  .activeAcknowledgements
+              }
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Range: {data.filters.dateFrom} to{" "}
+              {data.filters.dateTo}
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Page: {data.pagination.page} of{" "}
+              {data.pagination.totalPages}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationAcknowledgementHistoryFilters
+        filters={data.filters}
+      />
+
+      <AttendanceAutomationAcknowledgementHistorySummary
+        data={data}
+      />
+
+      <AttendanceAutomationAcknowledgementHistoryTable
+        data={data}
+      />
+
+      <section className="hidden border-t border-black pt-4 text-xs print:block">
+        <p>
+          This report contains the records displayed
+          on page {data.pagination.page} of{" "}
+          {data.pagination.totalPages}.
+        </p>
+
+        <p className="mt-1">
+          Total filtered acknowledgement events:{" "}
+          {data.pagination.totalRecords}.
+        </p>
+      </section>
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  ArrowLeft,
+  BellRing,
+  FileClock,
+  History,
+  RefreshCw,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationAlertIncidentActions } from "@/features/attendance/automation/alerts/incidents/components/attendance-automation-alert-incident-actions";
+import { AttendanceAutomationAlertIncidentDashboard } from "@/features/attendance/automation/alerts/incidents/components/attendance-automation-alert-incident-dashboard";
+import { getAttendanceAutomationAlertIncidentData } from "@/features/attendance/automation/alerts/incidents/server/attendance-automation-alert-incident-queries";
+
+export const dynamic =
+  "force-dynamic";
+
+export default async function AttendanceAutomationAlertIncidentsPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    await getAttendanceAutomationAlertIncidentData();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Automation Incident History
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Alert Incident Timeline
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Review persistent alert snapshots,
+            opened and resolved incidents, severity
+            changes, and automation alert-center
+            status transitions.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {data.latestSnapshot ? (
+            <Link
+              href={`/dashboard/attendance/automation/alerts/incidents/${data.latestSnapshot.activityLogId}`}
+              className="starland-btn starland-btn-primary"
+            >
+              <FileClock
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Latest Snapshot
+            </Link>
+          ) : null}
+
+          <Link
+            href="/dashboard/attendance/automation/alerts/incidents"
+            className="starland-btn starland-btn-soft"
+          >
+            <RefreshCw
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Refresh Timeline
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/alerts"
+            className="starland-btn starland-btn-soft"
+          >
+            <BellRing
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Active Alerts
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="hidden border-b border-black pb-4 print:block">
+        <h1 className="text-2xl font-extrabold">
+          Starland Attendance Automation
+          Alert Incident Timeline
+        </h1>
+
+        <p className="mt-2 text-sm">
+          Generated: {data.generatedAt}
+        </p>
+
+        <p className="mt-1 text-sm">
+          Monitoring window:{" "}
+          {data.monitoringWindowDays} days
+        </p>
+
+        <p className="mt-1 text-sm">
+          Latest snapshot:{" "}
+          {data.latestSnapshot
+            ? `#${data.latestSnapshot.activityLogId} — ${data.latestSnapshot.overallStatus}`
+            : "No snapshot"}
+        </p>
+      </section>
+
+      <section className="starland-card overflow-hidden print:hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <History
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                Immutable Activity Logs
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Persistent Automation Alert History
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Open an individual snapshot to
+                compare its complete alert state
+                against the immediately preceding
+                immutable record.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="starland-card p-4 print:hidden">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-extrabold text-[var(--starland-dark-text)]">
+              Incident Report Actions
+            </h2>
+
+            <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+              Export the complete incident timeline
+              to CSV or generate a printable report.
+            </p>
+          </div>
+
+          <AttendanceAutomationAlertIncidentActions
+            data={data}
+          />
+        </div>
+      </section>
+
+      <AttendanceAutomationAlertIncidentDashboard
+        data={data}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\lifecycle\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  ArrowLeft,
+  BellRing,
+  History,
+  RefreshCw,
+  TimerReset,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationAlertIncidentLifecycleDashboard } from "@/features/attendance/automation/alerts/incidents/lifecycle/components/attendance-automation-alert-incident-lifecycle-dashboard";
+import { getAttendanceAutomationAlertIncidentLifecycleData } from "@/features/attendance/automation/alerts/incidents/lifecycle/server/attendance-automation-alert-incident-lifecycle-queries";
+
+export const dynamic =
+  "force-dynamic";
+
+export default async function AttendanceAutomationAlertIncidentLifecyclePage() {
+  await requireCanManageEmployees();
+
+  const data =
+    await getAttendanceAutomationAlertIncidentLifecycleData();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Automation Incident Analytics
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Alert Incident Lifecycle
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Track alert incidents from their first
+            snapshot appearance through resolution,
+            including duration, severity escalation,
+            observation count, and mean time to
+            resolution.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/alerts/incidents/lifecycle"
+            className="starland-btn starland-btn-primary"
+          >
+            <RefreshCw
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Refresh Lifecycle
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/alerts/incidents"
+            className="starland-btn starland-btn-soft"
+          >
+            <History
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Incident Timeline
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/alerts"
+            className="starland-btn starland-btn-soft"
+          >
+            <BellRing
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Active Alerts
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <TimerReset
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                Snapshot-Derived Incidents
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Alert Resolution and Duration Analytics
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Each alert appearance starts an
+                incident. The incident remains open
+                while the alert exists in subsequent
+                snapshots and resolves when the alert
+                disappears.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationAlertIncidentLifecycleDashboard
+        data={data}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\sla\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  ArrowLeft,
+  BellRing,
+  History,
+  RefreshCw,
+  Timer,
+  TimerReset,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationAlertIncidentSlaDashboard } from "@/features/attendance/automation/alerts/incidents/sla/components/attendance-automation-alert-incident-sla-dashboard";
+import { getAttendanceAutomationAlertIncidentSlaData } from "@/features/attendance/automation/alerts/incidents/sla/server/attendance-automation-alert-incident-sla-queries";
+
+export const dynamic =
+  "force-dynamic";
+
+export default async function AttendanceAutomationAlertIncidentSlaPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    await getAttendanceAutomationAlertIncidentSlaData();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Incident Resolution Targets
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Automation Incident SLA
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Monitor open automation-alert incidents
+            against configurable critical, warning,
+            and informational resolution targets.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/alerts/incidents/sla"
+            className="starland-btn starland-btn-primary"
+          >
+            <RefreshCw
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Refresh SLA
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/alerts/incidents/lifecycle"
+            className="starland-btn starland-btn-soft"
+          >
+            <TimerReset
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Incident Lifecycle
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/alerts/incidents"
+            className="starland-btn starland-btn-soft"
+          >
+            <History
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Incident Timeline
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/alerts"
+            className="starland-btn starland-btn-soft"
+          >
+            <BellRing
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Active Alerts
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <Timer
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                Severity-Based SLA
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Automation Incident Resolution Monitoring
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Every open incident receives a
+                deadline based on its current alert
+                severity. Incidents approaching the
+                deadline are marked at risk, while
+                overdue incidents are marked
+                breached.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationAlertIncidentSlaDashboard
+        data={data}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\alerts\incidents\[activityLogId]\page.tsx
+------------------------------------------------------------
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\approved-leave-excused\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  ArrowLeft,
+  CalendarCheck,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  RefreshCw,
+  ShieldCheck,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { ApprovedLeaveExcusedAutomationFilters } from "@/features/attendance/automation/components/approved-leave-excused-automation-filters";
+import { ApprovedLeaveExcusedAutomationPanel } from "@/features/attendance/automation/components/approved-leave-excused-automation-panel";
+import { ApprovedLeaveExcusedSyncTable } from "@/features/attendance/excused/sync/components/approved-leave-excused-sync-table";
+import {
+  getApprovedLeaveExcusedSyncData,
+  parseApprovedLeaveExcusedSyncSearchParams,
+} from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-queries";
+
+type ApprovedLeaveExcusedAutomationPageProps = {
+  searchParams: Promise<
+    Record<
+      string,
+      string | string[] | undefined
+    >
+  >;
+};
+
+function getManilaDateInputValue(
+  offsetDays = 0,
+): string {
+  const now = new Date();
+
+  const targetDate = new Date(
+    now.getTime() +
+      offsetDays * 24 * 60 * 60 * 1000,
+  );
+
+  const parts = new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone: "Asia/Manila",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    },
+  ).formatToParts(targetDate);
+
+  const year =
+    parts.find(
+      (part) => part.type === "year",
+    )?.value ?? "";
+
+  const month =
+    parts.find(
+      (part) => part.type === "month",
+    )?.value ?? "";
+
+  const day =
+    parts.find(
+      (part) => part.type === "day",
+    )?.value ?? "";
+
+  return `${year}-${month}-${day}`;
+}
+
+function hasSearchParam(
+  value:
+    | string
+    | string[]
+    | undefined,
+): boolean {
+  if (Array.isArray(value)) {
+    return value.length > 0;
+  }
+
+  return Boolean(value);
+}
+
+export default async function ApprovedLeaveExcusedAutomationPage({
+  searchParams,
+}: ApprovedLeaveExcusedAutomationPageProps) {
+  await requireCanManageEmployees();
+
+  const resolvedSearchParams =
+    await searchParams;
+
+  const normalizedSearchParams = {
+    ...resolvedSearchParams,
+    dateFrom: hasSearchParam(
+      resolvedSearchParams.dateFrom,
+    )
+      ? resolvedSearchParams.dateFrom
+      : getManilaDateInputValue(-30),
+    dateTo: hasSearchParam(
+      resolvedSearchParams.dateTo,
+    )
+      ? resolvedSearchParams.dateTo
+      : getManilaDateInputValue(),
+  };
+
+  const filters =
+    parseApprovedLeaveExcusedSyncSearchParams(
+      normalizedSearchParams,
+    );
+
+  const result =
+    await getApprovedLeaveExcusedSyncData(
+      filters,
+    );
+
+  const secretConfigured = Boolean(
+    process.env
+      .ATTENDANCE_AUTOMATION_SECRET?.trim() ||
+      process.env.CRON_SECRET?.trim(),
+  );
+
+  const maximumRecords = 500;
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-success">
+            Attendance Automation
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Approved-Leave EXCUSED
+            Automation
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Preview and run the same approved-leave
+            attendance process used by the
+            protected automation endpoint.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/excused"
+            className="starland-btn starland-btn-primary"
+          >
+            <CalendarCheck
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            EXCUSED Records
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/exceptions"
+            className="starland-btn starland-btn-soft"
+          >
+            <CalendarDays
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Exception Calendar
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/actions"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Attendance Actions
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden print:shadow-none">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+            Automation Preview
+          </span>
+
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+            Approved Leave to EXCUSED
+            Attendance
+          </h2>
+
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+            The system expands approved leave into
+            scheduled attendance dates, protects
+            exception-calendar dates, preserves
+            existing attendance, and generates only
+            missing EXCUSED records.
+          </p>
+        </div>
+
+        <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <CalendarCheck className="h-7 w-7 text-[var(--starland-success)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Approved Leaves
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {
+                result.summary
+                  .matchingApprovedLeaves
+              }
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <RefreshCw className="h-7 w-7 text-[var(--starland-warning)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Missing EXCUSED
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {
+                result.summary
+                  .missingExcusedCandidates
+              }
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <CheckCircle2 className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Existing Attendance
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {
+                result.summary
+                  .alreadyHasAttendance
+              }
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ShieldCheck className="h-7 w-7 text-[var(--starland-main-green)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Evaluated Dates
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {
+                result.summary
+                  .evaluatedLeaveDates
+              }
+            </p>
+          </article>
+        </div>
+
+        <div className="grid gap-4 px-5 pb-5 sm:grid-cols-2">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <CalendarDays className="h-6 w-6 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Exception Protected
+            </p>
+
+            <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+              {
+                result.summary
+                  .exceptionProtected
+              }
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Clock3 className="h-6 w-6 text-[var(--starland-warning)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Not Scheduled
+            </p>
+
+            <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+              {result.summary.notScheduled}
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <ApprovedLeaveExcusedAutomationFilters
+        filters={result.filters}
+        options={result.options}
+      />
+
+      <ApprovedLeaveExcusedAutomationPanel
+        result={result}
+        secretConfigured={secretConfigured}
+        maximumRecords={maximumRecords}
+      />
+
+      <ApprovedLeaveExcusedSyncTable
+        result={result}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\approved-leave-excused\history\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  ArrowLeft,
+  CalendarCheck,
+  CheckCircle2,
+  CloudCog,
+  History,
+  LayoutDashboard,
+  Play,
+  Search,
+  TriangleAlert,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { ApprovedLeaveAutomationHistoryActions } from "@/features/attendance/automation/history/components/approved-leave-automation-history-actions";
+import { ApprovedLeaveAutomationHistoryTable } from "@/features/attendance/automation/history/components/approved-leave-automation-history-table";
+import {
+  getApprovedLeaveAutomationHistory,
+  parseApprovedLeaveAutomationHistorySearchParams,
+} from "@/features/attendance/automation/history/server/approved-leave-automation-history-queries";
+import type { ApprovedLeaveAutomationHistoryFilters } from "@/features/attendance/automation/history/types/approved-leave-automation-history-types";
+
+type ApprovedLeaveAutomationHistoryPageProps = {
+  searchParams: Promise<
+    Record<
+      string,
+      string | string[] | undefined
+    >
+  >;
+};
+
+function AutomationHistoryFilters({
+  filters,
+}: {
+  filters: ApprovedLeaveAutomationHistoryFilters;
+}) {
+  return (
+    <section className="starland-card p-5 print:hidden">
+      <form className="grid gap-4 xl:grid-cols-4">
+        <div>
+          <label
+            htmlFor="dateFrom"
+            className="text-sm font-bold text-[var(--starland-dark-text)]"
+          >
+            Run Date From
+          </label>
+
+          <input
+            id="dateFrom"
+            name="dateFrom"
+            type="date"
+            className="starland-input mt-2"
+            defaultValue={filters.dateFrom}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="dateTo"
+            className="text-sm font-bold text-[var(--starland-dark-text)]"
+          >
+            Run Date To
+          </label>
+
+          <input
+            id="dateTo"
+            name="dateTo"
+            type="date"
+            className="starland-input mt-2"
+            defaultValue={filters.dateTo}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="executionMode"
+            className="text-sm font-bold text-[var(--starland-dark-text)]"
+          >
+            Execution Mode
+          </label>
+
+          <select
+            id="executionMode"
+            name="executionMode"
+            className="starland-input mt-2"
+            defaultValue={
+              filters.executionMode
+            }
+          >
+            <option value="">
+              All executions
+            </option>
+
+            <option value="DASHBOARD">
+              Dashboard
+            </option>
+
+            <option value="API">
+              API / system
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="q"
+            className="text-sm font-bold text-[var(--starland-dark-text)]"
+          >
+            Search
+          </label>
+
+          <input
+            id="q"
+            name="q"
+            className="starland-input mt-2"
+            placeholder="Run key or actor user ID"
+            defaultValue={filters.q}
+          />
+        </div>
+
+        <div className="flex items-end gap-2 xl:col-span-4">
+          <button
+            type="submit"
+            className="starland-btn starland-btn-primary"
+          >
+            <Search
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+            Apply Filters
+          </button>
+
+          <Link
+            href="/dashboard/attendance/automation/approved-leave-excused/history"
+            className="starland-btn starland-btn-soft"
+          >
+            Reset
+          </Link>
+        </div>
+      </form>
+    </section>
+  );
+}
+
+export default async function ApprovedLeaveAutomationHistoryPage({
+  searchParams,
+}: ApprovedLeaveAutomationHistoryPageProps) {
+  await requireCanManageEmployees();
+
+  const resolvedSearchParams =
+    await searchParams;
+
+  const filters =
+    parseApprovedLeaveAutomationHistorySearchParams(
+      resolvedSearchParams,
+    );
+
+  const result =
+    await getApprovedLeaveAutomationHistory(
+      filters,
+    );
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Automation History
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Approved-Leave Automation Runs
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Review dashboard and protected API
+            executions, open full run details, and
+            export the currently displayed history
+            page.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2 sm:items-end">
+          <ApprovedLeaveAutomationHistoryActions
+            result={result}
+          />
+
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/attendance/automation/approved-leave-excused"
+              className="starland-btn starland-btn-primary"
+            >
+              <Play
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+              Run Automation
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/excused"
+              className="starland-btn starland-btn-soft"
+            >
+              <CalendarCheck
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+              EXCUSED Records
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/actions"
+              className="starland-btn starland-btn-soft"
+            >
+              <ArrowLeft
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+              Attendance Actions
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden print:shadow-none">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+            Run-Level Traceability
+          </span>
+
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+            Automation Execution Summary
+          </h2>
+
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+            Run-level logs record the requested
+            range, limit, execution source,
+            processing totals, duration, and the
+            original activity-log payload.
+          </p>
+        </div>
+
+        <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <History className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Total Runs
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {result.summary.totalRuns}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <Search className="h-7 w-7 text-[var(--starland-main-green)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Matching Runs
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {result.summary.matchingRuns}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <LayoutDashboard className="h-7 w-7 text-[var(--starland-success)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Dashboard Runs
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {result.summary.dashboardRuns}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <CloudCog className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              API / System Runs
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {result.summary.apiRuns}
+            </p>
+          </article>
+        </div>
+
+        <div className="grid gap-4 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-2xl border border-green-200 bg-green-50 p-4">
+            <CheckCircle2 className="h-7 w-7 text-green-700" />
+
+            <p className="mt-3 text-sm font-bold text-green-700">
+              Completed on Page
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-green-800">
+              {
+                result.summary
+                  .completedRunsOnPage
+              }
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-red-200 bg-red-50 p-4">
+            <TriangleAlert className="h-7 w-7 text-red-700" />
+
+            <p className="mt-3 text-sm font-bold text-red-700">
+              Failed on Page
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-red-800">
+              {result.summary.failedRunsOnPage}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <CalendarCheck className="h-7 w-7 text-[var(--starland-success)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Generated on Page
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {
+                result.summary
+                  .generatedRecordsOnPage
+              }
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <History className="h-7 w-7 text-[var(--starland-info)]" />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Current Page Rows
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+              {
+                result.summary
+                  .currentPageRecords
+              }
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <AutomationHistoryFilters
+        filters={result.filters}
+      />
+
+      <ApprovedLeaveAutomationHistoryTable
+        result={result}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\approved-leave-excused\history\[activityLogId]\page.tsx
+------------------------------------------------------------
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\configuration\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  Activity,
+  ArrowLeft,
+  CalendarClock,
+  CheckCircle2,
+  CircleAlert,
+  ExternalLink,
+  KeyRound,
+  LockKeyhole,
+  ServerCog,
+  Settings2,
+  ShieldCheck,
+  TriangleAlert,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationCommandBuilder } from "@/features/attendance/automation/configuration/components/attendance-automation-command-builder";
+import { getAttendanceAutomationConfigurationData } from "@/features/attendance/automation/configuration/server/attendance-automation-configuration-queries";
+
+export const dynamic = "force-dynamic";
+
+function EnvironmentVariableRow({
+  name,
+  value,
+  description,
+}: {
+  name: string;
+  value: string;
+  description: string;
+}) {
+  return (
+    <tr>
+      <td>
+        <code className="text-xs font-bold text-[var(--starland-dark-text)]">
+          {name}
+        </code>
+      </td>
+
+      <td>
+        <code className="text-xs text-[var(--starland-dark-text)]">
+          {value}
+        </code>
+      </td>
+
+      <td className="text-sm text-[var(--starland-muted-text)]">
+        {description}
+      </td>
+    </tr>
+  );
+}
+
+export default async function AttendanceAutomationConfigurationPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    getAttendanceAutomationConfigurationData();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Automation Setup
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Attendance Automation Configuration
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Review protected endpoint settings,
+            scheduler timing, concurrency-lock
+            configuration, and safe commands for
+            external execution.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/health"
+            className="starland-btn starland-btn-primary"
+          >
+            <Activity
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Health
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+            {data.environment.toUpperCase()}
+          </span>
+
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+            Protected Scheduler Setup
+          </h2>
+
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+            Secret values are never rendered. This
+            page displays only their configuration
+            source, expected header, and length.
+          </p>
+        </div>
+
+        <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <KeyRound
+              className={[
+                "h-7 w-7",
+                data.secret.configured
+                  ? "text-[var(--starland-success)]"
+                  : "text-[var(--starland-danger)]",
+              ].join(" ")}
+              aria-hidden="true"
+            />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Automation Secret
+            </p>
+
+            <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
+              {data.secret.configured
+                ? "Configured"
+                : "Missing"}
+            </p>
+
+            <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
+              Source: {data.secret.source}
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <CalendarClock
+              className="h-7 w-7 text-[var(--starland-info)]"
+              aria-hidden="true"
+            />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Daily Schedule
+            </p>
+
+            <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
+              {data.schedule.scheduleLabel}
+            </p>
+
+            <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
+              Grace:{" "}
+              {data.schedule.graceMinutes} minutes
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <LockKeyhole
+              className="h-7 w-7 text-[var(--starland-warning)]"
+              aria-hidden="true"
+            />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Lock Safety Timeout
+            </p>
+
+            <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
+              {data.lock.leaseSeconds} seconds
+            </p>
+
+            <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
+              {data.lock.leaseMinutes} minute(s)
+            </p>
+          </article>
+
+          <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+            <ServerCog
+              className="h-7 w-7 text-[var(--starland-main-green)]"
+              aria-hidden="true"
+            />
+
+            <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+              Maximum Per Run
+            </p>
+
+            <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
+              {data.maximumRecordsPerRun}
+            </p>
+
+            <p className="mt-2 text-xs font-semibold text-[var(--starland-muted-text)]">
+              Recommended range:{" "}
+              {data.recommendedDateRangeDays} days
+            </p>
+          </article>
+        </div>
+      </section>
+
+      {data.warnings.length > 0 ? (
+        <section className="space-y-3">
+          {data.warnings.map((warning) => (
+            <article
+              key={warning.code}
+              className="rounded-2xl border border-amber-200 bg-amber-50 p-4"
+            >
+              <div className="flex items-start gap-3">
+                <TriangleAlert
+                  className="mt-0.5 h-5 w-5 shrink-0 text-amber-700"
+                  aria-hidden="true"
+                />
+
+                <div>
+                  <h2 className="font-extrabold text-amber-800">
+                    {warning.title}
+                  </h2>
+
+                  <p className="mt-1 text-sm font-semibold leading-6 text-amber-700">
+                    {warning.message}
+                  </p>
+                </div>
+              </div>
+            </article>
+          ))}
+        </section>
+      ) : (
+        <section className="rounded-2xl border border-green-200 bg-green-50 p-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle2
+              className="mt-0.5 h-5 w-5 shrink-0 text-green-700"
+              aria-hidden="true"
+            />
+
+            <div>
+              <h2 className="font-extrabold text-green-800">
+                Configuration checks passed
+              </h2>
+
+              <p className="mt-1 text-sm font-semibold text-green-700">
+                No automation configuration warnings
+                were detected.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="grid gap-5 xl:grid-cols-2">
+        <article className="starland-card overflow-hidden">
+          <div className="border-b border-[var(--starland-border)] px-5 py-4">
+            <div className="flex items-center gap-2">
+              <ShieldCheck
+                className="h-5 w-5 text-[var(--starland-success)]"
+                aria-hidden="true"
+              />
+
+              <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+                Endpoint Authentication
+              </h2>
+            </div>
+          </div>
+
+          <dl className="grid gap-4 p-5 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Secret Source
+              </dt>
+
+              <dd className="mt-1 break-all font-bold text-[var(--starland-dark-text)]">
+                {data.secret.source}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Secret Length
+              </dt>
+
+              <dd className="mt-1 font-bold text-[var(--starland-dark-text)]">
+                {data.secret.configured
+                  ? `${data.secret.secretLength} characters`
+                  : "Not configured"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Request Header
+              </dt>
+
+              <dd className="mt-1 break-all font-bold text-[var(--starland-dark-text)]">
+                {data.secret.requestHeaderName}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Environment Variable
+              </dt>
+
+              <dd className="mt-1 break-all font-bold text-[var(--starland-dark-text)]">
+                {
+                  data.secret
+                    .environmentVariableName
+                }
+              </dd>
+            </div>
+          </dl>
+        </article>
+
+        <article className="starland-card overflow-hidden">
+          <div className="border-b border-[var(--starland-border)] px-5 py-4">
+            <div className="flex items-center gap-2">
+              <ExternalLink
+                className="h-5 w-5 text-[var(--starland-info)]"
+                aria-hidden="true"
+              />
+
+              <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+                Endpoint URLs
+              </h2>
+            </div>
+          </div>
+
+          <div className="space-y-4 p-5">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Application Base URL
+              </p>
+
+              <code className="mt-2 block overflow-x-auto whitespace-nowrap rounded-xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] px-3 py-2 text-xs text-[var(--starland-dark-text)]">
+                {data.applicationBaseUrl}
+              </code>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Automation Endpoint
+              </p>
+
+              <code className="mt-2 block overflow-x-auto whitespace-nowrap rounded-xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] px-3 py-2 text-xs text-[var(--starland-dark-text)]">
+                POST {data.automationEndpointUrl}
+              </code>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Health Endpoint
+              </p>
+
+              <code className="mt-2 block overflow-x-auto whitespace-nowrap rounded-xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] px-3 py-2 text-xs text-[var(--starland-dark-text)]">
+                GET {data.healthEndpointUrl}
+              </code>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <AttendanceAutomationCommandBuilder
+        data={data}
+      />
+
+      <section className="starland-card overflow-hidden">
+        <div className="border-b border-[var(--starland-border)] px-5 py-4">
+          <div className="flex items-center gap-2">
+            <Settings2
+              className="h-5 w-5 text-[var(--starland-info)]"
+              aria-hidden="true"
+            />
+
+            <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+              Environment Variables
+            </h2>
+          </div>
+
+          <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+            Restart the Node.js application after
+            changing server-side environment
+            variables.
+          </p>
+        </div>
+
+        <div className="starland-scroll-x">
+          <table className="starland-table">
+            <thead>
+              <tr>
+                <th>Variable</th>
+                <th>Current / Example</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <EnvironmentVariableRow
+                name="NEXT_PUBLIC_APP_URL"
+                value={
+                  data.applicationBaseUrl
+                }
+                description="Public HTTPS base URL used when generating endpoint commands."
+              />
+
+              <EnvironmentVariableRow
+                name="ATTENDANCE_AUTOMATION_SECRET"
+                value={
+                  data.secret.source ===
+                  "ATTENDANCE_AUTOMATION_SECRET"
+                    ? "Configured"
+                    : "Recommended"
+                }
+                description="Primary protected automation secret. Use a long random value."
+              />
+
+              <EnvironmentVariableRow
+                name="ATTENDANCE_AUTOMATION_EXPECTED_HOUR"
+                value={String(
+                  data.schedule.expectedHour,
+                )}
+                description="Expected daily API execution hour using 24-hour Asia/Manila time."
+              />
+
+              <EnvironmentVariableRow
+                name="ATTENDANCE_AUTOMATION_EXPECTED_MINUTE"
+                value={String(
+                  data.schedule.expectedMinute,
+                )}
+                description="Expected minute of the scheduled API execution."
+              />
+
+              <EnvironmentVariableRow
+                name="ATTENDANCE_AUTOMATION_GRACE_MINUTES"
+                value={String(
+                  data.schedule.graceMinutes,
+                )}
+                description="Allowed delay after the expected execution time."
+              />
+
+              <EnvironmentVariableRow
+                name="ATTENDANCE_AUTOMATION_LOCK_LEASE_SECONDS"
+                value={String(
+                  data.lock.leaseSeconds,
+                )}
+                description="Maximum transaction window while the shared MySQL automation lock is held."
+              />
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+        <div className="flex items-start gap-3">
+          <CircleAlert
+            className="mt-0.5 h-5 w-5 shrink-0 text-blue-700"
+            aria-hidden="true"
+          />
+
+          <div className="text-sm font-semibold leading-6 text-blue-800">
+            <p>
+              Schedule the protected automation call
+              once each day. A separate health check
+              may run after the grace deadline to
+              notify administrators when execution is
+              stale or degraded.
+            </p>
+
+            <p className="mt-2">
+              Current expected execution:{" "}
+              <strong>
+                {data.schedule.scheduleLabel}
+              </strong>
+              . Current grace deadline is{" "}
+              <strong>
+                {data.schedule.graceMinutes} minutes
+              </strong>{" "}
+              later.
+            </p>
+          </div>
+        </div>
+      </section>
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\diagnostics\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  Activity,
+  ArrowLeft,
+  CheckCircle2,
+  CircleAlert,
+  Clock3,
+  Database,
+  KeyRound,
+  LockKeyhole,
+  Network,
+  RefreshCw,
+  ServerCog,
+  TriangleAlert,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { getAttendanceAutomationLockDiagnosticData } from "@/features/attendance/automation/diagnostics/server/attendance-automation-lock-diagnostics";
+import type {
+  AttendanceAutomationLockDiagnosticData,
+  AttendanceAutomationLockDiagnosticStatus,
+} from "@/features/attendance/automation/diagnostics/types/attendance-automation-lock-diagnostic-types";
+
+export const dynamic = "force-dynamic";
+
+function statusContainerClass(
+  status: AttendanceAutomationLockDiagnosticStatus,
+): string {
+  switch (status) {
+    case "PASS":
+      return "border-green-200 bg-green-50 text-green-800";
+
+    case "WARNING":
+      return "border-amber-200 bg-amber-50 text-amber-800";
+
+    case "FAIL":
+      return "border-red-200 bg-red-50 text-red-800";
+  }
+}
+
+function DiagnosticStatusIcon({
+  status,
+}: {
+  status: AttendanceAutomationLockDiagnosticStatus;
+}) {
+  if (status === "PASS") {
+    return (
+      <CheckCircle2
+        className="h-8 w-8 shrink-0"
+        aria-hidden="true"
+      />
+    );
+  }
+
+  if (status === "WARNING") {
+    return (
+      <TriangleAlert
+        className="h-8 w-8 shrink-0"
+        aria-hidden="true"
+      />
+    );
+  }
+
+  return (
+    <CircleAlert
+      className="h-8 w-8 shrink-0"
+      aria-hidden="true"
+    />
+  );
+}
+
+function CheckResult({
+  label,
+  passed,
+}: {
+  label: string;
+  passed: boolean;
+}) {
+  return (
+    <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+      {passed ? (
+        <CheckCircle2
+          className="h-6 w-6 text-[var(--starland-success)]"
+          aria-hidden="true"
+        />
+      ) : (
+        <CircleAlert
+          className="h-6 w-6 text-[var(--starland-danger)]"
+          aria-hidden="true"
+        />
+      )}
+
+      <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+        {label}
+      </p>
+
+      <p
+        className={[
+          "mt-1 text-lg font-extrabold",
+          passed
+            ? "text-green-700"
+            : "text-red-700",
+        ].join(" ")}
+      >
+        {passed ? "PASSED" : "FAILED"}
+      </p>
+    </article>
+  );
+}
+
+function ProductionLockCard({
+  data,
+}: {
+  data: AttendanceAutomationLockDiagnosticData;
+}) {
+  const lock =
+    data.productionLock;
+
+  return (
+    <section className="starland-card overflow-hidden">
+      <div className="border-b border-[var(--starland-border)] px-5 py-4">
+        <div className="flex items-center gap-2">
+          <LockKeyhole
+            className="h-5 w-5 text-[var(--starland-info)]"
+            aria-hidden="true"
+          />
+
+          <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+            Production Automation Lock
+          </h2>
+        </div>
+      </div>
+
+      <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+        <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+          <Activity
+            className="h-6 w-6 text-[var(--starland-info)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Status
+          </p>
+
+          <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
+            {lock.status}
+          </p>
+        </article>
+
+        <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+          <ServerCog
+            className="h-6 w-6 text-[var(--starland-warning)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Owner Connection
+          </p>
+
+          <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
+            {lock.ownerConnectionId !== null
+              ? `#${lock.ownerConnectionId}`
+              : "No owner"}
+          </p>
+        </article>
+
+        <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+          <Network
+            className="h-6 w-6 text-[var(--starland-main-green)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Distributed
+          </p>
+
+          <p className="mt-1 text-xl font-extrabold text-[var(--starland-dark-text)]">
+            {lock.distributed
+              ? "YES"
+              : "NO"}
+          </p>
+        </article>
+
+        <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+          <KeyRound
+            className="h-6 w-6 text-[var(--starland-info)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Provider
+          </p>
+
+          <p className="mt-1 break-all text-sm font-extrabold text-[var(--starland-dark-text)]">
+            {lock.source}
+          </p>
+        </article>
+      </div>
+
+      <div className="border-t border-[var(--starland-border)] px-5 py-4">
+        <p className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+          Lock Name
+        </p>
+
+        <code className="mt-2 block break-all rounded-xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] px-3 py-2 text-xs font-semibold text-[var(--starland-dark-text)]">
+          {lock.lockName}
+        </code>
+      </div>
+    </section>
+  );
+}
+
+export default async function AttendanceAutomationDiagnosticsPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    await getAttendanceAutomationLockDiagnosticData();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Database Diagnostics
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Automation Lock Diagnostics
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Verify that the connected MySQL or
+            MariaDB server supports the named locks
+            used to coordinate attendance automation
+            across application processes.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/diagnostics"
+            className="starland-btn starland-btn-primary"
+          >
+            <RefreshCw
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Run Again
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/health"
+            className="starland-btn starland-btn-soft"
+          >
+            <Activity
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Health
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section
+        className={[
+          "rounded-2xl border p-5",
+          statusContainerClass(
+            data.overallStatus,
+          ),
+        ].join(" ")}
+      >
+        <div className="flex items-start gap-3">
+          <DiagnosticStatusIcon
+            status={data.overallStatus}
+          />
+
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-wide">
+              Diagnostic Result
+            </p>
+
+            <h2 className="mt-1 text-xl font-extrabold">
+              {data.statusLabel}
+            </h2>
+
+            <p className="mt-2 max-w-4xl text-sm font-semibold leading-6">
+              {data.statusDescription}
+            </p>
+
+            <p className="mt-3 text-xs font-bold">
+              Checked: {data.checkedAt}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <article className="starland-card p-4">
+          <Database
+            className="h-7 w-7 text-[var(--starland-info)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Database Server
+          </p>
+
+          <p className="mt-1 break-words text-lg font-extrabold text-[var(--starland-dark-text)]">
+            {data.database.serverVersion}
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <Database
+            className="h-7 w-7 text-[var(--starland-main-green)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Selected Database
+          </p>
+
+          <p className="mt-1 break-words text-lg font-extrabold text-[var(--starland-dark-text)]">
+            {data.database.databaseName ??
+              "Not reported"}
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <ServerCog
+            className="h-7 w-7 text-[var(--starland-warning)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Diagnostic Connection
+          </p>
+
+          <p className="mt-1 text-lg font-extrabold text-[var(--starland-dark-text)]">
+            {data.database
+              .diagnosticConnectionId !== null
+              ? `#${data.database.diagnosticConnectionId}`
+              : "Unknown"}
+          </p>
+        </article>
+      </section>
+
+      <section className="starland-card overflow-hidden">
+        <div className="border-b border-[var(--starland-border)] px-5 py-4">
+          <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+            Named-Lock Capability Checks
+          </h2>
+
+          <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+            A unique temporary lock was used. The
+            production automation lock was not
+            acquired or modified.
+          </p>
+        </div>
+
+        <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
+          <CheckResult
+            label="GET_LOCK Supported"
+            passed={
+              data.capability
+                .getLockSupported
+            }
+          />
+
+          <CheckResult
+            label="Temporary Lock Acquired"
+            passed={
+              data.capability
+                .lockAcquired
+            }
+          />
+
+          <CheckResult
+            label="Owner Detected"
+            passed={
+              data.capability
+                .ownerDetected
+            }
+          />
+
+          <CheckResult
+            label="Owner Matches Connection"
+            passed={
+              data.capability
+                .ownerMatchedConnection
+            }
+          />
+
+          <CheckResult
+            label="Temporary Lock Released"
+            passed={
+              data.capability
+                .lockReleased
+            }
+          />
+
+          <CheckResult
+            label="Lock Free After Release"
+            passed={
+              data.capability
+                .lockFreeAfterRelease
+            }
+          />
+        </div>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-3">
+        <article className="starland-card p-4">
+          <Clock3
+            className="h-7 w-7 text-[var(--starland-info)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Acquire Duration
+          </p>
+
+          <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+            {data.timing.acquireDurationMs} ms
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <Clock3
+            className="h-7 w-7 text-[var(--starland-success)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Release Duration
+          </p>
+
+          <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+            {data.timing.releaseDurationMs} ms
+          </p>
+        </article>
+
+        <article className="starland-card p-4">
+          <Clock3
+            className="h-7 w-7 text-[var(--starland-warning)]"
+            aria-hidden="true"
+          />
+
+          <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+            Total Duration
+          </p>
+
+          <p className="mt-1 text-2xl font-extrabold text-[var(--starland-dark-text)]">
+            {data.timing.totalDurationMs} ms
+          </p>
+        </article>
+      </section>
+
+      <ProductionLockCard data={data} />
+
+      <section className="starland-card overflow-hidden">
+        <div className="border-b border-[var(--starland-border)] px-5 py-4">
+          <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+            Diagnostic Messages
+          </h2>
+        </div>
+
+        <div className="p-5">
+          {data.issues.length > 0 ? (
+            <ul className="space-y-3">
+              {data.issues.map((issue) => (
+                <li
+                  key={issue}
+                  className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-800"
+                >
+                  <TriangleAlert
+                    className="mt-0.5 h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                  />
+
+                  <span>{issue}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="rounded-2xl border border-green-200 bg-green-50 p-5 text-center">
+              <CheckCircle2
+                className="mx-auto h-9 w-9 text-green-700"
+                aria-hidden="true"
+              />
+
+              <h3 className="mt-3 font-extrabold text-green-800">
+                No diagnostic issues detected
+              </h3>
+
+              <p className="mt-2 text-sm font-semibold text-green-700">
+                The temporary MySQL named-lock
+                lifecycle completed successfully.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm font-semibold leading-6 text-blue-800">
+        <p>
+          Diagnostic lock:
+        </p>
+
+        <code className="mt-2 block break-all rounded-xl border border-blue-200 bg-white/70 px-3 py-2 text-xs">
+          {data.diagnosticLockName}
+        </code>
+
+        <p className="mt-3">
+          This temporary lock is different from the
+          production attendance automation lock and
+          cannot block normal automation execution.
+        </p>
+      </section>
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\health\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  ArrowLeft,
+  CalendarCheck,
+  History,
+  Play,
+  RefreshCw,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationHealthEndpointCard } from "@/features/attendance/automation/health/components/attendance-automation-health-endpoint-card";
+import { AttendanceAutomationHealthSummary } from "@/features/attendance/automation/health/components/attendance-automation-health-summary";
+import { AttendanceAutomationLockCard } from "@/features/attendance/automation/health/components/attendance-automation-lock-card";
+import { AttendanceAutomationScheduleCard } from "@/features/attendance/automation/health/components/attendance-automation-schedule-card";
+import { RecentAttendanceAutomationRuns } from "@/features/attendance/automation/health/components/recent-attendance-automation-runs";
+import { getAttendanceAutomationHealthData } from "@/features/attendance/automation/health/server/attendance-automation-health-queries";
+import { getAttendanceAutomationLockHealthData } from "@/features/attendance/automation/health/server/attendance-automation-lock-health";
+import type { AttendanceAutomationHealthRun } from "@/features/attendance/automation/health/types/attendance-automation-health-types";
+
+export const dynamic = "force-dynamic";
+
+type RunSnapshotProps = {
+  title: string;
+  run: AttendanceAutomationHealthRun | null;
+};
+
+function RunSnapshot({
+  title,
+  run,
+}: RunSnapshotProps) {
+  return (
+    <article className="starland-card p-5">
+      <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+        {title}
+      </h2>
+
+      {run ? (
+        <div className="mt-4">
+          <div className="flex flex-wrap gap-2">
+            <span
+              className={[
+                "starland-badge",
+                run.status === "COMPLETED"
+                  ? "starland-badge-success"
+                  : run.status === "FAILED"
+                    ? "starland-badge-danger"
+                    : "starland-badge-warning",
+              ].join(" ")}
+            >
+              {run.status}
+            </span>
+
+            <span className="starland-badge starland-badge-info">
+              {run.executionMode}
+            </span>
+          </div>
+
+          <p className="mt-4 text-xl font-extrabold text-[var(--starland-dark-text)]">
+            Run #{run.activityLogId}
+          </p>
+
+          <p className="mt-1 break-all text-xs font-semibold text-[var(--starland-muted-text)]">
+            {run.runKey}
+          </p>
+
+          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Checked
+              </dt>
+
+              <dd className="mt-1 font-bold text-[var(--starland-dark-text)]">
+                {run.checkedCount}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Generated
+              </dt>
+
+              <dd className="mt-1 font-bold text-[var(--starland-dark-text)]">
+                {run.generatedCount}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Duration
+              </dt>
+
+              <dd className="mt-1 font-bold text-[var(--starland-dark-text)]">
+                {run.durationLabel}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wide text-[var(--starland-muted-text)]">
+                Executed
+              </dt>
+
+              <dd className="mt-1 font-bold text-[var(--starland-dark-text)]">
+                {run.ageLabel}
+              </dd>
+            </div>
+          </dl>
+
+          <Link
+            href={`/dashboard/attendance/automation/approved-leave-excused/history/${run.activityLogId}`}
+            className="starland-btn starland-btn-soft starland-btn-sm mt-5"
+          >
+            Open Run
+          </Link>
+        </div>
+      ) : (
+        <div className="mt-4 rounded-2xl border border-dashed border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-5">
+          <p className="font-bold text-[var(--starland-dark-text)]">
+            No matching run
+          </p>
+
+          <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+            No automation execution of this type
+            exists in the monitoring window.
+          </p>
+        </div>
+      )}
+    </article>
+  );
+}
+
+export default async function AttendanceAutomationHealthPage() {
+  await requireCanManageEmployees();
+
+  const [data, lockData] =
+    await Promise.all([
+      getAttendanceAutomationHealthData(),
+      Promise.resolve(
+        getAttendanceAutomationLockHealthData(),
+      ),
+    ]);
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Automation Monitoring
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Attendance Automation Health
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Monitor automation configuration,
+            scheduler compliance, execution
+            failures, retries, and the active
+            concurrency lock.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/approved-leave-excused"
+            className="starland-btn starland-btn-primary"
+          >
+            <Play
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Run Automation
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/approved-leave-excused/history"
+            className="starland-btn starland-btn-soft"
+          >
+            <History
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Run History
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/actions"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Attendance Actions
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+            Last {data.monitoringWindowDays} Days
+          </span>
+
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+            Approved-Leave EXCUSED Automation
+          </h2>
+
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+            Health evaluates API schedule
+            compliance, historical results, endpoint
+            configuration, and whether an automation
+            process is currently active.
+          </p>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              <RefreshCw
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
+
+              Health: {data.statusLabel}
+            </span>
+
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              <CalendarCheck
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
+
+              Schedule:{" "}
+              {
+                data.scheduleCompliance
+                  .statusLabel
+              }
+            </span>
+
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              <Play
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
+
+              Execution: {lockData.statusLabel}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationHealthSummary
+        data={data}
+      />
+
+      <AttendanceAutomationScheduleCard
+        data={data}
+      />
+
+      <AttendanceAutomationLockCard
+        data={lockData}
+      />
+
+      <AttendanceAutomationHealthEndpointCard
+        data={data}
+      />
+
+      <section className="grid gap-5 xl:grid-cols-4">
+        <RunSnapshot
+          title="Latest Run"
+          run={data.latestRun}
+        />
+
+        <RunSnapshot
+          title="Latest API/System Run"
+          run={data.latestApiRun}
+        />
+
+        <RunSnapshot
+          title="Latest Completed Run"
+          run={data.latestCompletedRun}
+        />
+
+        <RunSnapshot
+          title="Latest Failed Run"
+          run={data.latestFailedRun}
+        />
+      </section>
+
+      <RecentAttendanceAutomationRuns
+        data={data}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\readiness\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import type { ReactNode } from "react";
+import {
+  Activity,
+  ArrowLeft,
+  CheckCircle2,
+  CircleAlert,
+  ClipboardCheck,
+  Clock3,
+  Database,
+  KeyRound,
+  LockKeyhole,
+  Network,
+  RefreshCw,
+  ServerCog,
+  TriangleAlert,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { getAttendanceAutomationReadinessData } from "@/features/attendance/automation/readiness/server/attendance-automation-readiness";
+import type {
+  AttendanceAutomationReadinessCheck,
+  AttendanceAutomationReadinessCheckStatus,
+  AttendanceAutomationReadinessStatus,
+} from "@/features/attendance/automation/readiness/types/attendance-automation-readiness-types";
+
+export const dynamic = "force-dynamic";
+
+function overallContainerClass(
+  status:
+    AttendanceAutomationReadinessStatus,
+): string {
+  switch (status) {
+    case "READY":
+      return "border-green-200 bg-green-50 text-green-800";
+
+    case "READY_WITH_WARNINGS":
+      return "border-amber-200 bg-amber-50 text-amber-800";
+
+    case "BLOCKED":
+      return "border-red-200 bg-red-50 text-red-800";
+  }
+}
+
+function checkContainerClass(
+  status:
+    AttendanceAutomationReadinessCheckStatus,
+): string {
+  switch (status) {
+    case "PASS":
+      return "border-green-200 bg-green-50";
+
+    case "WARNING":
+      return "border-amber-200 bg-amber-50";
+
+    case "FAIL":
+      return "border-red-200 bg-red-50";
+  }
+}
+
+function checkTextClass(
+  status:
+    AttendanceAutomationReadinessCheckStatus,
+): string {
+  switch (status) {
+    case "PASS":
+      return "text-green-800";
+
+    case "WARNING":
+      return "text-amber-800";
+
+    case "FAIL":
+      return "text-red-800";
+  }
+}
+
+function StatusIcon({
+  status,
+  className,
+}: {
+  status:
+    AttendanceAutomationReadinessCheckStatus;
+
+  className: string;
+}) {
+  switch (status) {
+    case "PASS":
+      return (
+        <CheckCircle2
+          className={`${className} text-green-700`}
+          aria-hidden="true"
+        />
+      );
+
+    case "WARNING":
+      return (
+        <TriangleAlert
+          className={`${className} text-amber-700`}
+          aria-hidden="true"
+        />
+      );
+
+    case "FAIL":
+      return (
+        <CircleAlert
+          className={`${className} text-red-700`}
+          aria-hidden="true"
+        />
+      );
+  }
+}
+
+function ReadinessCheckCard({
+  check,
+}: {
+  check:
+    AttendanceAutomationReadinessCheck;
+}) {
+  return (
+    <article
+      className={[
+        "rounded-2xl border p-5",
+        checkContainerClass(
+          check.status,
+        ),
+      ].join(" ")}
+    >
+      <div className="flex items-start gap-3">
+        <StatusIcon
+          status={check.status}
+          className="mt-0.5 h-6 w-6 shrink-0"
+        />
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <span
+                className={[
+                  "text-xs font-extrabold uppercase tracking-wide",
+                  checkTextClass(
+                    check.status,
+                  ),
+                ].join(" ")}
+              >
+                {check.status}
+              </span>
+
+              <h3
+                className={[
+                  "mt-1 text-lg font-extrabold",
+                  checkTextClass(
+                    check.status,
+                  ),
+                ].join(" ")}
+              >
+                {check.title}
+              </h3>
+            </div>
+
+            <code
+              className={[
+                "break-all text-xs font-bold",
+                checkTextClass(
+                  check.status,
+                ),
+              ].join(" ")}
+            >
+              {check.code}
+            </code>
+          </div>
+
+          <p
+            className={[
+              "mt-3 text-sm font-semibold leading-6",
+              checkTextClass(
+                check.status,
+              ),
+            ].join(" ")}
+          >
+            {check.message}
+          </p>
+
+          {check.details.length > 0 ? (
+            <ul
+              className={[
+                "mt-4 space-y-2 text-sm font-semibold",
+                checkTextClass(
+                  check.status,
+                ),
+              ].join(" ")}
+            >
+              {check.details.map(
+                (detail) => (
+                  <li
+                    key={detail}
+                    className="flex items-start gap-2"
+                  >
+                    <span
+                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-current"
+                      aria-hidden="true"
+                    />
+
+                    <span>{detail}</span>
+                  </li>
+                ),
+              )}
+            </ul>
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function SignalCard({
+  icon,
+  label,
+  value,
+  description,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string | number;
+  description: string;
+}) {
+  return (
+    <article className="starland-card p-4">
+      {icon}
+
+      <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+        {label}
+      </p>
+
+      <p className="mt-1 break-words text-xl font-extrabold text-[var(--starland-dark-text)]">
+        {value}
+      </p>
+
+      <p className="mt-2 text-xs font-semibold leading-5 text-[var(--starland-muted-text)]">
+        {description}
+      </p>
+    </article>
+  );
+}
+
+export default async function AttendanceAutomationReadinessPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    await getAttendanceAutomationReadinessData();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Deployment Preflight
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Automation Production Readiness
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Validate the environment, scheduler,
+            database lock, queue strategy, health,
+            and protected endpoints before enabling
+            production attendance automation.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/readiness"
+            className="starland-btn starland-btn-primary"
+          >
+            <RefreshCw
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Run Preflight Again
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/diagnostics"
+            className="starland-btn starland-btn-soft"
+          >
+            <Database
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Lock Diagnostics
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section
+        className={[
+          "rounded-2xl border p-5",
+          overallContainerClass(
+            data.overallStatus,
+          ),
+        ].join(" ")}
+      >
+        <div className="flex items-start gap-3">
+          <StatusIcon
+            status={
+              data.overallStatus === "READY"
+                ? "PASS"
+                : data.overallStatus ===
+                    "READY_WITH_WARNINGS"
+                  ? "WARNING"
+                  : "FAIL"
+            }
+            className="h-8 w-8 shrink-0"
+          />
+
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-wide">
+              Production Readiness
+            </p>
+
+            <h2 className="mt-1 text-xl font-extrabold">
+              {data.overallLabel}
+            </h2>
+
+            <p className="mt-2 max-w-4xl text-sm font-semibold leading-6">
+              {data.overallDescription}
+            </p>
+
+            <p className="mt-3 text-xs font-bold">
+              Evaluated: {data.checkedAt}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <SignalCard
+          icon={
+            <ClipboardCheck
+              className="h-7 w-7 text-[var(--starland-info)]"
+              aria-hidden="true"
+            />
+          }
+          label="Total Checks"
+          value={data.summary.totalChecks}
+          description="Environment, database, scheduler, queue, health, and deployment checks."
+        />
+
+        <SignalCard
+          icon={
+            <CheckCircle2
+              className="h-7 w-7 text-[var(--starland-success)]"
+              aria-hidden="true"
+            />
+          }
+          label="Passed"
+          value={data.summary.passedChecks}
+          description="Checks that require no corrective action."
+        />
+
+        <SignalCard
+          icon={
+            <TriangleAlert
+              className="h-7 w-7 text-[var(--starland-warning)]"
+              aria-hidden="true"
+            />
+          }
+          label="Warnings"
+          value={data.summary.warningChecks}
+          description="Operational warnings that do not currently block automation."
+        />
+
+        <SignalCard
+          icon={
+            <CircleAlert
+              className="h-7 w-7 text-[var(--starland-danger)]"
+              aria-hidden="true"
+            />
+          }
+          label="Failed"
+          value={data.summary.failedChecks}
+          description="Blocking conditions that should be resolved before production scheduling."
+        />
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <SignalCard
+          icon={
+            <Activity
+              className="h-7 w-7 text-[var(--starland-info)]"
+              aria-hidden="true"
+            />
+          }
+          label="Automation Health"
+          value={
+            data.signals.healthStatus
+          }
+          description="Current automation health classification."
+        />
+
+        <SignalCard
+          icon={
+            <Clock3
+              className="h-7 w-7 text-[var(--starland-warning)]"
+              aria-hidden="true"
+            />
+          }
+          label="Scheduler"
+          value={
+            data.signals.schedulerStatus
+          }
+          description="Current daily API scheduler compliance."
+        />
+
+        <SignalCard
+          icon={
+            <LockKeyhole
+              className="h-7 w-7 text-[var(--starland-main-green)]"
+              aria-hidden="true"
+            />
+          }
+          label="MySQL Lock"
+          value={
+            data.signals
+              .mysqlDiagnosticStatus
+          }
+          description="Distributed-lock diagnostic result."
+        />
+
+        <SignalCard
+          icon={
+            <Network
+              className="h-7 w-7 text-[var(--starland-info)]"
+              aria-hidden="true"
+            />
+          }
+          label="Queue Driver"
+          value={
+            data.signals.queueDriver
+              .toUpperCase()
+          }
+          description={
+            data.signals.queueDriver ===
+            "sync"
+              ? "Redis is not required."
+              : `Redis configured: ${data.signals.redisConfigured ? "Yes" : "No"}.`
+          }
+        />
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <SignalCard
+          icon={
+            <KeyRound
+              className="h-7 w-7 text-[var(--starland-success)]"
+              aria-hidden="true"
+            />
+          }
+          label="Protected Secret"
+          value={
+            data.signals.secretConfigured
+              ? "CONFIGURED"
+              : "MISSING"
+          }
+          description="Used by automation, health, alert, readiness, and diagnostic endpoints."
+        />
+
+        <SignalCard
+          icon={
+            <ServerCog
+              className="h-7 w-7 text-[var(--starland-info)]"
+              aria-hidden="true"
+            />
+          }
+          label="Application Port"
+          value={data.signals.port}
+          description="Port used by the Node.js application process."
+        />
+
+        <SignalCard
+          icon={
+            <Database
+              className="h-7 w-7 text-[var(--starland-main-green)]"
+              aria-hidden="true"
+            />
+          }
+          label="Environment"
+          value={
+            data.environment.toUpperCase()
+          }
+          description={
+            data.signals.applicationBaseUrl
+          }
+        />
+      </section>
+
+      <section className="starland-card overflow-hidden">
+        <div className="border-b border-[var(--starland-border)] px-5 py-4">
+          <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+            Readiness Checks
+          </h2>
+
+          <p className="mt-1 text-sm leading-6 text-[var(--starland-muted-text)]">
+            Failed checks block production
+            readiness. Warning checks allow
+            operation but should still be reviewed.
+          </p>
+        </div>
+
+        <div className="space-y-4 p-5">
+          {data.checks.map((check) => (
+            <ReadinessCheckCard
+              key={check.code}
+              check={check}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm font-semibold leading-6 text-blue-800">
+        <p>
+          Current queue configuration:
+        </p>
+
+        <code className="mt-2 block rounded-xl border border-blue-200 bg-white/70 px-3 py-2 text-xs">
+          QUEUE_DRIVER=
+          &quot;{data.signals.queueDriver}&quot;
+          <br />
+          REDIS_URL=
+          &quot;
+          {data.signals.redisConfigured
+            ? "configured"
+            : ""}
+          &quot;
+          <br />
+          PORT=
+          &quot;{data.signals.port}&quot;
+        </code>
+
+        <p className="mt-3">
+          With the synchronous queue driver, the
+          empty Redis URL is expected and does not
+          block deployment readiness.
+        </p>
+      </section>
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\reports\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  Activity,
+  ArrowLeft,
+  BarChart3,
+  History,
+  Search,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationReportActions } from "@/features/attendance/automation/reports/components/attendance-automation-report-actions";
+import { AttendanceAutomationReportContent } from "@/features/attendance/automation/reports/components/attendance-automation-report-content";
+import {
+  getAttendanceAutomationReportData,
+  parseAttendanceAutomationReportSearchParams,
+} from "@/features/attendance/automation/reports/server/attendance-automation-report-queries";
+import type { AttendanceAutomationReportFilters } from "@/features/attendance/automation/reports/types/attendance-automation-report-types";
+
+export const dynamic = "force-dynamic";
+
+type AttendanceAutomationReportsPageProps = {
+  searchParams: Promise<
+    Record<
+      string,
+      string | string[] | undefined
+    >
+  >;
+};
+
+function ReportFilters({
+  filters,
+}: {
+  filters: AttendanceAutomationReportFilters;
+}) {
+  return (
+    <section className="starland-card p-5 print:hidden">
+      <form className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div>
+          <label
+            htmlFor="dateFrom"
+            className="text-sm font-bold text-[var(--starland-dark-text)]"
+          >
+            Date From
+          </label>
+
+          <input
+            id="dateFrom"
+            name="dateFrom"
+            type="date"
+            className="starland-input mt-2"
+            defaultValue={
+              filters.dateFrom
+            }
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="dateTo"
+            className="text-sm font-bold text-[var(--starland-dark-text)]"
+          >
+            Date To
+          </label>
+
+          <input
+            id="dateTo"
+            name="dateTo"
+            type="date"
+            className="starland-input mt-2"
+            defaultValue={
+              filters.dateTo
+            }
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="executionMode"
+            className="text-sm font-bold text-[var(--starland-dark-text)]"
+          >
+            Execution Mode
+          </label>
+
+          <select
+            id="executionMode"
+            name="executionMode"
+            className="starland-input mt-2"
+            defaultValue={
+              filters.executionMode
+            }
+          >
+            <option value="">
+              All executions
+            </option>
+
+            <option value="API">
+              API / system
+            </option>
+
+            <option value="DASHBOARD">
+              Dashboard
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="status"
+            className="text-sm font-bold text-[var(--starland-dark-text)]"
+          >
+            Run Status
+          </label>
+
+          <select
+            id="status"
+            name="status"
+            className="starland-input mt-2"
+            defaultValue={
+              filters.status
+            }
+          >
+            <option value="">
+              All statuses
+            </option>
+
+            <option value="COMPLETED">
+              Completed
+            </option>
+
+            <option value="FAILED">
+              Failed
+            </option>
+
+            <option value="UNKNOWN">
+              Unknown
+            </option>
+          </select>
+        </div>
+
+        <div className="flex flex-wrap items-end gap-2 sm:col-span-2 xl:col-span-4">
+          <button
+            type="submit"
+            className="starland-btn starland-btn-primary"
+          >
+            <Search
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Apply Filters
+          </button>
+
+          <Link
+            href="/dashboard/attendance/automation/reports"
+            className="starland-btn starland-btn-soft"
+          >
+            Reset
+          </Link>
+        </div>
+      </form>
+    </section>
+  );
+}
+
+export default async function AttendanceAutomationReportsPage({
+  searchParams,
+}: AttendanceAutomationReportsPageProps) {
+  await requireCanManageEmployees();
+
+  const resolvedSearchParams =
+    await searchParams;
+
+  const filters =
+    parseAttendanceAutomationReportSearchParams(
+      resolvedSearchParams,
+    );
+
+  const data =
+    await getAttendanceAutomationReportData(
+      filters,
+    );
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Automation Analytics
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Attendance Automation Reports
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Analyze approved-leave automation
+            reliability, generated records,
+            duration, execution sources, and retry
+            activity.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2 sm:items-end">
+          <AttendanceAutomationReportActions
+            data={data}
+          />
+
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/attendance/automation/health"
+              className="starland-btn starland-btn-soft"
+            >
+              <Activity
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Automation Health
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/automation/approved-leave-excused/history"
+              className="starland-btn starland-btn-soft"
+            >
+              <History
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Run History
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/automation"
+              className="starland-btn starland-btn-soft"
+            >
+              <ArrowLeft
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Automation Overview
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden print:shadow-none">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+            {data.filters.dateFrom} through{" "}
+            {data.filters.dateTo}
+          </span>
+
+          <div className="mt-4 flex items-start gap-3">
+            <BarChart3
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <h2 className="text-2xl font-extrabold tracking-tight">
+                Automation Performance Summary
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Results include the selected
+                execution source and status filters.
+                Daily grouping uses Asia/Manila
+                time.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <ReportFilters
+        filters={data.filters}
+      />
+
+      <AttendanceAutomationReportContent
+        data={data}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  Activity,
+  ArrowLeft,
+  CalendarClock,
+  ClipboardCheck,
+  ServerCog,
+  ShieldCheck,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationHostingerScheduler } from "@/features/attendance/automation/scheduler/components/attendance-automation-hostinger-scheduler";
+import { AttendanceAutomationSchedulerActivationCard } from "@/features/attendance/automation/scheduler/components/attendance-automation-scheduler-activation-card";
+import { getAttendanceAutomationSchedulerData } from "@/features/attendance/automation/scheduler/server/attendance-automation-scheduler-queries";
+import { getAttendanceAutomationSchedulerMonitoringConfiguration } from "@/features/attendance/automation/scheduler/server/attendance-automation-scheduler-monitoring-config";
+
+export const dynamic = "force-dynamic";
+
+export default async function AttendanceAutomationSchedulerPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    getAttendanceAutomationSchedulerData();
+
+  const monitoringConfiguration =
+    getAttendanceAutomationSchedulerMonitoringConfiguration();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Hostinger Cron Setup
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Attendance Automation Scheduler
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Configure and activate the production
+            automation and health-monitoring cron
+            jobs using the correct UTC schedule,
+            private credentials, and deployment
+            shell scripts.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/scheduler/readiness"
+            className="starland-btn starland-btn-primary"
+          >
+            <ShieldCheck
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Cron Readiness
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/readiness"
+            className="starland-btn starland-btn-soft"
+          >
+            <ClipboardCheck
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Production Readiness
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/health"
+            className="starland-btn starland-btn-soft"
+          >
+            <Activity
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Health
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <CalendarClock
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                UTC-Aware Scheduling
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Hostinger Production Cron Jobs
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Run the cron-readiness preflight
+                before enabling receipt enforcement.
+                Monitoring should remain disabled
+                during local development.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              <ServerCog
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
+
+              Hostinger: UTC
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Application: Asia/Manila
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Monitoring:{" "}
+              {monitoringConfiguration.enabled
+                ? "Enabled"
+                : "Disabled"}
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Redis: Not Required
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationSchedulerActivationCard
+        configuration={
+          monitoringConfiguration
+        }
+      />
+
+      <AttendanceAutomationHostingerScheduler
+        data={data}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\heartbeats\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  ArrowLeft,
+  BarChart3,
+  CalendarClock,
+  RefreshCw,
+  ServerCog,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationSchedulerHeartbeatDashboard } from "@/features/attendance/automation/scheduler/heartbeats/components/attendance-automation-scheduler-heartbeat-dashboard";
+import { getAttendanceAutomationSchedulerHeartbeatData } from "@/features/attendance/automation/scheduler/heartbeats/server/attendance-automation-scheduler-heartbeat-queries";
+
+export const dynamic = "force-dynamic";
+
+export default async function AttendanceAutomationSchedulerHeartbeatsPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    await getAttendanceAutomationSchedulerHeartbeatData();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Hostinger Cron Monitoring
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Scheduler Execution Receipts
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Confirm that Hostinger invoked both the
+            attendance automation and post-grace
+            health-check shell scripts for their
+            expected daily scheduling windows.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/scheduler/heartbeats/report"
+            className="starland-btn starland-btn-primary"
+          >
+            <BarChart3
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Coverage Report
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/scheduler/heartbeats"
+            className="starland-btn starland-btn-soft"
+          >
+            <RefreshCw
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Refresh Receipts
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/scheduler"
+            className="starland-btn starland-btn-soft"
+          >
+            <CalendarClock
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Scheduler Setup
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <ServerCog
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                Idempotent V2 Activity Logs
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Hostinger Cron Proof of Execution
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Each production shell script reports
+                its final result to a protected API.
+                V2 execution IDs prevent duplicate
+                receipt records and separate safe
+                validation tests from production
+                cron history.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationSchedulerHeartbeatDashboard
+        data={data}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\heartbeats\report\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  ArrowLeft,
+  BarChart3,
+  CalendarClock,
+  HeartPulse,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationCronReceiptReportDashboard } from "@/features/attendance/automation/scheduler/heartbeats/report/components/attendance-automation-cron-receipt-report-dashboard";
+import {
+  getAttendanceAutomationCronReceiptReportData,
+  parseAttendanceAutomationCronReceiptReportSearchParams,
+} from "@/features/attendance/automation/scheduler/heartbeats/report/server/attendance-automation-cron-receipt-report-queries";
+
+export const dynamic = "force-dynamic";
+
+type AttendanceAutomationCronReceiptReportPageProps = {
+  searchParams: Promise<
+    Record<
+      string,
+      string | string[] | undefined
+    >
+  >;
+};
+
+export default async function AttendanceAutomationCronReceiptReportPage({
+  searchParams,
+}: AttendanceAutomationCronReceiptReportPageProps) {
+  await requireCanManageEmployees();
+
+  const resolvedSearchParams =
+    await searchParams;
+
+  const filters =
+    parseAttendanceAutomationCronReceiptReportSearchParams(
+      resolvedSearchParams,
+    );
+
+  const data =
+    await getAttendanceAutomationCronReceiptReportData(
+      filters,
+    );
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Hostinger Cron Analytics
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Cron Receipt Coverage Report
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Review daily Hostinger cron execution
+            coverage, timing, outcomes, HTTP
+            responses, and execution duration using
+            authenticated V2 scheduler receipts.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/scheduler/heartbeats"
+            className="starland-btn starland-btn-primary"
+          >
+            <HeartPulse
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Cron Receipts
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/scheduler"
+            className="starland-btn starland-btn-soft"
+          >
+            <CalendarClock
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Scheduler Setup
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden print:hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <BarChart3
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                V2 Receipt History
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Daily Cron Execution Coverage
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Missing or failed receipts are
+                classified as critical. Successful
+                receipts outside the expected
+                scheduling tolerance are classified
+                as warning-level.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationCronReceiptReportDashboard
+        data={data}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\readiness\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  ArrowLeft,
+  CalendarClock,
+  HeartPulse,
+  RefreshCw,
+  ShieldCheck,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationCronReadinessDashboard } from "@/features/attendance/automation/scheduler/readiness/components/attendance-automation-cron-readiness-dashboard";
+import { getAttendanceAutomationCronReadinessData } from "@/features/attendance/automation/scheduler/readiness/server/attendance-automation-cron-readiness-queries";
+
+export const dynamic = "force-dynamic";
+
+export default async function AttendanceAutomationCronReadinessPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    await getAttendanceAutomationCronReadinessData();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Hostinger Deployment Preflight
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Cron Monitoring Readiness
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Verify configuration, credentials,
+            schedule values, heartbeat history, and
+            current-window receipts before enabling
+            strict Hostinger cron monitoring.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/scheduler/readiness"
+            className="starland-btn starland-btn-primary"
+          >
+            <RefreshCw
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Run Preflight Again
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/scheduler/heartbeats"
+            className="starland-btn starland-btn-soft"
+          >
+            <HeartPulse
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Cron Receipts
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/scheduler"
+            className="starland-btn starland-btn-soft"
+          >
+            <CalendarClock
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Scheduler Setup
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <ShieldCheck
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                Activation Safety Check
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Hostinger Cron Monitoring Preflight
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Enabling receipt enforcement before
+                the Hostinger jobs are deployed
+                creates expected missing-receipt
+                alerts. This preflight identifies
+                those conditions before activation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationCronReadinessDashboard
+        data={data}
+      />
+    </section>
+  );
+}
+
+------------------------------------------------------------
+FILE: D:\NextJS\starland-attendance\src\app\(protected)\dashboard\attendance\automation\scheduler\reliability\page.tsx
+------------------------------------------------------------
+import Link from "next/link";
+import {
+  ArrowLeft,
+  BarChart3,
+  CalendarClock,
+  HeartPulse,
+  RefreshCw,
+  TrendingUp,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationCronReliabilityDashboard } from "@/features/attendance/automation/scheduler/reliability/components/attendance-automation-cron-reliability-dashboard";
+import { getAttendanceAutomationCronReliabilityData } from "@/features/attendance/automation/scheduler/reliability/server/attendance-automation-cron-reliability-queries";
+
+export const dynamic = "force-dynamic";
+
+export default async function AttendanceAutomationCronReliabilityPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    await getAttendanceAutomationCronReliabilityData();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Hostinger Cron SLO
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Cron Reliability Monitoring
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Measure active-period Hostinger cron
+            coverage, success, on-time performance,
+            healthy-day rates, and execution streaks
+            without penalizing pre-deployment or
+            not-yet-due scheduling windows.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/scheduler/reliability"
+            className="starland-btn starland-btn-primary"
+          >
+            <RefreshCw
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Refresh Reliability
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/scheduler/heartbeats/report"
+            className="starland-btn starland-btn-soft"
+          >
+            <BarChart3
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Coverage Report
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/scheduler/heartbeats"
+            className="starland-btn starland-btn-soft"
+          >
+            <HeartPulse
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Cron Receipts
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/scheduler"
+            className="starland-btn starland-btn-soft"
+          >
+            <CalendarClock
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Scheduler Setup
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <TrendingUp
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                Activation-Aware Reliability
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Hostinger Cron Service Level Monitoring
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Only dates on or after the effective
+                monitoring start date affect the
+                reliability windows. Current jobs
+                remain pending until their configured
+                schedule and tolerance have passed.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationCronReliabilityDashboard
+        data={data}
+      />
+    </section>
+  );
+}

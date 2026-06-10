@@ -1,0 +1,1295 @@
+
+============================================================
+FILE: src\features\attendance\automation\types\attendance-automation-types.ts
+============================================================
+export type AttendanceAutomationStatus = {
+  cronSecretConfigured: boolean;
+  cronActorEmail: string;
+  cronActorFound: boolean;
+  cronActorUsername: string;
+  cronActorStatus: string;
+  eligibleMissingTimeouts: number;
+  markedMissingTimeouts: number;
+  openReviewRecords: number;
+  endpointPath: string;
+  recommendedSchedule: string;
+  batchLimit: number;
+
+  attendanceStatusCronSecretConfigured: boolean;
+  attendanceStatusCronActorEmail: string;
+  attendanceStatusCronActorFound: boolean;
+  attendanceStatusCronActorUsername: string;
+  attendanceStatusCronActorStatus: string;
+  attendanceStatusEndpointPath: string;
+  attendanceStatusBatchLimit: number;
+  attendanceStatusNormalRecords: number;
+  attendanceStatusNormalRecordsWithSchedule: number;
+};
+
+============================================================
+FILE: src\features\attendance\automation\components\attendance-automation-runner.tsx
+============================================================
+"use client";
+
+import { useActionState } from "react";
+import { Loader2, PlayCircle } from "lucide-react";
+import { runMissingTimeoutAutomationAction } from "../server/attendance-automation-actions";
+import { initialAttendanceAutomationActionState } from "../types/attendance-automation-action-types";
+
+type AttendanceAutomationRunnerProps = {
+  batchLimit: number;
+  eligibleMissingTimeouts: number;
+};
+
+export function AttendanceAutomationRunner({
+  batchLimit,
+  eligibleMissingTimeouts,
+}: AttendanceAutomationRunnerProps) {
+  const [state, formAction, isPending] = useActionState(
+    runMissingTimeoutAutomationAction,
+    initialAttendanceAutomationActionState,
+  );
+
+  return (
+    <section className="starland-card p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-warning">
+            Manual Automation Run
+          </span>
+
+          <h2 className="mt-3 text-lg font-extrabold text-[var(--starland-dark-text)]">
+            Run Missing Timeout Automation Now
+          </h2>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            This manually runs the same process as the cron job. It marks old
+            time-in records without time-out as MISSING_TIMEOUT. It does not
+            make normal records manual and does not expose the cron secret.
+          </p>
+        </div>
+
+        <form action={formAction}>
+          <input type="hidden" name="limit" value={batchLimit} />
+
+          <button
+            type="submit"
+            className="starland-btn starland-btn-primary"
+            disabled={isPending || eligibleMissingTimeouts === 0}
+          >
+            {isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <PlayCircle className="h-4 w-4" aria-hidden="true" />
+            )}
+            Run Now
+          </button>
+        </form>
+      </div>
+
+      {eligibleMissingTimeouts === 0 ? (
+        <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
+          No eligible missing timeout records right now.
+        </div>
+      ) : (
+        <div className="mt-4 rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm font-semibold text-yellow-800">
+          {eligibleMissingTimeouts} eligible record(s) can be processed. Batch
+          limit: {batchLimit}.
+        </div>
+      )}
+
+      {state.message ? (
+        <div
+          className={[
+            "mt-4 rounded-2xl border px-4 py-3 text-sm font-semibold",
+            state.ok
+              ? "border-green-200 bg-green-50 text-green-700"
+              : "border-red-200 bg-red-50 text-red-700",
+          ].join(" ")}
+        >
+          {state.message}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+============================================================
+FILE: src\features\attendance\automation\server\attendance-automation-queries.ts
+============================================================
+import { getMissingTimeoutPolicySnapshot } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
+import { buildEligibleMissingTimeoutWhere } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
+import { buildAttendanceReviewRequiredWhere } from "@/features/attendance/server/attendance-review-policy";
+import { getAttendanceStatusRecalculationSummary } from "@/features/attendance/status-recalculation/server/attendance-status-recalculation-service";
+import { prisma } from "@/lib/db/prisma";
+import type { AttendanceAutomationStatus } from "../types/attendance-automation-types";
+
+function getMissingTimeoutCronActorEmail(): string {
+  return (
+    process.env
+      .MISSING_TIMEOUT_CRON_ACTOR_EMAIL ??
+    process.env
+      .SEED_ADMIN_EMAIL ??
+    ""
+  ).trim();
+}
+
+function getAttendanceStatusCronActorEmail(): string {
+  return (
+    process.env
+      .ATTENDANCE_STATUS_CRON_ACTOR_EMAIL ??
+    process.env
+      .MISSING_TIMEOUT_CRON_ACTOR_EMAIL ??
+    process.env
+      .SEED_ADMIN_EMAIL ??
+    ""
+  ).trim();
+}
+
+export async function getAttendanceAutomationStatus(): Promise<AttendanceAutomationStatus> {
+  const cronActorEmail =
+    getMissingTimeoutCronActorEmail();
+
+  const attendanceStatusCronActorEmail =
+    getAttendanceStatusCronActorEmail();
+
+  const cronSecretConfigured =
+    Boolean(
+      process.env
+        .MISSING_TIMEOUT_CRON_SECRET
+        ?.trim(),
+    );
+
+  const attendanceStatusCronSecretConfigured =
+    Boolean(
+      (
+        process.env
+          .ATTENDANCE_STATUS_CRON_SECRET ??
+        process.env
+          .MISSING_TIMEOUT_CRON_SECRET
+      )?.trim(),
+    );
+
+  const policy =
+    await getMissingTimeoutPolicySnapshot();
+
+  const reviewRequiredWhere =
+    buildAttendanceReviewRequiredWhere();
+
+  const eligibleMissingTimeoutWhere =
+    buildEligibleMissingTimeoutWhere({
+      missingTimeoutMinutes:
+        policy.missingTimeoutMinutes,
+    });
+
+  const [
+    actorUser,
+    attendanceStatusActorUser,
+    eligibleMissingTimeouts,
+    markedMissingTimeouts,
+    openReviewRecords,
+    attendanceStatusSummary,
+  ] = await Promise.all([
+    cronActorEmail
+      ? prisma.user.findUnique({
+          where: {
+            email:
+              cronActorEmail,
+          },
+
+          select: {
+            username: true,
+            status: true,
+          },
+        })
+      : null,
+
+    attendanceStatusCronActorEmail
+      ? prisma.user.findUnique({
+          where: {
+            email:
+              attendanceStatusCronActorEmail,
+          },
+
+          select: {
+            username: true,
+            status: true,
+          },
+        })
+      : null,
+
+    prisma.attendance.count({
+      where:
+        eligibleMissingTimeoutWhere,
+    }),
+
+    prisma.attendance.count({
+      where: {
+        status:
+          "MISSING_TIMEOUT",
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        AND: [
+          reviewRequiredWhere,
+          {
+            approvedAt:
+              null,
+          },
+        ],
+      },
+    }),
+
+    getAttendanceStatusRecalculationSummary(),
+  ]);
+
+  return {
+    cronSecretConfigured,
+
+    cronActorEmail:
+      cronActorEmail ||
+      "Not configured",
+
+    cronActorFound:
+      Boolean(actorUser),
+
+    cronActorUsername:
+      actorUser?.username ??
+      "—",
+
+    cronActorStatus:
+      actorUser?.status ??
+      "—",
+
+    eligibleMissingTimeouts,
+    markedMissingTimeouts,
+    openReviewRecords,
+
+    endpointPath:
+      "/api/cron/mark-missing-timeouts",
+
+    recommendedSchedule:
+      "Every 1 hour",
+
+    batchLimit:
+      200,
+
+    attendanceStatusCronSecretConfigured,
+
+    attendanceStatusCronActorEmail:
+      attendanceStatusCronActorEmail ||
+      "Not configured",
+
+    attendanceStatusCronActorFound:
+      Boolean(
+        attendanceStatusActorUser,
+      ),
+
+    attendanceStatusCronActorUsername:
+      attendanceStatusActorUser
+        ?.username ??
+      "—",
+
+    attendanceStatusCronActorStatus:
+      attendanceStatusActorUser
+        ?.status ??
+      "—",
+
+    attendanceStatusEndpointPath:
+      "/api/cron/recalculate-attendance-statuses",
+
+    attendanceStatusBatchLimit:
+      300,
+
+    attendanceStatusNormalRecords:
+      attendanceStatusSummary
+        .totalNormalRecords,
+
+    attendanceStatusNormalRecordsWithSchedule:
+      attendanceStatusSummary
+        .normalRecordsWithSchedule,
+  };
+}
+
+============================================================
+FILE: src\features\attendance\automation\server\attendance-automation-actions.ts
+============================================================
+"use server";
+
+import {
+  revalidatePath,
+} from "next/cache";
+import {
+  redirect,
+} from "next/navigation";
+import { getCurrentSession } from "@/features/auth/server/session";
+import { markEligibleMissingTimeouts } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
+import { canManageEmployees } from "@/lib/security/roles";
+import type { AttendanceAutomationActionState } from "../types/attendance-automation-action-types";
+
+function parseLimit(
+  value:
+    FormDataEntryValue |
+    null,
+): number {
+  if (
+    typeof value !==
+    "string"
+  ) {
+    return 200;
+  }
+
+  const parsed =
+    Number(value);
+
+  if (
+    !Number.isInteger(parsed) ||
+    parsed <= 0
+  ) {
+    return 200;
+  }
+
+  return Math.min(
+    parsed,
+    500,
+  );
+}
+
+function revalidateAttendanceAutomationPages(): void {
+  revalidatePath(
+    "/dashboard/attendance",
+  );
+
+  revalidatePath(
+    "/dashboard/attendance/actions",
+  );
+
+  revalidatePath(
+    "/dashboard/attendance/automation",
+  );
+
+  revalidatePath(
+    "/dashboard/attendance/missing-timeouts",
+  );
+
+  revalidatePath(
+    "/dashboard/attendance/maintenance",
+  );
+
+  revalidatePath(
+    "/dashboard/attendance/review",
+  );
+
+  revalidatePath(
+    "/dashboard/attendance/reports",
+  );
+}
+
+export async function runMissingTimeoutAutomationAction(
+  _previousState:
+    AttendanceAutomationActionState,
+
+  formData: FormData,
+): Promise<AttendanceAutomationActionState> {
+  const session =
+    await getCurrentSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  if (
+    !canManageEmployees(
+      session.role,
+    )
+  ) {
+    return {
+      ok: false,
+
+      message:
+        "You do not have permission to run attendance automation.",
+    };
+  }
+
+  const limit =
+    parseLimit(
+      formData.get(
+        "limit",
+      ),
+    );
+
+  const result =
+    await markEligibleMissingTimeouts({
+      actorUserId:
+        session.userId,
+
+      limit,
+
+      mode:
+        "AUTOMATION",
+    });
+
+  revalidateAttendanceAutomationPages();
+
+  if (
+    result.blockedByPolicy
+  ) {
+    return {
+      ok: false,
+
+      markedCount:
+        0,
+
+      remainingEligibleCount:
+        result.remainingEligibleCount,
+
+      message:
+        "Automatic missing time-out marking is disabled in Attendance Policy settings.",
+    };
+  }
+
+  return {
+    ok: true,
+
+    markedCount:
+      result.markedCount,
+
+    remainingEligibleCount:
+      result.remainingEligibleCount,
+
+    message:
+      result.markedCount >
+      0
+        ? `${result.markedCount} attendance record(s) marked as missing timeout using the ${result.policy.missingTimeoutMinutes}-minute threshold. ${
+            result.remainingEligibleCount >
+            0
+              ? `${result.remainingEligibleCount} eligible record(s) remain. Run again to continue.`
+              : "No eligible records remain."
+          }`
+        : `No eligible missing timeout records were found using the ${result.policy.missingTimeoutMinutes}-minute threshold.`,
+  };
+}
+
+============================================================
+FILE: src\app\(protected)\dashboard\attendance\actions\page.tsx
+============================================================
+import Link from "next/link";
+import {
+  ArrowLeft,
+  CalendarCheck,
+  CalendarClock,
+  CalendarDays,
+  ClipboardCheck,
+  ClipboardEdit,
+  Clock3,
+  ClockAlert,
+  FileClock,
+  FileSpreadsheet,
+  History,
+  Hourglass,
+  MonitorSmartphone,
+  RefreshCw,
+  RotateCcw,
+  ShieldAlert,
+  ShieldCheck,
+  Timer,
+  TimerOff,
+  type LucideIcon,
+} from "lucide-react";
+import {
+  AttendanceActionCard,
+  type AttendanceActionCardTone,
+} from "@/features/attendance/components/attendance-action-card";
+import { getApprovedLeaveExcusedSyncOverview } from "@/features/attendance/excused/sync/server/approved-leave-excused-sync-overview";
+import { getAttendanceActionHubStats } from "@/features/attendance/server/attendance-action-hub-queries";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+
+type ActionCardDefinition = {
+  title: string;
+  description: string;
+  href: string;
+  icon: LucideIcon;
+  badge: string;
+  buttonLabel: string;
+  statLabel: string;
+  statValue: number;
+  tone: AttendanceActionCardTone;
+};
+
+type SummaryCardDefinition = {
+  label: string;
+  value: number;
+  description: string;
+  icon: LucideIcon;
+  tone: AttendanceActionCardTone;
+};
+
+function summaryIconClass(
+  tone: AttendanceActionCardTone,
+): string {
+  switch (tone) {
+    case "warning":
+      return "text-[var(--starland-warning)]";
+
+    case "info":
+      return "text-[var(--starland-info)]";
+
+    case "danger":
+      return "text-[var(--starland-danger)]";
+
+    default:
+      return "text-[var(--starland-success)]";
+  }
+}
+
+export default async function AttendanceActionsPage() {
+  await requireCanManageEmployees();
+
+  const [stats, approvedLeaveSync] =
+    await Promise.all([
+      getAttendanceActionHubStats(),
+      getApprovedLeaveExcusedSyncOverview(),
+    ]);
+
+  const summaryCards: SummaryCardDefinition[] = [
+    {
+      label: "Attendance Today",
+      value: stats.totalToday,
+      description:
+        "All attendance records for today.",
+      icon: Clock3,
+      tone: "info",
+    },
+    {
+      label: "On Time Today",
+      value: stats.onTimeToday,
+      description:
+        "Employees currently marked ON TIME.",
+      icon: ShieldCheck,
+      tone: "success",
+    },
+    {
+      label: "Late Today",
+      value: stats.lateToday,
+      description:
+        "Employees currently marked LATE.",
+      icon: Timer,
+      tone: "warning",
+    },
+    {
+      label: "EXCUSED Today",
+      value: stats.excusedToday,
+      description:
+        "Approved-leave or manual EXCUSED records.",
+      icon: CalendarCheck,
+      tone: "success",
+    },
+    {
+      label: "Missing EXCUSED",
+      value:
+        approvedLeaveSync.missingExcusedCandidates,
+      description: `${approvedLeaveSync.dateFrom} through ${approvedLeaveSync.dateTo}.`,
+      icon: RefreshCw,
+      tone: "warning",
+    },
+    {
+      label: "Stale EXCUSED",
+      value:
+        stats.excusedReconciliationEligible,
+      description:
+        "Automatic EXCUSED records eligible for reconciliation.",
+      icon: ShieldAlert,
+      tone: "warning",
+    },
+    {
+      label: "Open Review",
+      value: stats.openReview,
+      description:
+        "Manual changes awaiting HR action.",
+      icon: ClipboardCheck,
+      tone: "warning",
+    },
+    {
+      label: "Absent Today",
+      value: stats.absentToday,
+      description:
+        "Attendance records currently marked ABSENT.",
+      icon: TimerOff,
+      tone: "danger",
+    },
+  ];
+
+  const actionCards: ActionCardDefinition[] = [
+    {
+      title: "Approved Leave Sync",
+      description:
+        "Find approved-leave workdays without attendance and generate the missing automatic EXCUSED records.",
+      href: "/dashboard/attendance/excused/sync",
+      icon: RefreshCw,
+      badge: "Live Sync",
+      buttonLabel: "Open Approved Leave Sync",
+      statLabel: "Missing EXCUSED",
+      statValue:
+        approvedLeaveSync.missingExcusedCandidates,
+      tone: "warning",
+    },
+    {
+      title: "Attendance List",
+      description:
+        "View all RFID, biometric, kiosk, ODL, automatic, and manual attendance records.",
+      href: "/dashboard/attendance",
+      icon: Clock3,
+      badge: "Records",
+      buttonLabel: "Open Attendance",
+      statLabel: "Today",
+      statValue: stats.totalToday,
+      tone: "success",
+    },
+    {
+      title: "EXCUSED Records",
+      description:
+        "Review automatic approved-leave EXCUSED records and manual EXCUSED corrections.",
+      href: "/dashboard/attendance/excused",
+      icon: CalendarCheck,
+      badge: "EXCUSED",
+      buttonLabel: "View EXCUSED Records",
+      statLabel: "Total EXCUSED",
+      statValue: stats.excusedTotal,
+      tone: "success",
+    },
+    {
+      title: "EXCUSED Reconciliation",
+      description:
+        "Find stale automatic EXCUSED records and safely rollback verified records.",
+      href: "/dashboard/attendance/excused/reconciliation",
+      icon: ShieldAlert,
+      badge: "Reconcile",
+      buttonLabel: "Open Reconciliation",
+      statLabel: "Rollback Eligible",
+      statValue:
+        stats.excusedReconciliationEligible,
+      tone: "warning",
+    },
+    {
+      title: "EXCUSED Automation Audit",
+      description:
+        "Review approved-leave generation and reconciliation rollback activity.",
+      href: "/dashboard/attendance/excused/audit",
+      icon: FileClock,
+      badge: "EXCUSED Logs",
+      buttonLabel: "Open EXCUSED Audit",
+      statLabel: "Automation Logs",
+      statValue:
+        stats.excusedAutomationAuditLogs,
+      tone: "info",
+    },
+    {
+      title: "Exception Calendar",
+      description:
+        "Manage holidays, suspensions, no-work dates, rest days, and branch-specific exceptions.",
+      href: "/dashboard/attendance/exceptions",
+      icon: CalendarDays,
+      badge: "Exceptions",
+      buttonLabel: "Open Exceptions",
+      statLabel: "Active Exceptions",
+      statValue:
+        stats.activeAttendanceExceptions,
+      tone: "info",
+    },
+    {
+      title: "Exception Audit",
+      description:
+        "Review exception create, update, and archive activity logs.",
+      href: "/dashboard/attendance/exceptions/audit",
+      icon: FileClock,
+      badge: "Exception Logs",
+      buttonLabel: "Open Exception Audit",
+      statLabel: "Audit Logs",
+      statValue: stats.exceptionAuditLogs,
+      tone: "info",
+    },
+    {
+      title: "Schedule Assignment",
+      description:
+        "Bulk assign employee schedules before automatic status and absence processing.",
+      href: "/dashboard/attendance/schedule-assignment",
+      icon: CalendarClock,
+      badge: "Schedules",
+      buttonLabel: "Assign Schedules",
+      statLabel: "Attendance Today",
+      statValue: stats.totalToday,
+      tone: "info",
+    },
+    {
+      title: "Attendance Generation",
+      description:
+        "Preview scheduled employees and safely generate automatic EXCUSED or ABSENT records.",
+      href: "/dashboard/attendance/absences/candidates",
+      icon: ClipboardCheck,
+      badge: "Generate",
+      buttonLabel: "Preview Generation",
+      statLabel: "EXCUSED Today",
+      statValue: stats.excusedToday,
+      tone: "success",
+    },
+    {
+      title: "ABSENT Records",
+      description:
+        "Review automatic and manual ABSENT records with filters, printing, and export.",
+      href: "/dashboard/attendance/absences",
+      icon: TimerOff,
+      badge: "ABSENT",
+      buttonLabel: "View ABSENT Records",
+      statLabel: "Total ABSENT",
+      statValue: stats.absentTotal,
+      tone: "danger",
+    },
+    {
+      title: "Rollback ABSENT",
+      description:
+        "Rollback wrongly generated automatic ABSENT records without punch data.",
+      href: "/dashboard/attendance/absences/rollback",
+      icon: RotateCcw,
+      badge: "Rollback",
+      buttonLabel: "Open Rollback",
+      statLabel: "Rollback Eligible",
+      statValue:
+        stats.rollbackEligibleAbsent,
+      tone: "danger",
+    },
+    {
+      title: "Manual Attendance Input",
+      description:
+        "Create or correct attendance manually. Manual changes require HR review.",
+      href: "/dashboard/attendance/manual",
+      icon: ClipboardEdit,
+      badge: "Manual",
+      buttonLabel: "Manual Input",
+      statLabel: "Manual Today",
+      statValue: stats.manualToday,
+      tone: "warning",
+    },
+    {
+      title: "Attendance Review Queue",
+      description:
+        "Review manual attendance, edits, and corrections while excluding normal punches.",
+      href: "/dashboard/attendance/review",
+      icon: ClipboardCheck,
+      badge: "HR Review",
+      buttonLabel: "Open Review Queue",
+      statLabel: "Open Review",
+      statValue: stats.openReview,
+      tone: "warning",
+    },
+    {
+      title: "Status Recalculation",
+      description:
+        "Recalculate attendance status using employee schedules, shifts, and grace minutes.",
+      href: "/dashboard/attendance/status-recalculation",
+      icon: RefreshCw,
+      badge: "Auto Status",
+      buttonLabel: "Open Recalculation",
+      statLabel: "Attendance Today",
+      statValue: stats.totalToday,
+      tone: "info",
+    },
+    {
+      title: "Missing Timeout Management",
+      description:
+        "Manage attendance records with time-in but no recorded time-out.",
+      href: "/dashboard/attendance/missing-timeouts",
+      icon: ClockAlert,
+      badge: "Timeout",
+      buttonLabel: "Open Missing Timeouts",
+      statLabel: "Missing Timeout",
+      statValue: stats.missingTimeout,
+      tone: "danger",
+    },
+    {
+      title: "Attendance Automation",
+      description:
+        "Review and run attendance automation processes and scheduled operations.",
+      href: "/dashboard/attendance/automation",
+      icon: Hourglass,
+      badge: "Automation",
+      buttonLabel: "Open Automation",
+      statLabel: "Missing EXCUSED",
+      statValue:
+        approvedLeaveSync.missingExcusedCandidates,
+      tone: "info",
+    },
+    {
+      title: "Attendance Audit Trail",
+      description:
+        "Track attendance changes, approvals, generation, recalculation, and rollback.",
+      href: "/dashboard/attendance/audit",
+      icon: History,
+      badge: "Audit",
+      buttonLabel: "Open Audit Trail",
+      statLabel: "Audit Logs",
+      statValue: stats.attendanceAuditLogs,
+      tone: "info",
+    },
+    {
+      title: "Attendance Reports",
+      description:
+        "Generate filtered attendance reports with printing and CSV export.",
+      href: "/dashboard/attendance/reports",
+      icon: FileSpreadsheet,
+      badge: "Reports",
+      buttonLabel: "Open Reports",
+      statLabel: "Pending Review",
+      statValue: stats.pendingReview,
+      tone: "info",
+    },
+    {
+      title: "ODL Time In / Out",
+      description:
+        "Open employee online distance learning time-in and time-out.",
+      href: "/dashboard/attendance/odl",
+      icon: MonitorSmartphone,
+      badge: "ODL",
+      buttonLabel: "Open ODL Attendance",
+      statLabel: "WEB Today",
+      statValue: stats.webToday,
+      tone: "success",
+    },
+  ];
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-success">
+            Attendance Hub
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Attendance Actions
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Manage attendance, approved-leave
+            synchronization, EXCUSED records,
+            schedules, exceptions, ABSENT records,
+            reviews, automation, reports, and audit
+            trails.
+          </p>
+        </div>
+
+        <Link
+          href="/dashboard/attendance"
+          className="starland-btn starland-btn-soft"
+        >
+          <ArrowLeft
+            className="h-4 w-4"
+            aria-hidden="true"
+          />
+          Back to Attendance
+        </Link>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+            Live Attendance Snapshot
+          </span>
+
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+            Attendance and Approved-Leave Sync
+          </h2>
+
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+            Missing EXCUSED records are evaluated
+            from approved leave within the current
+            thirty-day past and future monitoring
+            window.
+          </p>
+        </div>
+
+        <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+          {summaryCards.map((card) => {
+            const Icon = card.icon;
+
+            return (
+              <article
+                key={card.label}
+                className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4"
+              >
+                <Icon
+                  className={[
+                    "h-7 w-7",
+                    summaryIconClass(card.tone),
+                  ].join(" ")}
+                  aria-hidden="true"
+                />
+
+                <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
+                  {card.label}
+                </p>
+
+                <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
+                  {card.value}
+                </p>
+
+                <p className="mt-2 text-xs font-semibold leading-5 text-[var(--starland-muted-text)]">
+                  {card.description}
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {actionCards.map((card) => (
+          <AttendanceActionCard
+            key={card.href}
+            {...card}
+          />
+        ))}
+      </section>
+    </section>
+  );
+}
+
+============================================================
+FILE: src\app\(protected)\dashboard\attendance\automation\page.tsx
+============================================================
+import Link from "next/link";
+import {
+  Activity,
+  ArrowLeft,
+  CalendarClock,
+  ClipboardCheck,
+  ServerCog,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationHostingerScheduler } from "@/features/attendance/automation/scheduler/components/attendance-automation-hostinger-scheduler";
+import { AttendanceAutomationSchedulerActivationCard } from "@/features/attendance/automation/scheduler/components/attendance-automation-scheduler-activation-card";
+import { getAttendanceAutomationSchedulerData } from "@/features/attendance/automation/scheduler/server/attendance-automation-scheduler-queries";
+import { getAttendanceAutomationSchedulerMonitoringConfiguration } from "@/features/attendance/automation/scheduler/server/attendance-automation-scheduler-monitoring-config";
+
+export const dynamic = "force-dynamic";
+
+export default async function AttendanceAutomationSchedulerPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    getAttendanceAutomationSchedulerData();
+
+  const monitoringConfiguration =
+    getAttendanceAutomationSchedulerMonitoringConfiguration();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Hostinger Cron Setup
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Attendance Automation Scheduler
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Configure and activate the production
+            automation and health-monitoring cron
+            jobs using the correct UTC schedule,
+            private credentials, and deployment
+            shell scripts.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/readiness"
+            className="starland-btn starland-btn-primary"
+          >
+            <ClipboardCheck
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Production Readiness
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/health"
+            className="starland-btn starland-btn-soft"
+          >
+            <Activity
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Health
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <CalendarClock
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                UTC-Aware Scheduling
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Hostinger Production Cron Jobs
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Cron monitoring should remain
+                disabled during local development
+                and should only be enabled after both
+                Hostinger jobs and their heartbeat
+                scripts are deployed.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              <ServerCog
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
+
+              Hostinger: UTC
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Application: Asia/Manila
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Monitoring:{" "}
+              {monitoringConfiguration.enabled
+                ? "Enabled"
+                : "Disabled"}
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Redis: Not Required
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationSchedulerActivationCard
+        configuration={
+          monitoringConfiguration
+        }
+      />
+
+      <AttendanceAutomationHostingerScheduler
+        data={data}
+      />
+    </section>
+  );
+}
+
+============================================================
+FILE: src\app\(protected)\dashboard\attendance\automation\overview\page.tsx
+============================================================
+FILE NOT FOUND
+
+============================================================
+FILE: src\app\(protected)\dashboard\attendance\automation\scheduler\page.tsx
+============================================================
+import Link from "next/link";
+import {
+  Activity,
+  ArrowLeft,
+  CalendarClock,
+  ClipboardCheck,
+  ServerCog,
+  ShieldCheck,
+} from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { AttendanceAutomationHostingerScheduler } from "@/features/attendance/automation/scheduler/components/attendance-automation-hostinger-scheduler";
+import { AttendanceAutomationSchedulerActivationCard } from "@/features/attendance/automation/scheduler/components/attendance-automation-scheduler-activation-card";
+import { getAttendanceAutomationSchedulerData } from "@/features/attendance/automation/scheduler/server/attendance-automation-scheduler-queries";
+import { getAttendanceAutomationSchedulerMonitoringConfiguration } from "@/features/attendance/automation/scheduler/server/attendance-automation-scheduler-monitoring-config";
+
+export const dynamic = "force-dynamic";
+
+export default async function AttendanceAutomationSchedulerPage() {
+  await requireCanManageEmployees();
+
+  const data =
+    getAttendanceAutomationSchedulerData();
+
+  const monitoringConfiguration =
+    getAttendanceAutomationSchedulerMonitoringConfiguration();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-info">
+            Hostinger Cron Setup
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Attendance Automation Scheduler
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Configure and activate the production
+            automation and health-monitoring cron
+            jobs using the correct UTC schedule,
+            private credentials, and deployment
+            shell scripts.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/automation/scheduler/readiness"
+            className="starland-btn starland-btn-primary"
+          >
+            <ShieldCheck
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Cron Readiness
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/readiness"
+            className="starland-btn starland-btn-soft"
+          >
+            <ClipboardCheck
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Production Readiness
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation/health"
+            className="starland-btn starland-btn-soft"
+          >
+            <Activity
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Health
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/automation"
+            className="starland-btn starland-btn-soft"
+          >
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Automation Overview
+          </Link>
+        </div>
+      </div>
+
+      <section className="starland-card overflow-hidden">
+        <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+          <div className="flex items-start gap-3">
+            <CalendarClock
+              className="mt-1 h-7 w-7 shrink-0"
+              aria-hidden="true"
+            />
+
+            <div>
+              <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+                UTC-Aware Scheduling
+              </span>
+
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+                Hostinger Production Cron Jobs
+              </h2>
+
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
+                Run the cron-readiness preflight
+                before enabling receipt enforcement.
+                Monitoring should remain disabled
+                during local development.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              <ServerCog
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
+
+              Hostinger: UTC
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Application: Asia/Manila
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Monitoring:{" "}
+              {monitoringConfiguration.enabled
+                ? "Enabled"
+                : "Disabled"}
+            </span>
+
+            <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+              Redis: Not Required
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <AttendanceAutomationSchedulerActivationCard
+        configuration={
+          monitoringConfiguration
+        }
+      />
+
+      <AttendanceAutomationHostingerScheduler
+        data={data}
+      />
+    </section>
+  );
+}
+
+============================================================
+FILE: src\features\attendance\automation\components\attendance-automation-status-card.tsx
+============================================================
+FILE NOT FOUND
+
+============================================================
+FILE: src\features\attendance\automation\components\attendance-automation-overview.tsx
+============================================================
+FILE NOT FOUND
