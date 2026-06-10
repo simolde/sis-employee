@@ -1,0 +1,3712 @@
+
+============================================================
+FILE: src\features\settings\attendance-policies\server\attendance-policy-queries.ts
+============================================================
+import { prisma } from "@/lib/db/prisma";
+import {
+  ATTENDANCE_POLICY_KEYS,
+  type AttendancePolicyBranchOption,
+  type AttendancePolicyConfig,
+  type AttendancePolicyDatabaseRow,
+  type AttendancePolicyKey,
+  type AttendancePolicyResolvedConfig,
+  type AttendancePolicySettingsPageData,
+  type AttendancePolicySourceMap,
+  type AttendancePolicyValueSource,
+} from "../types/attendance-policy-types";
+import { DEFAULT_ATTENDANCE_POLICY_CONFIG } from "./attendance-policy-definitions";
+
+type TableCountRow = {
+  tableCount:
+    | number
+    | bigint
+    | string;
+};
+
+type BranchDatabaseRow = {
+  branchId:
+    | number
+    | bigint
+    | string;
+
+  branchCode: string;
+  name: string;
+
+  status: string;
+};
+
+type ResolvedValue<TValue> = {
+  value: TValue;
+
+  source:
+    AttendancePolicyValueSource;
+};
+
+const TRUE_VALUES =
+  new Set([
+    "true",
+    "1",
+    "yes",
+    "on",
+  ]);
+
+const FALSE_VALUES =
+  new Set([
+    "false",
+    "0",
+    "no",
+    "off",
+  ]);
+
+function normalizeNonNegativeInteger(
+  value:
+    | number
+    | bigint
+    | string
+    | undefined,
+
+  fallback = 0,
+): number {
+  if (value === undefined) {
+    return fallback;
+  }
+
+  const converted =
+    Number(value);
+
+  if (
+    !Number.isSafeInteger(converted) ||
+    converted < 0
+  ) {
+    return fallback;
+  }
+
+  return converted;
+}
+
+function parseBoolean(
+  value:
+    string | undefined,
+): boolean | null {
+  if (value === undefined) {
+    return null;
+  }
+
+  const normalized =
+    value.trim().toLowerCase();
+
+  if (TRUE_VALUES.has(normalized)) {
+    return true;
+  }
+
+  if (FALSE_VALUES.has(normalized)) {
+    return false;
+  }
+
+  return null;
+}
+
+function parseInteger(
+  value:
+    string | undefined,
+
+  minimum: number,
+  maximum: number,
+): number | null {
+  if (value === undefined) {
+    return null;
+  }
+
+  const converted =
+    Number(value);
+
+  if (
+    !Number.isSafeInteger(converted) ||
+    converted < minimum ||
+    converted > maximum
+  ) {
+    return null;
+  }
+
+  return converted;
+}
+
+function databaseValue(
+  values:
+    ReadonlyMap<string, string>,
+
+  key:
+    AttendancePolicyKey,
+): string | undefined {
+  return values.get(key);
+}
+
+function resolveBoolean(input: {
+  databaseValues:
+    ReadonlyMap<string, string>;
+
+  key:
+    AttendancePolicyKey;
+
+  environmentName: string;
+
+  defaultValue: boolean;
+
+  warnings: string[];
+}): ResolvedValue<boolean> {
+  const databaseRaw =
+    databaseValue(
+      input.databaseValues,
+      input.key,
+    );
+
+  if (databaseRaw !== undefined) {
+    const parsed =
+      parseBoolean(databaseRaw);
+
+    if (parsed !== null) {
+      return {
+        value: parsed,
+        source: "DATABASE",
+      };
+    }
+
+    input.warnings.push(
+      `${input.key} has an invalid database boolean value. The fallback value was used.`,
+    );
+  }
+
+  const environmentRaw =
+    process.env[
+      input.environmentName
+    ];
+
+  const environmentValue =
+    parseBoolean(
+      environmentRaw,
+    );
+
+  if (environmentValue !== null) {
+    return {
+      value:
+        environmentValue,
+
+      source:
+        "ENVIRONMENT",
+    };
+  }
+
+  if (
+    environmentRaw !== undefined &&
+    environmentRaw.trim().length > 0
+  ) {
+    input.warnings.push(
+      `${input.environmentName} has an invalid boolean value.`,
+    );
+  }
+
+  return {
+    value:
+      input.defaultValue,
+
+    source:
+      "DEFAULT",
+  };
+}
+
+function resolveInteger(input: {
+  databaseValues:
+    ReadonlyMap<string, string>;
+
+  key:
+    AttendancePolicyKey;
+
+  environmentName: string;
+
+  defaultValue: number;
+
+  minimum: number;
+  maximum: number;
+
+  warnings: string[];
+}): ResolvedValue<number> {
+  const databaseRaw =
+    databaseValue(
+      input.databaseValues,
+      input.key,
+    );
+
+  if (databaseRaw !== undefined) {
+    const parsed =
+      parseInteger(
+        databaseRaw,
+        input.minimum,
+        input.maximum,
+      );
+
+    if (parsed !== null) {
+      return {
+        value: parsed,
+        source: "DATABASE",
+      };
+    }
+
+    input.warnings.push(
+      `${input.key} has an invalid database integer value. The fallback value was used.`,
+    );
+  }
+
+  const environmentRaw =
+    process.env[
+      input.environmentName
+    ];
+
+  const environmentValue =
+    parseInteger(
+      environmentRaw,
+      input.minimum,
+      input.maximum,
+    );
+
+  if (environmentValue !== null) {
+    return {
+      value:
+        environmentValue,
+
+      source:
+        "ENVIRONMENT",
+    };
+  }
+
+  if (
+    environmentRaw !== undefined &&
+    environmentRaw.trim().length > 0
+  ) {
+    input.warnings.push(
+      `${input.environmentName} has an invalid integer value.`,
+    );
+  }
+
+  return {
+    value:
+      input.defaultValue,
+
+    source:
+      "DEFAULT",
+  };
+}
+
+function resolveNullablePositiveInteger(input: {
+  databaseValues:
+    ReadonlyMap<string, string>;
+
+  key:
+    AttendancePolicyKey;
+
+  environmentName: string;
+
+  warnings: string[];
+}): ResolvedValue<number | null> {
+  const databaseRaw =
+    databaseValue(
+      input.databaseValues,
+      input.key,
+    );
+
+  if (databaseRaw !== undefined) {
+    const parsed =
+      parseInteger(
+        databaseRaw,
+        1,
+        Number.MAX_SAFE_INTEGER,
+      );
+
+    if (parsed !== null) {
+      return {
+        value: parsed,
+        source: "DATABASE",
+      };
+    }
+
+    input.warnings.push(
+      `${input.key} does not contain a valid positive branch ID.`,
+    );
+  }
+
+  const environmentRaw =
+    process.env[
+      input.environmentName
+    ];
+
+  const environmentValue =
+    parseInteger(
+      environmentRaw,
+      1,
+      Number.MAX_SAFE_INTEGER,
+    );
+
+  if (environmentValue !== null) {
+    return {
+      value:
+        environmentValue,
+
+      source:
+        "ENVIRONMENT",
+    };
+  }
+
+  return {
+    value: null,
+    source: "DEFAULT",
+  };
+}
+
+function resolveText(input: {
+  databaseValues:
+    ReadonlyMap<string, string>;
+
+  key:
+    AttendancePolicyKey;
+
+  environmentName: string;
+
+  defaultValue: string;
+
+  warnings: string[];
+}): ResolvedValue<string> {
+  const databaseRaw =
+    databaseValue(
+      input.databaseValues,
+      input.key,
+    )?.trim();
+
+  if (
+    databaseRaw !== undefined &&
+    databaseRaw.length > 0
+  ) {
+    return {
+      value: databaseRaw,
+      source: "DATABASE",
+    };
+  }
+
+  if (databaseRaw !== undefined) {
+    input.warnings.push(
+      `${input.key} is empty. The fallback value was used.`,
+    );
+  }
+
+  const environmentRaw =
+    process.env[
+      input.environmentName
+    ]?.trim();
+
+  if (
+    environmentRaw !== undefined &&
+    environmentRaw.length > 0
+  ) {
+    return {
+      value:
+        environmentRaw,
+
+      source:
+        "ENVIRONMENT",
+    };
+  }
+
+  return {
+    value:
+      input.defaultValue,
+
+    source:
+      "DEFAULT",
+  };
+}
+
+async function attendancePolicyTableExists(): Promise<boolean> {
+  const rows =
+    await prisma.$queryRaw<
+      TableCountRow[]
+    >`
+      SELECT
+        COUNT(*) AS tableCount
+      FROM information_schema.TABLES
+      WHERE
+        TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME =
+          'attendance_policy_settings'
+    `;
+
+  return (
+    normalizeNonNegativeInteger(
+      rows[0]?.tableCount,
+    ) > 0
+  );
+}
+
+async function getDatabaseRows(): Promise<AttendancePolicyDatabaseRow[]> {
+  return prisma.$queryRaw<
+    AttendancePolicyDatabaseRow[]
+  >`
+    SELECT
+      setting_key AS settingKey,
+      setting_value AS settingValue,
+      value_type AS valueType
+    FROM attendance_policy_settings
+    ORDER BY setting_key ASC
+  `;
+}
+
+export async function getAttendancePolicyRuntimeConfig(): Promise<AttendancePolicyResolvedConfig> {
+  const warnings:
+    string[] = [];
+
+  const tableExists =
+    await attendancePolicyTableExists();
+
+  const rows =
+    tableExists
+      ? await getDatabaseRows()
+      : [];
+
+  if (!tableExists) {
+    warnings.push(
+      "The attendance_policy_settings table does not exist. Environment variables and application defaults are being used.",
+    );
+  }
+
+  const databaseValues =
+    new Map(
+      rows.map(
+        (row) => [
+          row.settingKey,
+          row.settingValue,
+        ],
+      ),
+    );
+
+  const defaultBranchId =
+    resolveNullablePositiveInteger({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.DEFAULT_BRANCH_ID,
+
+      environmentName:
+        "ATTENDANCE_DEFAULT_BRANCH_ID",
+
+      warnings,
+    });
+
+  const allowWebTimeIn =
+    resolveBoolean({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.ALLOW_WEB_TIME_IN,
+
+      environmentName:
+        "ATTENDANCE_ALLOW_WEB_TIME_IN",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.allowWebTimeIn,
+
+      warnings,
+    });
+
+  const allowManualTimeIn =
+    resolveBoolean({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.ALLOW_MANUAL_TIME_IN,
+
+      environmentName:
+        "ATTENDANCE_ALLOW_MANUAL_TIME_IN",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.allowManualTimeIn,
+
+      warnings,
+    });
+
+  const requirePhoto =
+    resolveBoolean({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.REQUIRE_PHOTO,
+
+      environmentName:
+        "ATTENDANCE_REQUIRE_PHOTO",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.requirePhoto,
+
+      warnings,
+    });
+
+  const requireLocation =
+    resolveBoolean({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.REQUIRE_LOCATION,
+
+      environmentName:
+        "ATTENDANCE_REQUIRE_LOCATION",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.requireLocation,
+
+      warnings,
+    });
+
+  const photoDirectory =
+    resolveText({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.PHOTO_DIRECTORY,
+
+      environmentName:
+        "ATTENDANCE_PHOTO_DIR",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.photoDirectory,
+
+      warnings,
+    });
+
+  const maxPhotoSizeMb =
+    resolveInteger({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.MAX_PHOTO_SIZE_MB,
+
+      environmentName:
+        "ATTENDANCE_MAX_FILE_SIZE_MB",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.maxPhotoSizeMb,
+
+      minimum: 1,
+      maximum: 25,
+
+      warnings,
+    });
+
+  const lateGraceMinutes =
+    resolveInteger({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.LATE_GRACE_MINUTES,
+
+      environmentName:
+        "ATTENDANCE_LATE_GRACE_MINUTES",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.lateGraceMinutes,
+
+      minimum: 0,
+      maximum: 180,
+
+      warnings,
+    });
+
+  const autoMarkMissingTimeout =
+    resolveBoolean({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.AUTO_MARK_MISSING_TIMEOUT,
+
+      environmentName:
+        "ATTENDANCE_AUTO_MARK_MISSING_TIMEOUT",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.autoMarkMissingTimeout,
+
+      warnings,
+    });
+
+  const missingTimeoutMinutes =
+    resolveInteger({
+      databaseValues,
+
+      key:
+        ATTENDANCE_POLICY_KEYS.MISSING_TIMEOUT_MINUTES,
+
+      environmentName:
+        "ATTENDANCE_MISSING_TIMEOUT_MINUTES",
+
+      defaultValue:
+        DEFAULT_ATTENDANCE_POLICY_CONFIG.missingTimeoutMinutes,
+
+      minimum: 60,
+      maximum: 2880,
+
+      warnings,
+    });
+
+  const config:
+    AttendancePolicyConfig = {
+      defaultBranchId:
+        defaultBranchId.value,
+
+      allowWebTimeIn:
+        allowWebTimeIn.value,
+
+      allowManualTimeIn:
+        allowManualTimeIn.value,
+
+      requirePhoto:
+        requirePhoto.value,
+
+      requireLocation:
+        requireLocation.value,
+
+      photoDirectory:
+        photoDirectory.value,
+
+      maxPhotoSizeMb:
+        maxPhotoSizeMb.value,
+
+      lateGraceMinutes:
+        lateGraceMinutes.value,
+
+      autoMarkMissingTimeout:
+        autoMarkMissingTimeout.value,
+
+      missingTimeoutMinutes:
+        missingTimeoutMinutes.value,
+    };
+
+  const sourceMap:
+    AttendancePolicySourceMap = {
+      defaultBranchId:
+        defaultBranchId.source,
+
+      allowWebTimeIn:
+        allowWebTimeIn.source,
+
+      allowManualTimeIn:
+        allowManualTimeIn.source,
+
+      requirePhoto:
+        requirePhoto.source,
+
+      requireLocation:
+        requireLocation.source,
+
+      photoDirectory:
+        photoDirectory.source,
+
+      maxPhotoSizeMb:
+        maxPhotoSizeMb.source,
+
+      lateGraceMinutes:
+        lateGraceMinutes.source,
+
+      autoMarkMissingTimeout:
+        autoMarkMissingTimeout.source,
+
+      missingTimeoutMinutes:
+        missingTimeoutMinutes.source,
+    };
+
+  return {
+    tableExists,
+
+    databaseRowCount:
+      rows.length,
+
+    config,
+
+    sourceMap,
+
+    warnings,
+  };
+}
+
+export async function getAttendancePolicySettingsPageData(): Promise<AttendancePolicySettingsPageData> {
+  const [
+    resolved,
+    branchRows,
+  ] = await Promise.all([
+    getAttendancePolicyRuntimeConfig(),
+
+    prisma.$queryRaw<
+      BranchDatabaseRow[]
+    >`
+      SELECT
+        branch_id AS branchId,
+        branch_code AS branchCode,
+        name,
+        status
+      FROM branches
+      WHERE status = 'ACTIVE'
+      ORDER BY name ASC
+    `,
+  ]);
+
+  const branches:
+    AttendancePolicyBranchOption[] =
+    branchRows.map(
+      (row) => ({
+        branchId:
+          normalizeNonNegativeInteger(
+            row.branchId,
+          ),
+
+        branchCode:
+          row.branchCode,
+
+        name:
+          row.name,
+
+        status:
+          row.status,
+      }),
+    );
+
+  return {
+    resolved,
+    branches,
+  };
+}
+
+============================================================
+FILE: src\features\settings\attendance-policies\types\attendance-policy-types.ts
+============================================================
+export const ATTENDANCE_POLICY_KEYS = {
+  DEFAULT_BRANCH_ID:
+    "DEFAULT_BRANCH_ID",
+
+  ALLOW_WEB_TIME_IN:
+    "ALLOW_WEB_TIME_IN",
+
+  ALLOW_MANUAL_TIME_IN:
+    "ALLOW_MANUAL_TIME_IN",
+
+  REQUIRE_PHOTO:
+    "REQUIRE_PHOTO",
+
+  REQUIRE_LOCATION:
+    "REQUIRE_LOCATION",
+
+  PHOTO_DIRECTORY:
+    "PHOTO_DIRECTORY",
+
+  MAX_PHOTO_SIZE_MB:
+    "MAX_PHOTO_SIZE_MB",
+
+  LATE_GRACE_MINUTES:
+    "LATE_GRACE_MINUTES",
+
+  AUTO_MARK_MISSING_TIMEOUT:
+    "AUTO_MARK_MISSING_TIMEOUT",
+
+  MISSING_TIMEOUT_MINUTES:
+    "MISSING_TIMEOUT_MINUTES",
+} as const;
+
+export type AttendancePolicyKey =
+  (typeof ATTENDANCE_POLICY_KEYS)[keyof typeof ATTENDANCE_POLICY_KEYS];
+
+export type AttendancePolicyValueType =
+  | "BOOLEAN"
+  | "INTEGER"
+  | "TEXT";
+
+export type AttendancePolicyValueSource =
+  | "DATABASE"
+  | "ENVIRONMENT"
+  | "DEFAULT";
+
+export type AttendancePolicyConfig = {
+  defaultBranchId: number | null;
+
+  allowWebTimeIn: boolean;
+  allowManualTimeIn: boolean;
+
+  requirePhoto: boolean;
+  requireLocation: boolean;
+
+  photoDirectory: string;
+  maxPhotoSizeMb: number;
+
+  lateGraceMinutes: number;
+
+  autoMarkMissingTimeout: boolean;
+  missingTimeoutMinutes: number;
+};
+
+export type AttendancePolicySourceMap = {
+  defaultBranchId:
+    AttendancePolicyValueSource;
+
+  allowWebTimeIn:
+    AttendancePolicyValueSource;
+
+  allowManualTimeIn:
+    AttendancePolicyValueSource;
+
+  requirePhoto:
+    AttendancePolicyValueSource;
+
+  requireLocation:
+    AttendancePolicyValueSource;
+
+  photoDirectory:
+    AttendancePolicyValueSource;
+
+  maxPhotoSizeMb:
+    AttendancePolicyValueSource;
+
+  lateGraceMinutes:
+    AttendancePolicyValueSource;
+
+  autoMarkMissingTimeout:
+    AttendancePolicyValueSource;
+
+  missingTimeoutMinutes:
+    AttendancePolicyValueSource;
+};
+
+export type AttendancePolicyDatabaseRow = {
+  settingKey: string;
+  settingValue: string;
+  valueType: string;
+};
+
+export type AttendancePolicyResolvedConfig = {
+  tableExists: boolean;
+
+  databaseRowCount: number;
+
+  config: AttendancePolicyConfig;
+
+  sourceMap: AttendancePolicySourceMap;
+
+  warnings: string[];
+};
+
+export type AttendancePolicyBranchOption = {
+  branchId: number;
+
+  branchCode: string;
+  name: string;
+
+  status: string;
+};
+
+export type AttendancePolicySettingsPageData = {
+  resolved:
+    AttendancePolicyResolvedConfig;
+
+  branches:
+    AttendancePolicyBranchOption[];
+};
+
+export type AttendancePolicyFormInput = {
+  defaultBranchId: number;
+
+  allowWebTimeIn: boolean;
+  allowManualTimeIn: boolean;
+
+  requirePhoto: boolean;
+  requireLocation: boolean;
+
+  photoDirectory: string;
+  maxPhotoSizeMb: number;
+
+  lateGraceMinutes: number;
+
+  autoMarkMissingTimeout: boolean;
+  missingTimeoutMinutes: number;
+};
+
+export type AttendancePolicyFormField =
+  keyof AttendancePolicyFormInput;
+
+export type AttendancePolicyActionState = {
+  status:
+    | "IDLE"
+    | "SUCCESS"
+    | "ERROR";
+
+  message: string;
+
+  fieldErrors: Partial<
+    Record<
+      AttendancePolicyFormField,
+      string[]
+    >
+  >;
+};
+
+============================================================
+FILE: src\app\api\uploads\attendance-photo\route.ts
+============================================================
+import { randomUUID } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { NextResponse } from "next/server";
+import { env } from "@/lib/env";
+import type { AttendancePhotoUploadResponse } from "@/features/attendance/types/attendance-upload-types";
+
+export const runtime = "nodejs";
+
+const allowedMimeTypes = new Map<string, string>([
+  ["image/jpeg", "jpg"],
+  ["image/png", "png"],
+  ["image/webp", "webp"],
+]);
+
+function jsonResponse(body: AttendancePhotoUploadResponse, status: number) {
+  return NextResponse.json(body, {
+    status,
+  });
+}
+
+function safeStorageDirectory(directory: string): string {
+  return directory
+    .replaceAll("\\", "/")
+    .split("/")
+    .filter((part) => part && part !== "." && part !== "..")
+    .join("/");
+}
+
+export async function POST(request: Request) {
+  const formData = await request.formData().catch(() => null);
+
+  if (!formData) {
+    return jsonResponse(
+      {
+        ok: false,
+        message: "Invalid upload request.",
+      },
+      400,
+    );
+  }
+
+  const file = formData.get("file");
+
+  if (!(file instanceof File)) {
+    return jsonResponse(
+      {
+        ok: false,
+        message: "No image file was uploaded.",
+      },
+      400,
+    );
+  }
+
+  const extension = allowedMimeTypes.get(file.type);
+
+  if (!extension) {
+    return jsonResponse(
+      {
+        ok: false,
+        message: "Only JPG, PNG, and WEBP images are allowed.",
+      },
+      415,
+    );
+  }
+
+  const maxBytes = env.MAX_UPLOAD_MB * 1024 * 1024;
+
+  if (file.size > maxBytes) {
+    return jsonResponse(
+      {
+        ok: false,
+        message: `Image is too large. Maximum size is ${env.MAX_UPLOAD_MB}MB.`,
+      },
+      413,
+    );
+  }
+
+  const storageDirectory = safeStorageDirectory(env.ATTENDANCE_PHOTO_DIR);
+  const fileName = `${Date.now()}-${randomUUID()}.${extension}`;
+
+  const relativePath = `${storageDirectory}/${fileName}`;
+  const absoluteDirectory = path.join(process.cwd(), "public", storageDirectory);
+  const absolutePath = path.join(absoluteDirectory, fileName);
+
+  await mkdir(absoluteDirectory, {
+    recursive: true,
+  });
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  await writeFile(absolutePath, buffer);
+
+  return jsonResponse(
+    {
+      ok: true,
+      message: "Attendance selfie uploaded successfully.",
+      path: relativePath,
+    },
+    201,
+  );
+}
+
+============================================================
+FILE: src\features\attendance\validators\attendance-validation.ts
+============================================================
+import { z } from "zod";
+
+function emptyToNull(value: unknown): unknown {
+  if (value === "" || value === undefined) {
+    return null;
+  }
+
+  return value;
+}
+
+const requiredCoordinateSchema = z
+  .string()
+  .trim()
+  .min(1, "GPS location is required.")
+  .regex(/^-?\d+(\.\d+)?$/, "Enter a valid coordinate.");
+
+const optionalTextSchema = z.preprocess(
+  emptyToNull,
+  z.string().trim().max(1000, "This field is too long.").nullable(),
+);
+
+export const odlAttendanceValidationSchema = z.object({
+  latitude: requiredCoordinateSchema,
+  longitude: requiredCoordinateSchema,
+
+  address: z
+    .string()
+    .trim()
+    .min(1, "Full address is required.")
+    .max(1000, "Address is too long."),
+
+  photoPath: z
+    .string()
+    .trim()
+    .min(1, "Selfie photo is required.")
+    .max(255, "Photo path is too long."),
+
+  remarks: optionalTextSchema,
+  reason: optionalTextSchema,
+});
+
+export type OdlAttendanceInput = z.infer<typeof odlAttendanceValidationSchema>;
+
+============================================================
+FILE: src\features\attendance\components\webcam-capture.tsx
+============================================================
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Camera, Loader2, RefreshCcw, Upload } from "lucide-react";
+import type { AttendancePhotoUploadResponse } from "../types/attendance-upload-types";
+
+type WebcamCaptureProps = {
+  disabled: boolean;
+  photoPath: string;
+  onPhotoPathChange: (path: string) => void;
+  errorMessages?: string[];
+};
+
+function dataUrlToFile(dataUrl: string, fileName: string): File {
+  const [header, base64Data] = dataUrl.split(",");
+  const mimeMatch = header.match(/data:(.*?);base64/);
+  const mimeType = mimeMatch?.[1] ?? "image/jpeg";
+  const binaryString = window.atob(base64Data);
+  const bytes = new Uint8Array(binaryString.length);
+
+  for (let index = 0; index < binaryString.length; index += 1) {
+    bytes[index] = binaryString.charCodeAt(index);
+  }
+
+  return new File([bytes], fileName, {
+    type: mimeType,
+  });
+}
+
+function FieldError({ messages }: { messages?: string[] }) {
+  if (!messages || messages.length === 0) {
+    return null;
+  }
+
+  return (
+    <p className="mt-2 text-xs font-semibold text-[var(--starland-danger)]">
+      {messages[0]}
+    </p>
+  );
+}
+
+export function WebcamCapture({
+  disabled,
+  photoPath,
+  onPhotoPathChange,
+  errorMessages,
+}: WebcamCaptureProps) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const [photoPreview, setPhotoPreview] = useState("");
+  const [message, setMessage] = useState("");
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  function stopCamera() {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    setIsCameraActive(false);
+  }
+
+  async function startCamera() {
+    setMessage("");
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setMessage("Camera is not supported by this browser.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: {
+            ideal: 640,
+          },
+          height: {
+            ideal: 480,
+          },
+        },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+
+      setIsCameraActive(true);
+    } catch {
+      setMessage("Unable to open camera. Please allow camera permission.");
+    }
+  }
+
+  async function uploadCapturedPhoto(dataUrl: string) {
+    setIsUploading(true);
+    setMessage("");
+
+    try {
+      const file = dataUrlToFile(dataUrl, "attendance-selfie.jpg");
+      const formData = new FormData();
+
+      formData.append("file", file);
+
+      const response = await fetch("/api/uploads/attendance-photo", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = (await response.json()) as AttendancePhotoUploadResponse;
+
+      if (!response.ok || !result.ok || !result.path) {
+        setMessage(result.message || "Failed to upload selfie photo.");
+        onPhotoPathChange("");
+        return;
+      }
+
+      onPhotoPathChange(result.path);
+      setMessage("Selfie captured and uploaded successfully.");
+    } catch {
+      setMessage("Unable to upload selfie photo.");
+      onPhotoPathChange("");
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  async function capturePhoto() {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    if (!video || !canvas) {
+      setMessage("Camera is not ready.");
+      return;
+    }
+
+    const width = video.videoWidth || 640;
+    const height = video.videoHeight || 480;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      setMessage("Unable to capture selfie.");
+      return;
+    }
+
+    context.drawImage(video, 0, 0, width, height);
+
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+    setPhotoPreview(dataUrl);
+    await uploadCapturedPhoto(dataUrl);
+  }
+
+  function clearPhoto() {
+    setPhotoPreview("");
+    onPhotoPathChange("");
+    setMessage("");
+  }
+
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  const isDisabled = disabled || isUploading;
+
+  return (
+    <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+      <input id="photoPath" type="hidden" name="photoPath" value={photoPath} />
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-sm font-extrabold text-[var(--starland-dark-text)]">
+            Required Uniform Selfie
+          </p>
+          <p className="mt-1 text-xs leading-5 text-[var(--starland-muted-text)]">
+            Employee must use the phone or laptop front camera and take a selfie
+            while wearing the proper Starland uniform.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {!isCameraActive ? (
+            <button
+              type="button"
+              className="starland-btn starland-btn-soft starland-btn-sm"
+              onClick={startCamera}
+              disabled={isDisabled}
+            >
+              <Camera className="h-4 w-4" aria-hidden="true" />
+              Open Camera
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="starland-btn starland-btn-secondary starland-btn-sm"
+              onClick={stopCamera}
+              disabled={isDisabled}
+            >
+              Stop Camera
+            </button>
+          )}
+
+          <button
+            type="button"
+            className="starland-btn starland-btn-primary starland-btn-sm"
+            onClick={capturePhoto}
+            disabled={isDisabled || !isCameraActive}
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" aria-hidden="true" />
+                Capture Selfie
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            className="starland-btn starland-btn-secondary starland-btn-sm"
+            onClick={clearPhoto}
+            disabled={isDisabled || !photoPath}
+          >
+            <RefreshCcw className="h-4 w-4" aria-hidden="true" />
+            Clear
+          </button>
+        </div>
+      </div>
+
+      {photoPath ? (
+        <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 p-3 text-sm font-semibold text-green-700">
+          Selfie captured successfully.
+        </div>
+      ) : (
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-700">
+          Selfie is required before submitting attendance.
+        </div>
+      )}
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <div className="overflow-hidden rounded-2xl border border-[var(--starland-border)] bg-black">
+          <video
+            ref={videoRef}
+            className="aspect-video w-full object-cover"
+            autoPlay
+            muted
+            playsInline
+          />
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-[var(--starland-border)] bg-white">
+          {photoPreview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoPreview}
+              alt="Captured attendance selfie preview"
+              className="aspect-video w-full object-cover"
+            />
+          ) : (
+            <div className="flex aspect-video items-center justify-center p-6 text-center text-sm text-[var(--starland-muted-text)]">
+              Captured selfie preview will appear here.
+            </div>
+          )}
+        </div>
+      </div>
+
+      <canvas ref={canvasRef} className="hidden" />
+
+      {photoPath ? (
+        <p className="mt-3 text-xs font-semibold text-[var(--starland-muted-text)]">
+          Saved path: {photoPath}
+        </p>
+      ) : null}
+
+      <FieldError messages={errorMessages} />
+
+      {message ? (
+        <div className="mt-4 rounded-2xl border border-[var(--starland-border)] bg-white p-3 text-sm font-semibold text-[var(--starland-dark-text)]">
+          {message}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+============================================================
+FILE: src\app\(protected)\dashboard\attendance\odl\page.tsx
+============================================================
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { History, ShieldCheck } from "lucide-react";
+import { AttendanceDetailsModal } from "@/features/attendance/components/attendance-details-modal";
+import { MyAttendanceTable } from "@/features/attendance/components/my-attendance-table";
+import { TimeInOutForm } from "@/features/attendance/components/time-in-out-form";
+import { getCurrentSession } from "@/features/auth/server/session";
+import { getOdlAttendancePageData } from "@/features/attendance/server/attendance-form-queries";
+import {
+  getMyAttendanceDetail,
+  getMyAttendanceList,
+} from "@/features/attendance/server/my-attendance-queries";
+
+type OdlAttendancePageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function getSearchParamValue(
+  value: string | string[] | undefined,
+): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
+}
+
+function parsePositivePage(value: string | string[] | undefined): number {
+  const rawValue = getSearchParamValue(value);
+  const parsed = Number(rawValue);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return 1;
+  }
+
+  return parsed;
+}
+
+export default async function OdlAttendancePage({
+  searchParams,
+}: OdlAttendancePageProps) {
+  const session = await getCurrentSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  const resolvedSearchParams = await searchParams;
+  const detailId = getSearchParamValue(resolvedSearchParams.detailId) ?? "";
+
+  const [odlAttendancePageData, myAttendance, detail] = await Promise.all([
+    getOdlAttendancePageData(),
+    getMyAttendanceList({
+      page: parsePositivePage(resolvedSearchParams.page),
+      pageSize: 10,
+    }),
+    detailId ? getMyAttendanceDetail(detailId) : null,
+  ]);
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-success">
+            ODL Web Attendance
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            My ODL Attendance
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            This page is for Online Distance Learning teachers only. The system
+            automatically checks today&apos;s record, captures location on page
+            load, requires a uniform selfie, then decides whether your next
+            submit is TIME IN or TIME OUT.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/attendance/odl/eligibility"
+            className="starland-btn starland-btn-soft"
+          >
+            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+            Eligibility Check
+          </Link>
+
+          <Link
+            href="/dashboard/attendance/odl/history"
+            className="starland-btn starland-btn-primary"
+          >
+            <History className="h-4 w-4" aria-hidden="true" />
+            View ODL History
+          </Link>
+        </div>
+      </div>
+
+      <TimeInOutForm pageData={odlAttendancePageData} />
+
+      <section className="space-y-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+              Recent Attendance
+            </h2>
+
+            <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+              Quick view of your latest attendance records. Open the full
+              history page for date filtering.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/attendance/odl/eligibility"
+              className="starland-btn starland-btn-soft"
+            >
+              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              Check Eligibility
+            </Link>
+
+            <Link
+              href="/dashboard/attendance/odl/history"
+              className="starland-btn starland-btn-soft"
+            >
+              <History className="h-4 w-4" aria-hidden="true" />
+              Full History
+            </Link>
+          </div>
+        </div>
+
+        <MyAttendanceTable result={myAttendance} />
+      </section>
+
+      <AttendanceDetailsModal
+        detail={detail}
+        closeHref="/dashboard/attendance/odl"
+      />
+    </section>
+  );
+}
+
+============================================================
+FILE: src\features\attendance\manual\validators\manual-attendance-validation.ts
+============================================================
+import { z } from "zod";
+
+function emptyToNull(value: unknown): unknown {
+  if (value === "" || value === undefined) {
+    return null;
+  }
+
+  return value;
+}
+
+const dateOnlySchema = z
+  .string()
+  .trim()
+  .min(1, "Attendance date is required.")
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Use a valid date.");
+
+const dateTimeLocalSchema = z
+  .string()
+  .trim()
+  .min(1, "Time in is required.")
+  .regex(
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
+    "Use a valid date and time.",
+  );
+
+const optionalDateTimeLocalSchema = z.preprocess(
+  emptyToNull,
+  z.union([
+    z
+      .string()
+      .trim()
+      .regex(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
+        "Use a valid date and time.",
+      ),
+    z.null(),
+  ]),
+);
+
+export const manualAttendanceValidationSchema = z
+  .object({
+    empId: z.coerce
+      .number({
+        error: "Employee is required.",
+      })
+      .int()
+      .positive("Employee is required."),
+
+    attDate: dateOnlySchema,
+
+    timeIn: dateTimeLocalSchema,
+
+    timeOut: optionalDateTimeLocalSchema,
+
+    remarks: z
+      .string()
+      .trim()
+      .min(1, "Remarks are required for manual attendance.")
+      .max(500, "Remarks are too long."),
+
+    reason: z
+      .string()
+      .trim()
+      .min(1, "Reason is required for manual attendance.")
+      .max(500, "Reason is too long."),
+
+    address: z
+      .string()
+      .trim()
+      .max(500, "Address is too long.")
+      .optional()
+      .transform((value) => {
+        if (!value) {
+          return null;
+        }
+
+        return value;
+      }),
+  })
+  .refine(
+    (data) => {
+      if (!data.timeOut) {
+        return true;
+      }
+
+      return data.timeOut >= data.timeIn;
+    },
+    {
+      path: ["timeOut"],
+      message:
+        "Time out must be later than time in. For overnight duty, select the next date for time out.",
+    },
+  );
+
+export type ManualAttendanceInput = z.infer<
+  typeof manualAttendanceValidationSchema
+>;
+
+============================================================
+FILE: src\features\attendance\manual\components\manual-attendance-form.tsx
+============================================================
+"use client";
+
+import Link from "next/link";
+import { useActionState } from "react";
+import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { saveManualAttendanceAction } from "../server/manual-attendance-actions";
+import {
+  initialManualAttendanceActionState,
+  type ManualAttendanceEmployeeOption,
+} from "../types/manual-attendance-types";
+
+type ManualAttendanceFormProps = {
+  employees: ManualAttendanceEmployeeOption[];
+};
+
+function FieldError({ messages }: { messages?: string[] }) {
+  if (!messages || messages.length === 0) {
+    return null;
+  }
+
+  return (
+    <p className="mt-1 text-xs font-semibold text-[var(--starland-danger)]">
+      {messages[0]}
+    </p>
+  );
+}
+
+function getTodayInputValue(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+export function ManualAttendanceForm({
+  employees,
+}: ManualAttendanceFormProps) {
+  const [state, formAction, isPending] = useActionState(
+    saveManualAttendanceAction,
+    initialManualAttendanceActionState,
+  );
+
+  return (
+    <section className="starland-card overflow-hidden">
+      <div className="bg-[var(--starland-deep-green)] p-5 text-white sm:p-6">
+        <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold">
+          Manual Correction
+        </span>
+
+        <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+          Manual Attendance Input
+        </h2>
+
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
+          Manual attendance is always marked as PENDING REVIEW and must be
+          verified or approved by HR/Admin.
+        </p>
+      </div>
+
+      <form action={formAction} className="space-y-5 p-5 sm:p-6">
+        {state.message ? (
+          <div
+            className={[
+              "rounded-2xl border px-4 py-3 text-sm font-semibold",
+              state.ok
+                ? "border-green-200 bg-green-50 text-green-700"
+                : "border-red-200 bg-red-50 text-red-700",
+            ].join(" ")}
+          >
+            {state.message}
+          </div>
+        ) : null}
+
+        <section className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+          <h3 className="text-base font-extrabold text-[var(--starland-dark-text)]">
+            Employee and Date
+          </h3>
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-[1.5fr_0.7fr]">
+            <div>
+              <label
+                htmlFor="empId"
+                className="text-sm font-bold text-[var(--starland-dark-text)]"
+              >
+                Employee <span className="text-[var(--starland-danger)]">*</span>
+              </label>
+
+              <select
+                id="empId"
+                name="empId"
+                className="starland-input mt-2"
+                defaultValue=""
+                disabled={isPending}
+              >
+                <option value="">Select employee</option>
+                {employees.map((employee) => (
+                  <option key={employee.empId} value={employee.empId}>
+                    {employee.label}
+                  </option>
+                ))}
+              </select>
+
+              <FieldError messages={state.fieldErrors?.empId} />
+            </div>
+
+            <div>
+              <label
+                htmlFor="attDate"
+                className="text-sm font-bold text-[var(--starland-dark-text)]"
+              >
+                Attendance Date{" "}
+                <span className="text-[var(--starland-danger)]">*</span>
+              </label>
+
+              <input
+                id="attDate"
+                name="attDate"
+                type="date"
+                className="starland-input mt-2"
+                defaultValue={getTodayInputValue()}
+                disabled={isPending}
+              />
+
+              <FieldError messages={state.fieldErrors?.attDate} />
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+          <h3 className="text-base font-extrabold text-[var(--starland-dark-text)]">
+            Time Input
+          </h3>
+
+          <p className="mt-1 text-sm text-[var(--starland-muted-text)]">
+            For overnight attendance, select the next date for Time Out.
+          </p>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <label
+                htmlFor="timeIn"
+                className="text-sm font-bold text-[var(--starland-dark-text)]"
+              >
+                Time In <span className="text-[var(--starland-danger)]">*</span>
+              </label>
+
+              <input
+                id="timeIn"
+                name="timeIn"
+                type="datetime-local"
+                className="starland-input mt-2"
+                disabled={isPending}
+              />
+
+              <FieldError messages={state.fieldErrors?.timeIn} />
+            </div>
+
+            <div>
+              <label
+                htmlFor="timeOut"
+                className="text-sm font-bold text-[var(--starland-dark-text)]"
+              >
+                Time Out
+              </label>
+
+              <input
+                id="timeOut"
+                name="timeOut"
+                type="datetime-local"
+                className="starland-input mt-2"
+                disabled={isPending}
+              />
+
+              <FieldError messages={state.fieldErrors?.timeOut} />
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
+          <h3 className="text-base font-extrabold text-[var(--starland-dark-text)]">
+            Reason for Manual Input
+          </h3>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <label
+                htmlFor="reason"
+                className="text-sm font-bold text-[var(--starland-dark-text)]"
+              >
+                Reason <span className="text-[var(--starland-danger)]">*</span>
+              </label>
+
+              <textarea
+                id="reason"
+                name="reason"
+                className="starland-input mt-2 min-h-28"
+                placeholder="Example: RFID reader failed, biometric unavailable, forgot to scan, approved correction, etc."
+                disabled={isPending}
+              />
+
+              <FieldError messages={state.fieldErrors?.reason} />
+            </div>
+
+            <div>
+              <label
+                htmlFor="remarks"
+                className="text-sm font-bold text-[var(--starland-dark-text)]"
+              >
+                Remarks <span className="text-[var(--starland-danger)]">*</span>
+              </label>
+
+              <textarea
+                id="remarks"
+                name="remarks"
+                className="starland-input mt-2 min-h-28"
+                placeholder="Additional HR/Admin remarks."
+                disabled={isPending}
+              />
+
+              <FieldError messages={state.fieldErrors?.remarks} />
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label
+              htmlFor="address"
+              className="text-sm font-bold text-[var(--starland-dark-text)]"
+            >
+              Address / Location Note
+            </label>
+
+            <input
+              id="address"
+              name="address"
+              className="starland-input mt-2"
+              placeholder="Optional location note"
+              disabled={isPending}
+            />
+
+            <FieldError messages={state.fieldErrors?.address} />
+          </div>
+        </section>
+
+        <div className="rounded-2xl border border-yellow-200 bg-yellow-50 p-4 text-sm font-semibold text-yellow-800">
+          Manual attendance will not be treated as a normal RFID/biometric/ODL
+          punch. It will be saved as PENDING REVIEW until reviewed by HR/Admin.
+        </div>
+
+        <div className="flex flex-col-reverse gap-3 border-t border-[var(--starland-border)] pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <Link
+            href="/dashboard/attendance"
+            className="starland-btn starland-btn-soft"
+            aria-disabled={isPending}
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Back to Attendance
+          </Link>
+
+          <button
+            type="submit"
+            className="starland-btn starland-btn-primary"
+            disabled={isPending || employees.length === 0}
+          >
+            {isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" aria-hidden="true" />
+                Save Manual Attendance
+              </>
+            )}
+          </button>
+        </div>
+
+        {employees.length === 0 ? (
+          <p className="text-sm font-semibold text-[var(--starland-danger)]">
+            No active employees found.
+          </p>
+        ) : null}
+      </form>
+    </section>
+  );
+}
+
+============================================================
+FILE: src\app\(protected)\dashboard\attendance\manual\page.tsx
+============================================================
+import Link from "next/link";
+import { ArrowLeft, ClipboardEdit } from "lucide-react";
+import { requireCanManageEmployees } from "@/features/auth/server/permission-guards";
+import { ManualAttendanceForm } from "@/features/attendance/manual/components/manual-attendance-form";
+import { getManualAttendancePageData } from "@/features/attendance/manual/server/manual-attendance-queries";
+
+export default async function ManualAttendancePage() {
+  await requireCanManageEmployees();
+
+  const data = await getManualAttendancePageData();
+
+  return (
+    <section className="starland-page space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="starland-badge starland-badge-warning">
+            Manual Attendance
+          </span>
+
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-[var(--starland-dark-text)]">
+            Manual Attendance Input
+          </h1>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
+            Create or correct attendance records manually. Manual attendance is
+            always marked as pending review and must be verified or approved
+            before final reporting.
+          </p>
+        </div>
+
+        <Link
+          href="/dashboard/attendance"
+          className="starland-btn starland-btn-soft"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Back to Attendance
+        </Link>
+      </div>
+
+      <section className="starland-card p-5">
+        <div className="flex items-start gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--starland-light-bg)] text-[var(--starland-main-green)]">
+            <ClipboardEdit className="h-6 w-6" aria-hidden="true" />
+          </div>
+
+          <div>
+            <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+              Review Required by Policy
+            </h2>
+
+            <p className="mt-1 text-sm leading-6 text-[var(--starland-muted-text)]">
+              Normal RFID, biometric/kiosk, and ODL attendance do not need HR
+              review. This page is only for manual input, manual edits, and
+              corrections, so every saved record will require review.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <ManualAttendanceForm employees={data.employees} />
+    </section>
+  );
+}
+
+============================================================
+FILE: src\features\attendance\server\attendance-calculations.ts
+============================================================
+export type AttendanceCalculationInput = {
+  punchAt: Date;
+  scheduleStartTime: string | null;
+  graceMinutes: number;
+};
+
+function getFormatterParts(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+}
+
+function getPart(parts: Intl.DateTimeFormatPart[], type: string): string {
+  return parts.find((part) => part.type === type)?.value ?? "00";
+}
+
+export function getManilaDateString(date = new Date()): string {
+  const parts = getFormatterParts(date);
+  const year = getPart(parts, "year");
+  const month = getPart(parts, "month");
+  const day = getPart(parts, "day");
+
+  return `${year}-${month}-${day}`;
+}
+
+export function getManilaDateOnly(date = new Date()): Date {
+  return new Date(`${getManilaDateString(date)}T00:00:00.000Z`);
+}
+
+export function getMinutesFromTimeString(time: string | null): number | null {
+  if (!time) {
+    return null;
+  }
+
+  const [hourRaw, minuteRaw] = time.split(":");
+  const hour = Number(hourRaw);
+  const minute = Number(minuteRaw);
+
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) {
+    return null;
+  }
+
+  return hour * 60 + minute;
+}
+
+export function getManilaMinutesOfDay(date: Date): number {
+  const parts = getFormatterParts(date);
+  const hour = Number(getPart(parts, "hour"));
+  const minute = Number(getPart(parts, "minute"));
+
+  return hour * 60 + minute;
+}
+
+export function calculateTimeInStatus({
+  punchAt,
+  scheduleStartTime,
+  graceMinutes,
+}: AttendanceCalculationInput): "ON_TIME" | "LATE" | "PENDING_REVIEW" {
+  const scheduleStartMinutes = getMinutesFromTimeString(scheduleStartTime);
+
+  if (scheduleStartMinutes === null) {
+    return "PENDING_REVIEW";
+  }
+
+  const punchMinutes = getManilaMinutesOfDay(punchAt);
+  const allowedMinutes = scheduleStartMinutes + graceMinutes;
+
+  return punchMinutes <= allowedMinutes ? "ON_TIME" : "LATE";
+}
+
+export function calculateTotalMinutes(
+  timeIn: Date | null,
+  timeOut: Date | null,
+): number | null {
+  if (!timeIn || !timeOut) {
+    return null;
+  }
+
+  const differenceMs = timeOut.getTime() - timeIn.getTime();
+
+  if (differenceMs <= 0) {
+    return null;
+  }
+
+  return Math.round(differenceMs / 60000);
+}
+
+============================================================
+FILE: src\features\attendance\status-calculation\server\attendance-status-calculator.ts
+============================================================
+export type CalculatedAttendanceStatus =
+  | "ON_TIME"
+  | "LATE"
+  | "HALF_DAY"
+  | "MISSING_TIMEOUT"
+  | "ABSENT";
+
+export type AttendanceStatusCalculationInput = {
+  attDate: Date;
+  timeIn: Date | null;
+  timeOut: Date | null;
+  shiftStartTime: string;
+  shiftEndTime: string;
+  graceMinutes: number;
+  isOvernight: boolean;
+  currentDate?: Date;
+  missingTimeoutCutoffHours?: number;
+  halfDayRatio?: number;
+};
+
+export type AttendanceStatusCalculationResult = {
+  status: CalculatedAttendanceStatus;
+  totalMinutes: number | null;
+  scheduledMinutes: number;
+  lateMinutes: number;
+  reason: string;
+};
+
+const MANILA_UTC_OFFSET_HOURS = 8;
+
+function getManilaDateParts(date: Date): {
+  year: number;
+  month: number;
+  day: number;
+} {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  return {
+    year: Number(parts.find((part) => part.type === "year")?.value),
+    month: Number(parts.find((part) => part.type === "month")?.value),
+    day: Number(parts.find((part) => part.type === "day")?.value),
+  };
+}
+
+function getManilaDateOnly(date = new Date()): Date {
+  const { year, month, day } = getManilaDateParts(date);
+
+  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+}
+
+function parseTimeValue(value: string): {
+  hours: number;
+  minutes: number;
+  seconds: number;
+} {
+  const [rawHours, rawMinutes, rawSeconds] = value.split(":");
+
+  const hours = Number(rawHours);
+  const minutes = Number(rawMinutes);
+  const seconds = Number(rawSeconds ?? "0");
+
+  if (
+    !Number.isInteger(hours) ||
+    !Number.isInteger(minutes) ||
+    !Number.isInteger(seconds) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59 ||
+    seconds < 0 ||
+    seconds > 59
+  ) {
+    return {
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+    };
+  }
+
+  return {
+    hours,
+    minutes,
+    seconds,
+  };
+}
+
+function buildManilaDateTime(input: {
+  date: Date;
+  timeValue: string;
+  addDays?: number;
+}): Date {
+  const { year, month, day } = getManilaDateParts(input.date);
+  const { hours, minutes, seconds } = parseTimeValue(input.timeValue);
+
+  return new Date(
+    Date.UTC(
+      year,
+      month - 1,
+      day + (input.addDays ?? 0),
+      hours - MANILA_UTC_OFFSET_HOURS,
+      minutes,
+      seconds,
+      0,
+    ),
+  );
+}
+
+function differenceInMinutes(laterDate: Date, earlierDate: Date): number {
+  return Math.max(
+    0,
+    Math.floor((laterDate.getTime() - earlierDate.getTime()) / 60_000),
+  );
+}
+
+function isMissingTimeoutCandidate(input: {
+  attDate: Date;
+  timeIn: Date;
+  currentDate: Date;
+  cutoffHours: number;
+}): boolean {
+  const attendanceDateOnly = getManilaDateOnly(input.attDate);
+  const currentDateOnly = getManilaDateOnly(input.currentDate);
+  const cutoffDate = new Date(
+    input.currentDate.getTime() - input.cutoffHours * 60 * 60 * 1000,
+  );
+
+  return attendanceDateOnly < currentDateOnly || input.timeIn <= cutoffDate;
+}
+
+export function calculateAttendanceStatus(
+  input: AttendanceStatusCalculationInput,
+): AttendanceStatusCalculationResult {
+  const currentDate = input.currentDate ?? new Date();
+  const missingTimeoutCutoffHours = input.missingTimeoutCutoffHours ?? 18;
+  const halfDayRatio = input.halfDayRatio ?? 0.5;
+
+  const shiftStartDate = buildManilaDateTime({
+    date: input.attDate,
+    timeValue: input.shiftStartTime,
+  });
+
+  const shiftEndDate = buildManilaDateTime({
+    date: input.attDate,
+    timeValue: input.shiftEndTime,
+    addDays: input.isOvernight ? 1 : 0,
+  });
+
+  const scheduledMinutes = Math.max(
+    1,
+    differenceInMinutes(shiftEndDate, shiftStartDate),
+  );
+
+  if (!input.timeIn && !input.timeOut) {
+    return {
+      status: "ABSENT",
+      totalMinutes: null,
+      scheduledMinutes,
+      lateMinutes: 0,
+      reason: "No time-in and no time-out were recorded.",
+    };
+  }
+
+  if (!input.timeIn) {
+    return {
+      status: "ABSENT",
+      totalMinutes: null,
+      scheduledMinutes,
+      lateMinutes: 0,
+      reason: "No valid time-in was recorded.",
+    };
+  }
+
+  if (!input.timeOut) {
+    const isMissingTimeout = isMissingTimeoutCandidate({
+      attDate: input.attDate,
+      timeIn: input.timeIn,
+      currentDate,
+      cutoffHours: missingTimeoutCutoffHours,
+    });
+
+    if (isMissingTimeout) {
+      return {
+        status: "MISSING_TIMEOUT",
+        totalMinutes: null,
+        scheduledMinutes,
+        lateMinutes: 0,
+        reason:
+          "Time-in exists but no time-out was recorded after the allowed timeout cutoff.",
+      };
+    }
+  }
+
+  const allowedStartDate = new Date(
+    shiftStartDate.getTime() + input.graceMinutes * 60 * 1000,
+  );
+
+  const lateMinutes =
+    input.timeIn > allowedStartDate
+      ? differenceInMinutes(input.timeIn, allowedStartDate)
+      : 0;
+
+  const baseStatus: CalculatedAttendanceStatus =
+    input.timeIn <= allowedStartDate ? "ON_TIME" : "LATE";
+
+  if (!input.timeOut) {
+    return {
+      status: baseStatus,
+      totalMinutes: null,
+      scheduledMinutes,
+      lateMinutes,
+      reason:
+        baseStatus === "ON_TIME"
+          ? "Employee timed in within the shift grace period."
+          : "Employee timed in after the shift grace period.",
+    };
+  }
+
+  const totalMinutes = differenceInMinutes(input.timeOut, input.timeIn);
+  const minimumHalfDayMinutes = Math.floor(scheduledMinutes * halfDayRatio);
+
+  if (totalMinutes > 0 && totalMinutes < minimumHalfDayMinutes) {
+    return {
+      status: "HALF_DAY",
+      totalMinutes,
+      scheduledMinutes,
+      lateMinutes,
+      reason:
+        "Worked minutes are below the configured half-day threshold for the assigned shift.",
+    };
+  }
+
+  return {
+    status: baseStatus,
+    totalMinutes,
+    scheduledMinutes,
+    lateMinutes,
+    reason:
+      baseStatus === "ON_TIME"
+        ? "Employee completed attendance and timed in within the shift grace period."
+        : "Employee completed attendance but timed in after the shift grace period.",
+  };
+}
+
+============================================================
+FILE: src\features\attendance\status-recalculation\server\attendance-status-recalculation-service.ts
+============================================================
+import type { Prisma } from "@/generated/prisma/client";
+import { prisma } from "@/lib/db/prisma";
+import { calculateAttendanceStatus } from "@/features/attendance/status-calculation/server/attendance-status-calculator";
+import type { AttendanceStatusRecalculationSummary } from "../types/attendance-status-recalculation-types";
+
+type AttendanceRecalculationRecord = {
+  attendanceId: number;
+  empId: number;
+  scheduleId: number | null;
+  attDate: Date;
+  timeIn: Date | null;
+  timeOut: Date | null;
+  status: string;
+  totalMinutes: number | null;
+  isManual: boolean;
+  inSource: string | null;
+  outSource: string | null;
+  updatedById: number | null;
+  schedule: {
+    shift: {
+      startTime: string;
+      endTime: string;
+      graceMinutes: number;
+      isOvernight: boolean;
+    };
+  } | null;
+};
+
+export type AttendanceStatusRecalculationResult = {
+  processedCount: number;
+  updatedCount: number;
+  skippedCount: number;
+};
+
+function buildAttendanceAuditValue(
+  record: AttendanceRecalculationRecord,
+): Prisma.InputJsonObject {
+  return {
+    attendanceId: record.attendanceId,
+    empId: record.empId,
+    scheduleId: record.scheduleId,
+    attDate: record.attDate.toISOString(),
+    timeIn: record.timeIn?.toISOString() ?? null,
+    timeOut: record.timeOut?.toISOString() ?? null,
+    status: record.status,
+    totalMinutes: record.totalMinutes,
+    isManual: record.isManual,
+    inSource: record.inSource,
+    outSource: record.outSource,
+    updatedById: record.updatedById,
+  };
+}
+
+function buildUpdatedAuditValue(input: {
+  record: AttendanceRecalculationRecord;
+  status: string;
+  totalMinutes: number | null;
+  actorUserId: number;
+  reason: string;
+}): Prisma.InputJsonObject {
+  return {
+    ...buildAttendanceAuditValue(input.record),
+    status: input.status,
+    totalMinutes: input.totalMinutes,
+    updatedById: input.actorUserId,
+    recalculationReason: input.reason,
+  };
+}
+
+function buildEligibleRecalculationWhere(): Prisma.AttendanceWhereInput {
+  return {
+    isManual: false,
+    scheduleId: {
+      not: null,
+    },
+    status: {
+      not: "PENDING_REVIEW",
+    },
+  };
+}
+
+export async function getAttendanceStatusRecalculationSummary(): Promise<AttendanceStatusRecalculationSummary> {
+  const [
+    totalNormalRecords,
+    normalRecordsWithSchedule,
+    onTimeRecords,
+    lateRecords,
+    halfDayRecords,
+    missingTimeoutRecords,
+    skippedManualRecords,
+  ] = await Promise.all([
+    prisma.attendance.count({
+      where: {
+        isManual: false,
+      },
+    }),
+
+    prisma.attendance.count({
+      where: buildEligibleRecalculationWhere(),
+    }),
+
+    prisma.attendance.count({
+      where: {
+        isManual: false,
+        status: "ON_TIME",
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        isManual: false,
+        status: "LATE",
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        isManual: false,
+        status: "HALF_DAY",
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        isManual: false,
+        status: "MISSING_TIMEOUT",
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        isManual: true,
+      },
+    }),
+  ]);
+
+  return {
+    totalNormalRecords,
+    normalRecordsWithSchedule,
+    onTimeRecords,
+    lateRecords,
+    halfDayRecords,
+    missingTimeoutRecords,
+    skippedManualRecords,
+  };
+}
+
+export async function recalculateNormalAttendanceStatuses(input: {
+  actorUserId: number;
+  limit?: number;
+}): Promise<AttendanceStatusRecalculationResult> {
+  const limit = input.limit ?? 300;
+  const where = buildEligibleRecalculationWhere();
+
+  return prisma.$transaction(async (tx) => {
+    const records = await tx.attendance.findMany({
+      where,
+      select: {
+        attendanceId: true,
+        empId: true,
+        scheduleId: true,
+        attDate: true,
+        timeIn: true,
+        timeOut: true,
+        status: true,
+        totalMinutes: true,
+        isManual: true,
+        inSource: true,
+        outSource: true,
+        updatedById: true,
+        schedule: {
+          select: {
+            shift: {
+              select: {
+                startTime: true,
+                endTime: true,
+                graceMinutes: true,
+                isOvernight: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: [
+        {
+          attDate: "desc",
+        },
+        {
+          attendanceId: "desc",
+        },
+      ],
+      take: limit,
+    });
+
+    let updatedCount = 0;
+    let skippedCount = 0;
+
+    for (const record of records) {
+      if (!record.schedule?.shift) {
+        skippedCount += 1;
+        continue;
+      }
+
+      const calculated = calculateAttendanceStatus({
+        attDate: record.attDate,
+        timeIn: record.timeIn,
+        timeOut: record.timeOut,
+        shiftStartTime: record.schedule.shift.startTime,
+        shiftEndTime: record.schedule.shift.endTime,
+        graceMinutes: record.schedule.shift.graceMinutes,
+        isOvernight: record.schedule.shift.isOvernight,
+      });
+
+      const statusChanged = record.status !== calculated.status;
+      const totalMinutesChanged = record.totalMinutes !== calculated.totalMinutes;
+
+      if (!statusChanged && !totalMinutesChanged) {
+        skippedCount += 1;
+        continue;
+      }
+
+      await tx.attendance.update({
+        where: {
+          attendanceId: record.attendanceId,
+        },
+        data: {
+          status: calculated.status,
+          totalMinutes: calculated.totalMinutes,
+          updatedById: input.actorUserId,
+        },
+      });
+
+      await tx.activityLog.create({
+        data: {
+          actorUserId: input.actorUserId,
+          action: "ATTENDANCE_STATUS_UPDATED_AUTO_RECALC",
+          entityType: "attendance",
+          entityId: String(record.attendanceId),
+          oldValue: buildAttendanceAuditValue(record),
+          newValue: buildUpdatedAuditValue({
+            record,
+            status: calculated.status,
+            totalMinutes: calculated.totalMinutes,
+            actorUserId: input.actorUserId,
+            reason: calculated.reason,
+          }),
+        },
+      });
+
+      updatedCount += 1;
+    }
+
+    return {
+      processedCount: records.length,
+      updatedCount,
+      skippedCount,
+    };
+  });
+}
+
+============================================================
+FILE: src\features\attendance\missing-timeouts\server\missing-timeout-service.ts
+============================================================
+import type { Prisma } from "@/generated/prisma/client";
+import { prisma } from "@/lib/db/prisma";
+
+export type AttendanceMissingTimeoutAuditSource = {
+  attendanceId: number;
+  empId: number;
+  scheduleId: number | null;
+  attDate: Date;
+  timeIn: Date | null;
+  timeOut: Date | null;
+  status: string;
+  totalMinutes: number | null;
+  isManual: boolean;
+  inSource: string | null;
+  outSource: string | null;
+  verifiedById: number | null;
+  verifiedAt: Date | null;
+  approvedById: number | null;
+  approvedAt: Date | null;
+  updatedById: number | null;
+};
+
+export type MarkMissingTimeoutResult = {
+  markedCount: number;
+  remainingEligibleCount: number;
+};
+
+export const attendanceMissingTimeoutAuditSelect = {
+  attendanceId: true,
+  empId: true,
+  scheduleId: true,
+  attDate: true,
+  timeIn: true,
+  timeOut: true,
+  status: true,
+  totalMinutes: true,
+  isManual: true,
+  inSource: true,
+  outSource: true,
+  verifiedById: true,
+  verifiedAt: true,
+  approvedById: true,
+  approvedAt: true,
+  updatedById: true,
+} satisfies Prisma.AttendanceSelect;
+
+function getManilaDateOnly(date = new Date()): Date {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  const day = Number(parts.find((part) => part.type === "day")?.value);
+
+  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+}
+
+function getCutoffDate(hoursAgo: number): Date {
+  return new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+}
+
+export function buildEligibleMissingTimeoutWhere(): Prisma.AttendanceWhereInput {
+  const today = getManilaDateOnly();
+  const cutoffDate = getCutoffDate(18);
+
+  return {
+    timeIn: {
+      not: null,
+    },
+    timeOut: null,
+    status: {
+      not: "MISSING_TIMEOUT",
+    },
+    OR: [
+      {
+        attDate: {
+          lt: today,
+        },
+      },
+      {
+        timeIn: {
+          lte: cutoffDate,
+        },
+      },
+    ],
+  };
+}
+
+export function buildAttendanceAuditValue(
+  input: AttendanceMissingTimeoutAuditSource,
+): Prisma.InputJsonObject {
+  return {
+    attendanceId: input.attendanceId,
+    empId: input.empId,
+    scheduleId: input.scheduleId,
+    attDate: input.attDate.toISOString(),
+    timeIn: input.timeIn?.toISOString() ?? null,
+    timeOut: input.timeOut?.toISOString() ?? null,
+    status: input.status,
+    totalMinutes: input.totalMinutes,
+    isManual: input.isManual,
+    inSource: input.inSource,
+    outSource: input.outSource,
+    verifiedById: input.verifiedById,
+    verifiedAt: input.verifiedAt?.toISOString() ?? null,
+    approvedById: input.approvedById,
+    approvedAt: input.approvedAt?.toISOString() ?? null,
+    updatedById: input.updatedById,
+  };
+}
+
+export async function markRecordAsMissingTimeout(input: {
+  tx: Prisma.TransactionClient;
+  record: AttendanceMissingTimeoutAuditSource;
+  actorUserId: number;
+}) {
+  const updatedRecord = await input.tx.attendance.update({
+    where: {
+      attendanceId: input.record.attendanceId,
+    },
+    data: {
+      status: "MISSING_TIMEOUT",
+      updatedById: input.actorUserId,
+    },
+    select: attendanceMissingTimeoutAuditSelect,
+  });
+
+  await input.tx.attendanceLog.create({
+    data: {
+      attendanceId: updatedRecord.attendanceId,
+      empId: updatedRecord.empId,
+      punchType: "CORRECTION",
+      punchedAt: new Date(),
+      source: updatedRecord.inSource ?? "KIOSK",
+      remarks:
+        "Automatically marked as MISSING_TIMEOUT because no time-out was recorded.",
+      reason: "Missing time-out detection",
+    },
+  });
+
+  await input.tx.activityLog.create({
+    data: {
+      actorUserId: input.actorUserId,
+      action: "ATTENDANCE_MARKED_MISSING_TIMEOUT",
+      entityType: "attendance",
+      entityId: String(updatedRecord.attendanceId),
+      oldValue: buildAttendanceAuditValue(input.record),
+      newValue: buildAttendanceAuditValue(updatedRecord),
+    },
+  });
+
+  return updatedRecord;
+}
+
+export async function markSingleMissingTimeout(input: {
+  attendanceId: number;
+  actorUserId: number;
+}): Promise<MarkMissingTimeoutResult> {
+  const eligibleWhere = buildEligibleMissingTimeoutWhere();
+
+  return prisma.$transaction(async (tx) => {
+    const record = await tx.attendance.findFirst({
+      where: {
+        AND: [
+          eligibleWhere,
+          {
+            attendanceId: input.attendanceId,
+          },
+        ],
+      },
+      select: attendanceMissingTimeoutAuditSelect,
+    });
+
+    if (!record) {
+      const remainingEligibleCount = await tx.attendance.count({
+        where: eligibleWhere,
+      });
+
+      return {
+        markedCount: 0,
+        remainingEligibleCount,
+      };
+    }
+
+    await markRecordAsMissingTimeout({
+      tx,
+      record,
+      actorUserId: input.actorUserId,
+    });
+
+    const remainingEligibleCount = await tx.attendance.count({
+      where: eligibleWhere,
+    });
+
+    return {
+      markedCount: 1,
+      remainingEligibleCount,
+    };
+  });
+}
+
+export async function markEligibleMissingTimeouts(input: {
+  actorUserId: number;
+  limit?: number;
+}): Promise<MarkMissingTimeoutResult> {
+  const eligibleWhere = buildEligibleMissingTimeoutWhere();
+  const limit = input.limit ?? 200;
+
+  return prisma.$transaction(async (tx) => {
+    const records = await tx.attendance.findMany({
+      where: eligibleWhere,
+      select: attendanceMissingTimeoutAuditSelect,
+      orderBy: [
+        {
+          attDate: "asc",
+        },
+        {
+          timeIn: "asc",
+        },
+      ],
+      take: limit,
+    });
+
+    for (const record of records) {
+      await markRecordAsMissingTimeout({
+        tx,
+        record,
+        actorUserId: input.actorUserId,
+      });
+    }
+
+    const remainingEligibleCount = await tx.attendance.count({
+      where: eligibleWhere,
+    });
+
+    return {
+      markedCount: records.length,
+      remainingEligibleCount,
+    };
+  });
+}
+
+============================================================
+FILE: src\features\attendance\missing-timeouts\server\missing-timeout-queries.ts
+============================================================
+import type { Prisma } from "@/generated/prisma/client";
+import { prisma } from "@/lib/db/prisma";
+import { formatFullName } from "@/lib/utils/formatting";
+import { buildAttendanceReviewRequiredWhere } from "@/features/attendance/server/attendance-review-policy";
+import type {
+  MissingTimeoutPageData,
+  MissingTimeoutRecord,
+} from "../types/missing-timeout-types";
+
+function getManilaDateOnly(date = new Date()): Date {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  const day = Number(parts.find((part) => part.type === "day")?.value);
+
+  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+}
+
+function getCutoffDate(hoursAgo: number): Date {
+  return new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+}
+
+function formatDate(date: Date | null | undefined): string {
+  if (!date) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("en-PH", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    timeZone: "Asia/Manila",
+  }).format(date);
+}
+
+function formatTime(date: Date | null | undefined): string {
+  if (!date) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("en-PH", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "Asia/Manila",
+  }).format(date);
+}
+
+function formatShiftTimeValue(value: string): string {
+  if (/^\d{2}:\d{2}:\d{2}$/.test(value)) {
+    return value.slice(0, 5);
+  }
+
+  return value;
+}
+
+function formatShiftTime(input: {
+  startTime: string;
+  endTime: string;
+  isOvernight: boolean;
+}): string {
+  const startTime = formatShiftTimeValue(input.startTime);
+  const endTime = formatShiftTimeValue(input.endTime);
+  const overnightLabel = input.isOvernight ? " · Overnight" : "";
+
+  return `${startTime} - ${endTime}${overnightLabel}`;
+}
+
+function dash(value: string | null | undefined): string {
+  return value?.trim() ? value : "—";
+}
+
+function getAgeHours(date: Date | null): number {
+  if (!date) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor((Date.now() - date.getTime()) / 3_600_000));
+}
+
+function buildEligibleMissingTimeoutWhere(): Prisma.AttendanceWhereInput {
+  const today = getManilaDateOnly();
+  const cutoffDate = getCutoffDate(18);
+
+  return {
+    timeIn: {
+      not: null,
+    },
+    timeOut: null,
+    status: {
+      not: "MISSING_TIMEOUT",
+    },
+    OR: [
+      {
+        attDate: {
+          lt: today,
+        },
+      },
+      {
+        timeIn: {
+          lte: cutoffDate,
+        },
+      },
+    ],
+  };
+}
+
+function mapMissingTimeoutRecord(input: {
+  attendanceId: number;
+  attDate: Date;
+  timeIn: Date | null;
+  inSource: string | null;
+  status: string;
+  isManual: boolean;
+  employee: {
+    empNumber: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    branch: {
+      name: string;
+    };
+    department: {
+      name: string;
+    } | null;
+  };
+  schedule: {
+    scheduleCode: string;
+    name: string;
+    shift: {
+      shiftCode: string;
+      name: string;
+      startTime: string;
+      endTime: string;
+      isOvernight: boolean;
+    };
+  } | null;
+}): MissingTimeoutRecord {
+  const employeeName = formatFullName({
+    firstName: input.employee.firstName,
+    middleName: input.employee.middleName,
+    lastName: input.employee.lastName,
+  });
+
+  return {
+    attendanceId: input.attendanceId,
+    empNumber: input.employee.empNumber,
+    employeeName,
+    branchName: input.employee.branch.name,
+    departmentName: dash(input.employee.department?.name),
+    scheduleName: input.schedule
+      ? `${input.schedule.scheduleCode} · ${input.schedule.name}`
+      : "—",
+    shiftTime: input.schedule
+      ? `${input.schedule.shift.shiftCode} · ${
+          input.schedule.shift.name
+        } (${formatShiftTime({
+          startTime: input.schedule.shift.startTime,
+          endTime: input.schedule.shift.endTime,
+          isOvernight: input.schedule.shift.isOvernight,
+        })})`
+      : "—",
+    attDate: formatDate(input.attDate),
+    timeIn: formatTime(input.timeIn),
+    source: input.inSource ?? "—",
+    status: input.status,
+    isManual: input.isManual,
+    ageHours: getAgeHours(input.timeIn),
+  };
+}
+
+export async function getMissingTimeoutPageData(): Promise<MissingTimeoutPageData> {
+  const eligibleWhere = buildEligibleMissingTimeoutWhere();
+  const reviewRequiredWhere = buildAttendanceReviewRequiredWhere();
+
+  const [
+    records,
+    eligibleMissingTimeouts,
+    alreadyMarkedMissingTimeouts,
+    manualPendingReview,
+  ] = await Promise.all([
+    prisma.attendance.findMany({
+      where: eligibleWhere,
+      select: {
+        attendanceId: true,
+        attDate: true,
+        timeIn: true,
+        inSource: true,
+        status: true,
+        isManual: true,
+        employee: {
+          select: {
+            empNumber: true,
+            firstName: true,
+            middleName: true,
+            lastName: true,
+            branch: {
+              select: {
+                name: true,
+              },
+            },
+            department: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        schedule: {
+          select: {
+            scheduleCode: true,
+            name: true,
+            shift: {
+              select: {
+                shiftCode: true,
+                name: true,
+                startTime: true,
+                endTime: true,
+                isOvernight: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: [
+        {
+          attDate: "asc",
+        },
+        {
+          timeIn: "asc",
+        },
+        {
+          attendanceId: "asc",
+        },
+      ],
+      take: 200,
+    }),
+
+    prisma.attendance.count({
+      where: eligibleWhere,
+    }),
+
+    prisma.attendance.count({
+      where: {
+        status: "MISSING_TIMEOUT",
+      },
+    }),
+
+    prisma.attendance.count({
+      where: {
+        AND: [
+          reviewRequiredWhere,
+          {
+            approvedAt: null,
+          },
+        ],
+      },
+    }),
+  ]);
+
+  return {
+    records: records.map(mapMissingTimeoutRecord),
+    summary: {
+      eligibleMissingTimeouts,
+      alreadyMarkedMissingTimeouts,
+      manualPendingReview,
+    },
+  };
+}
+
+============================================================
+FILE: src\features\attendance\maintenance\server\missing-timeout-queries.ts
+============================================================
+import { prisma } from "@/lib/db/prisma";
+import { formatFullName, formatMinutesToHours } from "@/lib/utils/formatting";
+import type {
+  MissingTimeoutCandidate,
+  MissingTimeoutMaintenanceData,
+} from "../types/missing-timeout-types";
+
+const MISSING_TIMEOUT_AFTER_SCHEDULE_END_MINUTES = 120;
+const MISSING_TIMEOUT_WITHOUT_SCHEDULE_HOURS = 18;
+const MAX_CANDIDATES_TO_SCAN = 500;
+
+type AttendanceCandidateSource = {
+  attendanceId: number;
+  attDate: Date;
+  timeIn: Date | null;
+  inSource: string | null;
+  status: string;
+  totalMinutes: number | null;
+  employee: {
+    empNumber: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    branch: {
+      name: string;
+    };
+    department: {
+      name: string;
+    } | null;
+  };
+  schedule: {
+    scheduleCode: string;
+    name: string;
+    daysOfWeek: string | null;
+    effectiveFrom: Date;
+    effectiveTo: Date | null;
+    status: string;
+    shift: {
+      shiftCode: string;
+      name: string;
+      startTime: string;
+      endTime: string;
+      isOvernight: boolean;
+      status: string;
+    };
+  } | null;
+};
+
+function formatDate(date: Date | null | undefined): string {
+  if (!date) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("en-PH", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    timeZone: "Asia/Manila",
+  }).format(date);
+}
+
+function formatDateTime(date: Date | null | undefined): string {
+  if (!date) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("en-PH", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "Asia/Manila",
+  }).format(date);
+}
+
+function formatShiftTimeValue(value: string): string {
+  if (/^\d{2}:\d{2}:\d{2}$/.test(value)) {
+    return value.slice(0, 5);
+  }
+
+  return value;
+}
+
+function getMinutesDifference(start: Date, end: Date): number {
+  return Math.floor((end.getTime() - start.getTime()) / 60000);
+}
+
+function getManilaDateParts(date: Date): {
+  year: number;
+  month: number;
+  day: number;
+} {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  return {
+    year: Number(parts.find((part) => part.type === "year")?.value ?? "1970"),
+    month: Number(parts.find((part) => part.type === "month")?.value ?? "1"),
+    day: Number(parts.find((part) => part.type === "day")?.value ?? "1"),
+  };
+}
+
+function parseShiftTime(value: string): {
+  hour: number;
+  minute: number;
+  second: number;
+} {
+  const [hour = "0", minute = "0", second = "0"] = value.split(":");
+
+  return {
+    hour: Number(hour),
+    minute: Number(minute),
+    second: Number(second),
+  };
+}
+
+function buildManilaDateTime(input: {
+  attDate: Date;
+  timeValue: string;
+  addDays?: number;
+}): Date {
+  const { year, month, day } = getManilaDateParts(input.attDate);
+  const { hour, minute, second } = parseShiftTime(input.timeValue);
+  const addDays = input.addDays ?? 0;
+
+  return new Date(
+    Date.UTC(year, month - 1, day + addDays, hour - 8, minute, second, 0),
+  );
+}
+
+function isUsableSchedule(
+  schedule: AttendanceCandidateSource["schedule"],
+  attDate: Date,
+): schedule is NonNullable<AttendanceCandidateSource["schedule"]> {
+  if (!schedule) {
+    return false;
+  }
+
+  if (schedule.status !== "ACTIVE" || schedule.shift.status !== "ACTIVE") {
+    return false;
+  }
+
+  if (schedule.effectiveFrom > attDate) {
+    return false;
+  }
+
+  if (schedule.effectiveTo && schedule.effectiveTo < attDate) {
+    return false;
+  }
+
+  return true;
+}
+
+function getScheduledEndDateTime(input: {
+  attDate: Date;
+  schedule: NonNullable<AttendanceCandidateSource["schedule"]>;
+}): Date {
+  const start = buildManilaDateTime({
+    attDate: input.attDate,
+    timeValue: input.schedule.shift.startTime,
+  });
+
+  const sameDayEnd = buildManilaDateTime({
+    attDate: input.attDate,
+    timeValue: input.schedule.shift.endTime,
+  });
+
+  if (input.schedule.shift.isOvernight || sameDayEnd <= start) {
+    return buildManilaDateTime({
+      attDate: input.attDate,
+      timeValue: input.schedule.shift.endTime,
+      addDays: 1,
+    });
+  }
+
+  return sameDayEnd;
+}
+
+function getCutoffData(input: AttendanceCandidateSource): {
+  cutoffAt: Date;
+  scheduledEnd: Date | null;
+  hasSchedule: boolean;
+  reason: string;
+} {
+  if (isUsableSchedule(input.schedule, input.attDate)) {
+    const scheduledEnd = getScheduledEndDateTime({
+      attDate: input.attDate,
+      schedule: input.schedule,
+    });
+
+    return {
+      scheduledEnd,
+      hasSchedule: true,
+      cutoffAt: new Date(
+        scheduledEnd.getTime() +
+          MISSING_TIMEOUT_AFTER_SCHEDULE_END_MINUTES * 60_000,
+      ),
+      reason: `No time-out after schedule end + ${MISSING_TIMEOUT_AFTER_SCHEDULE_END_MINUTES} minutes.`,
+    };
+  }
+
+  const fallbackStart = input.timeIn ?? input.attDate;
+
+  return {
+    scheduledEnd: null,
+    hasSchedule: false,
+    cutoffAt: new Date(
+      fallbackStart.getTime() + MISSING_TIMEOUT_WITHOUT_SCHEDULE_HOURS * 60 * 60_000,
+    ),
+    reason: `No active schedule found. No time-out after ${MISSING_TIMEOUT_WITHOUT_SCHEDULE_HOURS} hours from time-in.`,
+  };
+}
+
+function formatScheduleName(
+  schedule: AttendanceCandidateSource["schedule"],
+): string {
+  if (!schedule) {
+    return "No schedule";
+  }
+
+  return `${schedule.scheduleCode} · ${schedule.name}`;
+}
+
+function formatShiftTime(
+  schedule: AttendanceCandidateSource["schedule"],
+): string {
+  if (!schedule) {
+    return "—";
+  }
+
+  const startTime = formatShiftTimeValue(schedule.shift.startTime);
+  const endTime = formatShiftTimeValue(schedule.shift.endTime);
+  const overnight = schedule.shift.isOvernight ? " · Overnight" : "";
+
+  return `${schedule.shift.shiftCode} · ${schedule.shift.name} (${startTime} - ${endTime}${overnight})`;
+}
+
+function mapCandidate(input: AttendanceCandidateSource): MissingTimeoutCandidate {
+  const cutoffData = getCutoffData(input);
+  const employeeName = formatFullName({
+    firstName: input.employee.firstName,
+    middleName: input.employee.middleName,
+    lastName: input.employee.lastName,
+  });
+
+  const totalMinutes = input.timeIn
+    ? Math.max(0, getMinutesDifference(input.timeIn, new Date()))
+    : input.totalMinutes;
+
+  return {
+    attendanceId: input.attendanceId,
+    empNumber: input.employee.empNumber,
+    employeeName,
+    branchName: input.employee.branch.name,
+    departmentName: input.employee.department?.name ?? "—",
+    scheduleName: formatScheduleName(input.schedule),
+    shiftTime: formatShiftTime(input.schedule),
+    attDate: formatDate(input.attDate),
+    timeIn: formatDateTime(input.timeIn),
+    scheduledEnd: formatDateTime(cutoffData.scheduledEnd),
+    cutoffAt: formatDateTime(cutoffData.cutoffAt),
+    source: input.inSource ?? "—",
+    currentStatus: input.status,
+    totalHours: formatMinutesToHours(totalMinutes),
+    reason: cutoffData.reason,
+  };
+}
+
+async function getRawMissingTimeoutCandidates(): Promise<
+  AttendanceCandidateSource[]
+> {
+  const now = new Date();
+
+  const records = await prisma.attendance.findMany({
+    where: {
+      timeIn: {
+        not: null,
+      },
+      timeOut: null,
+      isManual: false,
+      status: {
+        notIn: ["MISSING_TIMEOUT", "PENDING_REVIEW"],
+      },
+    },
+    select: {
+      attendanceId: true,
+      attDate: true,
+      timeIn: true,
+      inSource: true,
+      status: true,
+      totalMinutes: true,
+      employee: {
+        select: {
+          empNumber: true,
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          branch: {
+            select: {
+              name: true,
+            },
+          },
+          department: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      schedule: {
+        select: {
+          scheduleCode: true,
+          name: true,
+          daysOfWeek: true,
+          effectiveFrom: true,
+          effectiveTo: true,
+          status: true,
+          shift: {
+            select: {
+              shiftCode: true,
+              name: true,
+              startTime: true,
+              endTime: true,
+              isOvernight: true,
+              status: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: [
+      {
+        attDate: "asc",
+      },
+      {
+        timeIn: "asc",
+      },
+    ],
+    take: MAX_CANDIDATES_TO_SCAN,
+  });
+
+  return records.filter((record) => getCutoffData(record).cutoffAt <= now);
+}
+
+export async function getMissingTimeoutMaintenanceData(): Promise<MissingTimeoutMaintenanceData> {
+  const candidates = await getRawMissingTimeoutCandidates();
+
+  return {
+    candidates: candidates.map(mapCandidate),
+    summary: {
+      candidateCount: candidates.length,
+      withSchedule: candidates.filter((candidate) =>
+        isUsableSchedule(candidate.schedule, candidate.attDate),
+      ).length,
+      withoutSchedule: candidates.filter(
+        (candidate) => !isUsableSchedule(candidate.schedule, candidate.attDate),
+      ).length,
+    },
+  };
+}
+
+export async function getMissingTimeoutCandidateIds(): Promise<number[]> {
+  const candidates = await getRawMissingTimeoutCandidates();
+
+  return candidates.map((candidate) => candidate.attendanceId);
+}
+
+============================================================
+FILE: src\features\attendance\automation\server\attendance-automation-actions.ts
+============================================================
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { getCurrentSession } from "@/features/auth/server/session";
+import { canManageEmployees } from "@/lib/security/roles";
+import { markEligibleMissingTimeouts } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
+import type { AttendanceAutomationActionState } from "../types/attendance-automation-action-types";
+
+function parseLimit(value: FormDataEntryValue | null): number {
+  if (typeof value !== "string") {
+    return 200;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return 200;
+  }
+
+  return Math.min(parsed, 500);
+}
+
+function revalidateAttendanceAutomationPages() {
+  revalidatePath("/dashboard/attendance");
+  revalidatePath("/dashboard/attendance/actions");
+  revalidatePath("/dashboard/attendance/automation");
+  revalidatePath("/dashboard/attendance/missing-timeouts");
+  revalidatePath("/dashboard/attendance/review");
+  revalidatePath("/dashboard/attendance/reports");
+}
+
+export async function runMissingTimeoutAutomationAction(
+  _previousState: AttendanceAutomationActionState,
+  formData: FormData,
+): Promise<AttendanceAutomationActionState> {
+  const session = await getCurrentSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  if (!canManageEmployees(session.role)) {
+    return {
+      ok: false,
+      message: "You do not have permission to run attendance automation.",
+    };
+  }
+
+  const limit = parseLimit(formData.get("limit"));
+
+  const result = await markEligibleMissingTimeouts({
+    actorUserId: session.userId,
+    limit,
+  });
+
+  revalidateAttendanceAutomationPages();
+
+  return {
+    ok: true,
+    markedCount: result.markedCount,
+    remainingEligibleCount: result.remainingEligibleCount,
+    message:
+      result.markedCount > 0
+        ? `${result.markedCount} attendance record(s) marked as missing timeout. ${
+            result.remainingEligibleCount > 0
+              ? `${result.remainingEligibleCount} eligible record(s) remain. Run again to continue.`
+              : "No eligible records remain."
+          }`
+        : "No eligible missing timeout records found.",
+  };
+}
+
+
+============================================================
+FILE: src\app\api\cron\mark-missing-timeouts\route.ts
+============================================================
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import { markEligibleMissingTimeouts } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
+
+export const dynamic = "force-dynamic";
+
+function getSecretFromRequest(request: NextRequest): string | null {
+  const authorization = request.headers.get("authorization");
+  const bearerToken = authorization?.replace(/^Bearer\s+/i, "").trim();
+  const querySecret = request.nextUrl.searchParams.get("secret");
+
+  return bearerToken || querySecret;
+}
+
+function parseLimit(value: string | null): number {
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return 200;
+  }
+
+  return Math.min(parsed, 500);
+}
+
+async function getCronActorUserId(): Promise<number | null> {
+  const actorEmail =
+    process.env.MISSING_TIMEOUT_CRON_ACTOR_EMAIL ??
+    process.env.SEED_ADMIN_EMAIL ??
+    "";
+
+  if (!actorEmail.trim()) {
+    return null;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email: actorEmail,
+    },
+    select: {
+      userId: true,
+    },
+  });
+
+  return user?.userId ?? null;
+}
+
+export async function GET(request: NextRequest) {
+  const configuredSecret = process.env.MISSING_TIMEOUT_CRON_SECRET;
+  const requestSecret = getSecretFromRequest(request);
+
+  if (!configuredSecret) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message:
+          "MISSING_TIMEOUT_CRON_SECRET is not configured on the server.",
+      },
+      {
+        status: 500,
+      },
+    );
+  }
+
+  if (!requestSecret || requestSecret !== configuredSecret) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: "Unauthorized cron request.",
+      },
+      {
+        status: 401,
+      },
+    );
+  }
+
+  const actorUserId = await getCronActorUserId();
+
+  if (!actorUserId) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message:
+          "Cron actor user was not found. Set MISSING_TIMEOUT_CRON_ACTOR_EMAIL or SEED_ADMIN_EMAIL to an existing admin email.",
+      },
+      {
+        status: 500,
+      },
+    );
+  }
+
+  const limit = parseLimit(request.nextUrl.searchParams.get("limit"));
+
+  const result = await markEligibleMissingTimeouts({
+    actorUserId,
+    limit,
+  });
+
+  return NextResponse.json({
+    ok: true,
+    message:
+      result.markedCount > 0
+        ? `${result.markedCount} attendance record(s) marked as missing timeout.`
+        : "No eligible missing timeout records found.",
+    markedCount: result.markedCount,
+    remainingEligibleCount: result.remainingEligibleCount,
+  });
+}
+
+export async function POST(request: NextRequest) {
+  return GET(request);
+}
