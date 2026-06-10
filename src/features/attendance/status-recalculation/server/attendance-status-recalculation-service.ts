@@ -1,6 +1,12 @@
-import type { Prisma } from "@/generated/prisma/client";
+import type {
+  Prisma,
+} from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { calculateAttendanceStatus } from "@/features/attendance/status-calculation/server/attendance-status-calculator";
+import {
+  getAttendanceEnforcementPolicy,
+  getEffectiveLateGraceMinutes,
+} from "@/features/attendance/policies/server/attendance-policy-enforcement";
 import type { AttendanceStatusRecalculationSummary } from "../types/attendance-status-recalculation-types";
 
 type AttendanceRecalculationRecord = {
@@ -16,6 +22,7 @@ type AttendanceRecalculationRecord = {
   inSource: string | null;
   outSource: string | null;
   updatedById: number | null;
+
   schedule: {
     shift: {
       startTime: string;
@@ -33,48 +40,107 @@ export type AttendanceStatusRecalculationResult = {
 };
 
 function buildAttendanceAuditValue(
-  record: AttendanceRecalculationRecord,
+  record:
+    AttendanceRecalculationRecord,
 ): Prisma.InputJsonObject {
   return {
-    attendanceId: record.attendanceId,
-    empId: record.empId,
-    scheduleId: record.scheduleId,
-    attDate: record.attDate.toISOString(),
-    timeIn: record.timeIn?.toISOString() ?? null,
-    timeOut: record.timeOut?.toISOString() ?? null,
-    status: record.status,
-    totalMinutes: record.totalMinutes,
-    isManual: record.isManual,
-    inSource: record.inSource,
-    outSource: record.outSource,
-    updatedById: record.updatedById,
+    attendanceId:
+      record.attendanceId,
+
+    empId:
+      record.empId,
+
+    scheduleId:
+      record.scheduleId,
+
+    attDate:
+      record.attDate.toISOString(),
+
+    timeIn:
+      record.timeIn
+        ?.toISOString() ??
+      null,
+
+    timeOut:
+      record.timeOut
+        ?.toISOString() ??
+      null,
+
+    status:
+      record.status,
+
+    totalMinutes:
+      record.totalMinutes,
+
+    isManual:
+      record.isManual,
+
+    inSource:
+      record.inSource,
+
+    outSource:
+      record.outSource,
+
+    updatedById:
+      record.updatedById,
   };
 }
 
 function buildUpdatedAuditValue(input: {
-  record: AttendanceRecalculationRecord;
+  record:
+    AttendanceRecalculationRecord;
+
   status: string;
   totalMinutes: number | null;
   actorUserId: number;
   reason: string;
+
+  shiftGraceMinutes: number;
+  policyGraceMinutes: number;
+  effectiveGraceMinutes: number;
 }): Prisma.InputJsonObject {
   return {
-    ...buildAttendanceAuditValue(input.record),
-    status: input.status,
-    totalMinutes: input.totalMinutes,
-    updatedById: input.actorUserId,
-    recalculationReason: input.reason,
+    ...buildAttendanceAuditValue(
+      input.record,
+    ),
+
+    status:
+      input.status,
+
+    totalMinutes:
+      input.totalMinutes,
+
+    updatedById:
+      input.actorUserId,
+
+    recalculationReason:
+      input.reason,
+
+    lateGrace: {
+      shiftGraceMinutes:
+        input.shiftGraceMinutes,
+
+      policyGraceMinutes:
+        input.policyGraceMinutes,
+
+      effectiveGraceMinutes:
+        input.effectiveGraceMinutes,
+    },
   };
 }
 
 function buildEligibleRecalculationWhere(): Prisma.AttendanceWhereInput {
   return {
-    isManual: false,
+    isManual:
+      false,
+
     scheduleId: {
       not: null,
     },
+
     status: {
-      not: "PENDING_REVIEW",
+      not:
+        "PENDING_REVIEW",
     },
   };
 }
@@ -96,7 +162,8 @@ export async function getAttendanceStatusRecalculationSummary(): Promise<Attenda
     }),
 
     prisma.attendance.count({
-      where: buildEligibleRecalculationWhere(),
+      where:
+        buildEligibleRecalculationWhere(),
     }),
 
     prisma.attendance.count({
@@ -123,7 +190,9 @@ export async function getAttendanceStatusRecalculationSummary(): Promise<Attenda
     prisma.attendance.count({
       where: {
         isManual: false,
-        status: "MISSING_TIMEOUT",
+
+        status:
+          "MISSING_TIMEOUT",
       },
     }),
 
@@ -149,111 +218,207 @@ export async function recalculateNormalAttendanceStatuses(input: {
   actorUserId: number;
   limit?: number;
 }): Promise<AttendanceStatusRecalculationResult> {
-  const limit = input.limit ?? 300;
-  const where = buildEligibleRecalculationWhere();
+  const limit =
+    input.limit ?? 300;
 
-  return prisma.$transaction(async (tx) => {
-    const records = await tx.attendance.findMany({
-      where,
-      select: {
-        attendanceId: true,
-        empId: true,
-        scheduleId: true,
-        attDate: true,
-        timeIn: true,
-        timeOut: true,
-        status: true,
-        totalMinutes: true,
-        isManual: true,
-        inSource: true,
-        outSource: true,
-        updatedById: true,
-        schedule: {
+  const where =
+    buildEligibleRecalculationWhere();
+
+  const policy =
+    await getAttendanceEnforcementPolicy();
+
+  return prisma.$transaction(
+    async (tx) => {
+      const records =
+        await tx.attendance.findMany({
+          where,
+
           select: {
-            shift: {
+            attendanceId: true,
+            empId: true,
+            scheduleId: true,
+            attDate: true,
+            timeIn: true,
+            timeOut: true,
+            status: true,
+            totalMinutes: true,
+            isManual: true,
+            inSource: true,
+            outSource: true,
+            updatedById: true,
+
+            schedule: {
               select: {
-                startTime: true,
-                endTime: true,
-                graceMinutes: true,
-                isOvernight: true,
+                shift: {
+                  select: {
+                    startTime: true,
+                    endTime: true,
+                    graceMinutes: true,
+                    isOvernight: true,
+                  },
+                },
               },
             },
           },
-        },
-      },
-      orderBy: [
-        {
-          attDate: "desc",
-        },
-        {
-          attendanceId: "desc",
-        },
-      ],
-      take: limit,
-    });
 
-    let updatedCount = 0;
-    let skippedCount = 0;
+          orderBy: [
+            {
+              attDate: "desc",
+            },
+            {
+              attendanceId:
+                "desc",
+            },
+          ],
 
-    for (const record of records) {
-      if (!record.schedule?.shift) {
-        skippedCount += 1;
-        continue;
+          take: limit,
+        });
+
+      let updatedCount = 0;
+      let skippedCount = 0;
+
+      for (
+        const record of records
+      ) {
+        if (
+          !record.schedule
+            ?.shift
+        ) {
+          skippedCount += 1;
+          continue;
+        }
+
+        const shiftGraceMinutes =
+          record.schedule.shift
+            .graceMinutes;
+
+        const effectiveGraceMinutes =
+          getEffectiveLateGraceMinutes({
+            shiftGraceMinutes,
+
+            policyGraceMinutes:
+              policy.lateGraceMinutes,
+          });
+
+        const calculated =
+          calculateAttendanceStatus({
+            attDate:
+              record.attDate,
+
+            timeIn:
+              record.timeIn,
+
+            timeOut:
+              record.timeOut,
+
+            shiftStartTime:
+              record.schedule.shift
+                .startTime,
+
+            shiftEndTime:
+              record.schedule.shift
+                .endTime,
+
+            graceMinutes:
+              effectiveGraceMinutes,
+
+            isOvernight:
+              record.schedule.shift
+                .isOvernight,
+          });
+
+        const statusChanged =
+          record.status !==
+          calculated.status;
+
+        const totalMinutesChanged =
+          record.totalMinutes !==
+          calculated.totalMinutes;
+
+        if (
+          !statusChanged &&
+          !totalMinutesChanged
+        ) {
+          skippedCount += 1;
+          continue;
+        }
+
+        await tx.attendance.update({
+          where: {
+            attendanceId:
+              record.attendanceId,
+          },
+
+          data: {
+            status:
+              calculated.status,
+
+            totalMinutes:
+              calculated.totalMinutes,
+
+            updatedById:
+              input.actorUserId,
+          },
+        });
+
+        await tx.activityLog.create({
+          data: {
+            actorUserId:
+              input.actorUserId,
+
+            action:
+              "ATTENDANCE_STATUS_UPDATED_AUTO_RECALC",
+
+            entityType:
+              "attendance",
+
+            entityId:
+              String(
+                record.attendanceId,
+              ),
+
+            oldValue:
+              buildAttendanceAuditValue(
+                record,
+              ),
+
+            newValue:
+              buildUpdatedAuditValue({
+                record,
+
+                status:
+                  calculated.status,
+
+                totalMinutes:
+                  calculated.totalMinutes,
+
+                actorUserId:
+                  input.actorUserId,
+
+                reason:
+                  calculated.reason,
+
+                shiftGraceMinutes,
+
+                policyGraceMinutes:
+                  policy.lateGraceMinutes,
+
+                effectiveGraceMinutes,
+              }),
+          },
+        });
+
+        updatedCount += 1;
       }
 
-      const calculated = calculateAttendanceStatus({
-        attDate: record.attDate,
-        timeIn: record.timeIn,
-        timeOut: record.timeOut,
-        shiftStartTime: record.schedule.shift.startTime,
-        shiftEndTime: record.schedule.shift.endTime,
-        graceMinutes: record.schedule.shift.graceMinutes,
-        isOvernight: record.schedule.shift.isOvernight,
-      });
+      return {
+        processedCount:
+          records.length,
 
-      const statusChanged = record.status !== calculated.status;
-      const totalMinutesChanged = record.totalMinutes !== calculated.totalMinutes;
+        updatedCount,
 
-      if (!statusChanged && !totalMinutesChanged) {
-        skippedCount += 1;
-        continue;
-      }
-
-      await tx.attendance.update({
-        where: {
-          attendanceId: record.attendanceId,
-        },
-        data: {
-          status: calculated.status,
-          totalMinutes: calculated.totalMinutes,
-          updatedById: input.actorUserId,
-        },
-      });
-
-      await tx.activityLog.create({
-        data: {
-          actorUserId: input.actorUserId,
-          action: "ATTENDANCE_STATUS_UPDATED_AUTO_RECALC",
-          entityType: "attendance",
-          entityId: String(record.attendanceId),
-          oldValue: buildAttendanceAuditValue(record),
-          newValue: buildUpdatedAuditValue({
-            record,
-            status: calculated.status,
-            totalMinutes: calculated.totalMinutes,
-            actorUserId: input.actorUserId,
-            reason: calculated.reason,
-          }),
-        },
-      });
-
-      updatedCount += 1;
-    }
-
-    return {
-      processedCount: records.length,
-      updatedCount,
-      skippedCount,
-    };
-  });
+        skippedCount,
+      };
+    },
+  );
 }

@@ -1,6 +1,12 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { History, ShieldCheck } from "lucide-react";
+import {
+  Ban,
+  History,
+  ShieldCheck,
+} from "lucide-react";
+import {
+  redirect,
+} from "next/navigation";
 import { AttendanceDetailsModal } from "@/features/attendance/components/attendance-details-modal";
 import { MyAttendanceTable } from "@/features/attendance/components/my-attendance-table";
 import { TimeInOutForm } from "@/features/attendance/components/time-in-out-form";
@@ -10,26 +16,56 @@ import {
   getMyAttendanceDetail,
   getMyAttendanceList,
 } from "@/features/attendance/server/my-attendance-queries";
+import {
+  getAttendanceEnforcementPolicy,
+  getAttendanceSourceDisabledMessage,
+  isAttendanceSourceAllowed,
+} from "@/features/attendance/policies/server/attendance-policy-enforcement";
 
 type OdlAttendancePageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: Promise<
+    Record<
+      string,
+      string |
+      string[] |
+      undefined
+    >
+  >;
 };
 
 function getSearchParamValue(
-  value: string | string[] | undefined,
+  value:
+    | string
+    | string[]
+    | undefined,
 ): string | undefined {
-  if (Array.isArray(value)) {
+  if (
+    Array.isArray(value)
+  ) {
     return value[0];
   }
 
   return value;
 }
 
-function parsePositivePage(value: string | string[] | undefined): number {
-  const rawValue = getSearchParamValue(value);
-  const parsed = Number(rawValue);
+function parsePositivePage(
+  value:
+    | string
+    | string[]
+    | undefined,
+): number {
+  const rawValue =
+    getSearchParamValue(
+      value,
+    );
 
-  if (!Number.isInteger(parsed) || parsed <= 0) {
+  const parsed =
+    Number(rawValue);
+
+  if (
+    !Number.isInteger(parsed) ||
+    parsed <= 0
+  ) {
     return 1;
   }
 
@@ -39,29 +75,67 @@ function parsePositivePage(value: string | string[] | undefined): number {
 export default async function OdlAttendancePage({
   searchParams,
 }: OdlAttendancePageProps) {
-  const session = await getCurrentSession();
+  const session =
+    await getCurrentSession();
 
   if (!session) {
     redirect("/login");
   }
 
-  const resolvedSearchParams = await searchParams;
-  const detailId = getSearchParamValue(resolvedSearchParams.detailId) ?? "";
+  const resolvedSearchParams =
+    await searchParams;
 
-  const [odlAttendancePageData, myAttendance, detail] = await Promise.all([
-    getOdlAttendancePageData(),
+  const detailId =
+    getSearchParamValue(
+      resolvedSearchParams.detailId,
+    ) ?? "";
+
+  const policy =
+    await getAttendanceEnforcementPolicy();
+
+  const webAttendanceAllowed =
+    isAttendanceSourceAllowed({
+      source: "WEB",
+      policy,
+    });
+
+  const [
+    odlAttendancePageData,
+    myAttendance,
+    detail,
+  ] = await Promise.all([
+    webAttendanceAllowed
+      ? getOdlAttendancePageData()
+      : Promise.resolve(null),
+
     getMyAttendanceList({
-      page: parsePositivePage(resolvedSearchParams.page),
+      page:
+        parsePositivePage(
+          resolvedSearchParams.page,
+        ),
+
       pageSize: 10,
     }),
-    detailId ? getMyAttendanceDetail(detailId) : null,
+
+    detailId
+      ? getMyAttendanceDetail(
+          detailId,
+        )
+      : Promise.resolve(null),
   ]);
 
   return (
     <section className="starland-page space-y-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <span className="starland-badge starland-badge-success">
+          <span
+            className={[
+              "starland-badge",
+              webAttendanceAllowed
+                ? "starland-badge-success"
+                : "starland-badge-danger",
+            ].join(" ")}
+          >
             ODL Web Attendance
           </span>
 
@@ -70,10 +144,10 @@ export default async function OdlAttendancePage({
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            This page is for Online Distance Learning teachers only. The system
-            automatically checks today&apos;s record, captures location on page
-            load, requires a uniform selfie, then decides whether your next
-            submit is TIME IN or TIME OUT.
+            This page is for Online Distance Learning teachers only. When web
+            attendance is enabled, the system checks today&apos;s record,
+            captures location, requires a uniform selfie, and determines
+            whether the next submission is TIME IN or TIME OUT.
           </p>
         </div>
 
@@ -82,7 +156,11 @@ export default async function OdlAttendancePage({
             href="/dashboard/attendance/odl/eligibility"
             className="starland-btn starland-btn-soft"
           >
-            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+            <ShieldCheck
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
             Eligibility Check
           </Link>
 
@@ -90,13 +168,49 @@ export default async function OdlAttendancePage({
             href="/dashboard/attendance/odl/history"
             className="starland-btn starland-btn-primary"
           >
-            <History className="h-4 w-4" aria-hidden="true" />
+            <History
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
             View ODL History
           </Link>
         </div>
       </div>
 
-      <TimeInOutForm pageData={odlAttendancePageData} />
+      {webAttendanceAllowed &&
+      odlAttendancePageData ? (
+        <TimeInOutForm
+          pageData={
+            odlAttendancePageData
+          }
+        />
+      ) : (
+        <section className="rounded-2xl border border-red-200 bg-red-50 p-5">
+          <div className="flex items-start gap-3">
+            <Ban
+              className="mt-0.5 h-6 w-6 shrink-0 text-red-700"
+              aria-hidden="true"
+            />
+
+            <div>
+              <h2 className="text-lg font-extrabold text-red-900">
+                Web Attendance Disabled
+              </h2>
+
+              <p className="mt-1 text-sm font-semibold leading-6 text-red-800">
+                {getAttendanceSourceDisabledMessage(
+                  "WEB",
+                )}
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-red-700">
+                Your existing attendance history remains available below.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -116,7 +230,11 @@ export default async function OdlAttendancePage({
               href="/dashboard/attendance/odl/eligibility"
               className="starland-btn starland-btn-soft"
             >
-              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              <ShieldCheck
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
               Check Eligibility
             </Link>
 
@@ -124,13 +242,19 @@ export default async function OdlAttendancePage({
               href="/dashboard/attendance/odl/history"
               className="starland-btn starland-btn-soft"
             >
-              <History className="h-4 w-4" aria-hidden="true" />
+              <History
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
               Full History
             </Link>
           </div>
         </div>
 
-        <MyAttendanceTable result={myAttendance} />
+        <MyAttendanceTable
+          result={myAttendance}
+        />
       </section>
 
       <AttendanceDetailsModal
