@@ -1,5 +1,7 @@
-import { getMissingTimeoutPolicySnapshot } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
-import { buildEligibleMissingTimeoutWhere } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
+import {
+  buildEligibleMissingTimeoutWhere,
+  getMissingTimeoutPolicySnapshot,
+} from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
 import { buildAttendanceReviewRequiredWhere } from "@/features/attendance/server/attendance-review-policy";
 import { getAttendanceStatusRecalculationSummary } from "@/features/attendance/status-recalculation/server/attendance-status-recalculation-service";
 import { prisma } from "@/lib/db/prisma";
@@ -127,6 +129,12 @@ export async function getAttendanceAutomationStatus(): Promise<AttendanceAutomat
   ]);
 
   return {
+    autoMarkMissingTimeout:
+      policy.autoMarkMissingTimeout,
+
+    missingTimeoutMinutes:
+      policy.missingTimeoutMinutes,
+
     cronSecretConfigured,
 
     cronActorEmail:
