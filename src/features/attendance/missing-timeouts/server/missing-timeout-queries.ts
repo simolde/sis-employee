@@ -1,59 +1,70 @@
-import type { Prisma } from "@/generated/prisma/client";
+import { buildAttendanceReviewRequiredWhere } from "@/features/attendance/server/attendance-review-policy";
+import {
+  buildEligibleMissingTimeoutWhere,
+  getMissingTimeoutPolicySnapshot,
+} from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
 import { prisma } from "@/lib/db/prisma";
 import { formatFullName } from "@/lib/utils/formatting";
-import { buildAttendanceReviewRequiredWhere } from "@/features/attendance/server/attendance-review-policy";
 import type {
   MissingTimeoutPageData,
   MissingTimeoutRecord,
 } from "../types/missing-timeout-types";
 
-function getManilaDateOnly(date = new Date()): Date {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Manila",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-
-  const year = Number(parts.find((part) => part.type === "year")?.value);
-  const month = Number(parts.find((part) => part.type === "month")?.value);
-  const day = Number(parts.find((part) => part.type === "day")?.value);
-
-  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-}
-
-function getCutoffDate(hoursAgo: number): Date {
-  return new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
-}
-
-function formatDate(date: Date | null | undefined): string {
+function formatDate(
+  date:
+    | Date
+    | null
+    | undefined,
+): string {
   if (!date) {
     return "—";
   }
 
-  return new Intl.DateTimeFormat("en-PH", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    timeZone: "Asia/Manila",
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    "en-PH",
+    {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      timeZone:
+        "Asia/Manila",
+    },
+  ).format(date);
 }
 
-function formatTime(date: Date | null | undefined): string {
+function formatTime(
+  date:
+    | Date
+    | null
+    | undefined,
+): string {
   if (!date) {
     return "—";
   }
 
-  return new Intl.DateTimeFormat("en-PH", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "Asia/Manila",
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    "en-PH",
+    {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone:
+        "Asia/Manila",
+    },
+  ).format(date);
 }
 
-function formatShiftTimeValue(value: string): string {
-  if (/^\d{2}:\d{2}:\d{2}$/.test(value)) {
-    return value.slice(0, 5);
+function formatShiftTimeValue(
+  value: string,
+): string {
+  if (
+    /^\d{2}:\d{2}:\d{2}$/u.test(
+      value,
+    )
+  ) {
+    return value.slice(
+      0,
+      5,
+    );
   }
 
   return value;
@@ -64,50 +75,51 @@ function formatShiftTime(input: {
   endTime: string;
   isOvernight: boolean;
 }): string {
-  const startTime = formatShiftTimeValue(input.startTime);
-  const endTime = formatShiftTimeValue(input.endTime);
-  const overnightLabel = input.isOvernight ? " · Overnight" : "";
+  const startTime =
+    formatShiftTimeValue(
+      input.startTime,
+    );
+
+  const endTime =
+    formatShiftTimeValue(
+      input.endTime,
+    );
+
+  const overnightLabel =
+    input.isOvernight
+      ? " · Overnight"
+      : "";
 
   return `${startTime} - ${endTime}${overnightLabel}`;
 }
 
-function dash(value: string | null | undefined): string {
-  return value?.trim() ? value : "—";
+function dash(
+  value:
+    | string
+    | null
+    | undefined,
+): string {
+  return value?.trim()
+    ? value
+    : "—";
 }
 
-function getAgeHours(date: Date | null): number {
+function getAgeHours(
+  date: Date | null,
+): number {
   if (!date) {
     return 0;
   }
 
-  return Math.max(0, Math.floor((Date.now() - date.getTime()) / 3_600_000));
-}
-
-function buildEligibleMissingTimeoutWhere(): Prisma.AttendanceWhereInput {
-  const today = getManilaDateOnly();
-  const cutoffDate = getCutoffDate(18);
-
-  return {
-    timeIn: {
-      not: null,
-    },
-    timeOut: null,
-    status: {
-      not: "MISSING_TIMEOUT",
-    },
-    OR: [
-      {
-        attDate: {
-          lt: today,
-        },
-      },
-      {
-        timeIn: {
-          lte: cutoffDate,
-        },
-      },
-    ],
-  };
+  return Math.max(
+    0,
+    Math.floor(
+      (
+        Date.now() -
+        date.getTime()
+      ) / 3_600_000,
+    ),
+  );
 }
 
 function mapMissingTimeoutRecord(input: {
@@ -117,21 +129,26 @@ function mapMissingTimeoutRecord(input: {
   inSource: string | null;
   status: string;
   isManual: boolean;
+
   employee: {
     empNumber: string;
     firstName: string;
     middleName: string | null;
     lastName: string;
+
     branch: {
       name: string;
     };
+
     department: {
       name: string;
     } | null;
   };
+
   schedule: {
     scheduleCode: string;
     name: string;
+
     shift: {
       shiftCode: string;
       name: string;
@@ -141,42 +158,99 @@ function mapMissingTimeoutRecord(input: {
     };
   } | null;
 }): MissingTimeoutRecord {
-  const employeeName = formatFullName({
-    firstName: input.employee.firstName,
-    middleName: input.employee.middleName,
-    lastName: input.employee.lastName,
-  });
+  const employeeName =
+    formatFullName({
+      firstName:
+        input.employee.firstName,
+
+      middleName:
+        input.employee.middleName,
+
+      lastName:
+        input.employee.lastName,
+    });
 
   return {
-    attendanceId: input.attendanceId,
-    empNumber: input.employee.empNumber,
+    attendanceId:
+      input.attendanceId,
+
+    empNumber:
+      input.employee.empNumber,
+
     employeeName,
-    branchName: input.employee.branch.name,
-    departmentName: dash(input.employee.department?.name),
-    scheduleName: input.schedule
-      ? `${input.schedule.scheduleCode} · ${input.schedule.name}`
-      : "—",
-    shiftTime: input.schedule
-      ? `${input.schedule.shift.shiftCode} · ${
-          input.schedule.shift.name
-        } (${formatShiftTime({
-          startTime: input.schedule.shift.startTime,
-          endTime: input.schedule.shift.endTime,
-          isOvernight: input.schedule.shift.isOvernight,
-        })})`
-      : "—",
-    attDate: formatDate(input.attDate),
-    timeIn: formatTime(input.timeIn),
-    source: input.inSource ?? "—",
-    status: input.status,
-    isManual: input.isManual,
-    ageHours: getAgeHours(input.timeIn),
+
+    branchName:
+      input.employee.branch.name,
+
+    departmentName:
+      dash(
+        input.employee.department
+          ?.name,
+      ),
+
+    scheduleName:
+      input.schedule
+        ? `${input.schedule.scheduleCode} · ${input.schedule.name}`
+        : "—",
+
+    shiftTime:
+      input.schedule
+        ? `${input.schedule.shift.shiftCode} · ${
+            input.schedule.shift.name
+          } (${formatShiftTime({
+            startTime:
+              input.schedule.shift
+                .startTime,
+
+            endTime:
+              input.schedule.shift
+                .endTime,
+
+            isOvernight:
+              input.schedule.shift
+                .isOvernight,
+          })})`
+        : "—",
+
+    attDate:
+      formatDate(
+        input.attDate,
+      ),
+
+    timeIn:
+      formatTime(
+        input.timeIn,
+      ),
+
+    source:
+      input.inSource ??
+      "—",
+
+    status:
+      input.status,
+
+    isManual:
+      input.isManual,
+
+    ageHours:
+      getAgeHours(
+        input.timeIn,
+      ),
   };
 }
 
 export async function getMissingTimeoutPageData(): Promise<MissingTimeoutPageData> {
-  const eligibleWhere = buildEligibleMissingTimeoutWhere();
-  const reviewRequiredWhere = buildAttendanceReviewRequiredWhere();
+  const policy =
+    await getMissingTimeoutPolicySnapshot();
+
+  const eligibleWhere =
+    buildEligibleMissingTimeoutWhere({
+      missingTimeoutMinutes:
+        policy.missingTimeoutMinutes,
+    });
+
+  const reviewRequiredWhere =
+    buildAttendanceReviewRequiredWhere();
 
   const [
     records,
@@ -185,7 +259,9 @@ export async function getMissingTimeoutPageData(): Promise<MissingTimeoutPageDat
     manualPendingReview,
   ] = await Promise.all([
     prisma.attendance.findMany({
-      where: eligibleWhere,
+      where:
+        eligibleWhere,
+
       select: {
         attendanceId: true,
         attDate: true,
@@ -193,17 +269,20 @@ export async function getMissingTimeoutPageData(): Promise<MissingTimeoutPageDat
         inSource: true,
         status: true,
         isManual: true,
+
         employee: {
           select: {
             empNumber: true,
             firstName: true,
             middleName: true,
             lastName: true,
+
             branch: {
               select: {
                 name: true,
               },
             },
+
             department: {
               select: {
                 name: true,
@@ -211,10 +290,12 @@ export async function getMissingTimeoutPageData(): Promise<MissingTimeoutPageDat
             },
           },
         },
+
         schedule: {
           select: {
             scheduleCode: true,
             name: true,
+
             shift: {
               select: {
                 shiftCode: true,
@@ -227,27 +308,31 @@ export async function getMissingTimeoutPageData(): Promise<MissingTimeoutPageDat
           },
         },
       },
+
       orderBy: [
         {
-          attDate: "asc",
+          timeIn:
+            "asc",
         },
         {
-          timeIn: "asc",
-        },
-        {
-          attendanceId: "asc",
+          attendanceId:
+            "asc",
         },
       ],
-      take: 200,
+
+      take:
+        200,
     }),
 
     prisma.attendance.count({
-      where: eligibleWhere,
+      where:
+        eligibleWhere,
     }),
 
     prisma.attendance.count({
       where: {
-        status: "MISSING_TIMEOUT",
+        status:
+          "MISSING_TIMEOUT",
       },
     }),
 
@@ -256,7 +341,8 @@ export async function getMissingTimeoutPageData(): Promise<MissingTimeoutPageDat
         AND: [
           reviewRequiredWhere,
           {
-            approvedAt: null,
+            approvedAt:
+              null,
           },
         ],
       },
@@ -264,7 +350,11 @@ export async function getMissingTimeoutPageData(): Promise<MissingTimeoutPageDat
   ]);
 
   return {
-    records: records.map(mapMissingTimeoutRecord),
+    records:
+      records.map(
+        mapMissingTimeoutRecord,
+      ),
+
     summary: {
       eligibleMissingTimeouts,
       alreadyMarkedMissingTimeouts,
