@@ -1,4 +1,6 @@
-import type { Prisma } from "@/generated/prisma/client";
+import type {
+  Prisma,
+} from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import type {
   ScheduleAssignmentFilters,
@@ -7,68 +9,209 @@ import type {
 } from "../types/schedule-assignment-types";
 
 function singleSearchParam(
-  value: string | string[] | undefined,
+  value:
+    | string
+    | string[]
+    | undefined,
+
   fallback = "",
 ): string {
-  if (Array.isArray(value)) {
-    return value[0] ?? fallback;
+  if (
+    Array.isArray(value)
+  ) {
+    return (
+      value[0] ??
+      fallback
+    );
   }
 
-  return value ?? fallback;
+  return (
+    value ??
+    fallback
+  );
 }
 
-function parsePositiveId(value: string): number | null {
-  const parsed = Number(value);
+function parsePositiveId(
+  value: string,
+): number | null {
+  const parsed =
+    Number(value);
 
-  if (!Number.isInteger(parsed) || parsed <= 0) {
+  if (
+    !Number.isInteger(
+      parsed,
+    ) ||
+    parsed <= 0
+  ) {
     return null;
   }
 
   return parsed;
 }
 
-function normalizeActiveOnly(value: string): boolean {
-  return value !== "false";
+function parseDateInput(
+  value: string,
+): Date | null {
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/u.test(
+      value,
+    )
+  ) {
+    return null;
+  }
+
+  const date =
+    new Date(
+      `${value}T00:00:00.000Z`,
+    );
+
+  return Number.isNaN(
+    date.getTime(),
+  )
+    ? null
+    : date;
+}
+
+function normalizeActiveOnly(
+  value: string,
+): boolean {
+  return value !==
+    "false";
 }
 
 function todayInputValue(): string {
-  const now = new Date();
+  const now =
+    new Date();
 
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Manila",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(now);
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone:
+          "Asia/Manila",
 
-  const year = parts.find((part) => part.type === "year")?.value ?? "";
-  const month = parts.find((part) => part.type === "month")?.value ?? "";
-  const day = parts.find((part) => part.type === "day")?.value ?? "";
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      },
+    ).formatToParts(
+      now,
+    );
+
+  const year =
+    parts.find(
+      (part) =>
+        part.type === "year",
+    )?.value ?? "";
+
+  const month =
+    parts.find(
+      (part) =>
+        part.type === "month",
+    )?.value ?? "";
+
+  const day =
+    parts.find(
+      (part) =>
+        part.type === "day",
+    )?.value ?? "";
 
   return `${year}-${month}-${day}`;
 }
 
+function isScheduleEffectiveOnDate(
+  input: {
+    effectiveFrom: Date;
+    effectiveTo: Date | null;
+    validFrom: Date;
+  },
+): boolean {
+  if (
+    input.validFrom <
+    input.effectiveFrom
+  ) {
+    return false;
+  }
+
+  if (
+    input.effectiveTo &&
+    input.validFrom >
+      input.effectiveTo
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 export function parseScheduleAssignmentFilters(
-  searchParams: Record<string, string | string[] | undefined>,
+  searchParams: Record<
+    string,
+    string |
+    string[] |
+    undefined
+  >,
 ): ScheduleAssignmentFilters {
   return {
-    q: singleSearchParam(searchParams.q).trim(),
-    branchId: singleSearchParam(searchParams.branchId),
-    departmentId: singleSearchParam(searchParams.departmentId),
-    designationId: singleSearchParam(searchParams.designationId),
-    empTypeId: singleSearchParam(searchParams.empTypeId),
-    currentScheduleId: singleSearchParam(searchParams.currentScheduleId),
-    activeOnly: normalizeActiveOnly(
-      singleSearchParam(searchParams.activeOnly, "true"),
-    ),
-    targetScheduleId: singleSearchParam(searchParams.targetScheduleId),
-    validFrom: singleSearchParam(searchParams.validFrom, todayInputValue()),
-    remarks: singleSearchParam(searchParams.remarks),
+    q:
+      singleSearchParam(
+        searchParams.q,
+      ).trim(),
+
+    branchId:
+      singleSearchParam(
+        searchParams.branchId,
+      ),
+
+    departmentId:
+      singleSearchParam(
+        searchParams.departmentId,
+      ),
+
+    designationId:
+      singleSearchParam(
+        searchParams.designationId,
+      ),
+
+    empTypeId:
+      singleSearchParam(
+        searchParams.empTypeId,
+      ),
+
+    currentScheduleId:
+      singleSearchParam(
+        searchParams.currentScheduleId,
+      ),
+
+    activeOnly:
+      normalizeActiveOnly(
+        singleSearchParam(
+          searchParams.activeOnly,
+          "true",
+        ),
+      ),
+
+    targetScheduleId:
+      singleSearchParam(
+        searchParams.targetScheduleId,
+      ),
+
+    validFrom:
+      singleSearchParam(
+        searchParams.validFrom,
+        todayInputValue(),
+      ),
+
+    remarks:
+      singleSearchParam(
+        searchParams.remarks,
+      ),
   };
 }
 
 export function hasSpecificScheduleAssignmentFilters(
-  filters: ScheduleAssignmentFilters,
+  filters:
+    ScheduleAssignmentFilters,
 ): boolean {
   return Boolean(
     filters.q ||
@@ -81,16 +224,36 @@ export function hasSpecificScheduleAssignmentFilters(
 }
 
 export function buildScheduleAssignmentWhere(
-  filters: ScheduleAssignmentFilters,
+  filters:
+    ScheduleAssignmentFilters,
 ): Prisma.EmployeeWhereInput {
-  const andConditions: Prisma.EmployeeWhereInput[] = [];
+  const andConditions:
+    Prisma.EmployeeWhereInput[] =
+    [];
 
-  const branchId = parsePositiveId(filters.branchId);
-  const departmentId = parsePositiveId(filters.departmentId);
-  const designationId = parsePositiveId(filters.designationId);
-  const empTypeId = parsePositiveId(filters.empTypeId);
+  const branchId =
+    parsePositiveId(
+      filters.branchId,
+    );
 
-  if (filters.activeOnly) {
+  const departmentId =
+    parsePositiveId(
+      filters.departmentId,
+    );
+
+  const designationId =
+    parsePositiveId(
+      filters.designationId,
+    );
+
+  const empTypeId =
+    parsePositiveId(
+      filters.empTypeId,
+    );
+
+  if (
+    filters.activeOnly
+  ) {
     andConditions.push({
       status: "ACTIVE",
     });
@@ -120,16 +283,23 @@ export function buildScheduleAssignmentWhere(
     });
   }
 
-  if (filters.currentScheduleId === "NONE") {
+  if (
+    filters.currentScheduleId ===
+    "NONE"
+  ) {
     andConditions.push({
       scheduleId: null,
     });
   } else {
-    const currentScheduleId = parsePositiveId(filters.currentScheduleId);
+    const currentScheduleId =
+      parsePositiveId(
+        filters.currentScheduleId,
+      );
 
     if (currentScheduleId) {
       andConditions.push({
-        scheduleId: currentScheduleId,
+        scheduleId:
+          currentScheduleId,
       });
     }
   }
@@ -139,63 +309,73 @@ export function buildScheduleAssignmentWhere(
       OR: [
         {
           empNumber: {
-            contains: filters.q,
+            contains:
+              filters.q,
           },
         },
         {
           firstName: {
-            contains: filters.q,
+            contains:
+              filters.q,
           },
         },
         {
           middleName: {
-            contains: filters.q,
+            contains:
+              filters.q,
           },
         },
         {
           lastName: {
-            contains: filters.q,
+            contains:
+              filters.q,
           },
         },
         {
           department: {
             name: {
-              contains: filters.q,
+              contains:
+                filters.q,
             },
           },
         },
         {
           designation: {
             name: {
-              contains: filters.q,
+              contains:
+                filters.q,
             },
           },
         },
         {
           empType: {
             name: {
-              contains: filters.q,
+              contains:
+                filters.q,
             },
           },
         },
         {
           branch: {
             name: {
-              contains: filters.q,
+              contains:
+                filters.q,
             },
           },
         },
         {
           schedule: {
             name: {
-              contains: filters.q,
+              contains:
+                filters.q,
             },
           },
         },
         {
           schedule: {
             scheduleCode: {
-              contains: filters.q,
+              contains:
+                filters.q,
             },
           },
         },
@@ -203,195 +383,450 @@ export function buildScheduleAssignmentWhere(
     });
   }
 
-  if (andConditions.length === 0) {
+  if (
+    andConditions.length ===
+    0
+  ) {
     return {};
   }
 
   return {
-    AND: andConditions,
+    AND:
+      andConditions,
   };
 }
 
 export async function getScheduleAssignmentOptions(): Promise<ScheduleAssignmentOptions> {
-  const [branches, departments, designations, employeeTypes, schedules] =
+  const [
+    branches,
+    departments,
+    designations,
+    employeeTypes,
+    schedules,
+  ] =
     await Promise.all([
       prisma.branch.findMany({
+        where: {
+          status:
+            "ACTIVE",
+        },
+
         select: {
           branchId: true,
           name: true,
         },
+
         orderBy: {
           name: "asc",
         },
       }),
 
       prisma.department.findMany({
+        where: {
+          status:
+            "ACTIVE",
+        },
+
         select: {
-          departmentId: true,
+          departmentId:
+            true,
+
           name: true,
         },
+
         orderBy: {
           name: "asc",
         },
       }),
 
       prisma.designation.findMany({
+        where: {
+          status:
+            "ACTIVE",
+        },
+
         select: {
-          designationId: true,
+          designationId:
+            true,
+
           name: true,
         },
+
         orderBy: {
           name: "asc",
         },
       }),
 
       prisma.empType.findMany({
+        where: {
+          status:
+            "ACTIVE",
+        },
+
         select: {
-          empTypeId: true,
+          empTypeId:
+            true,
+
           name: true,
         },
+
         orderBy: {
           name: "asc",
         },
       }),
 
       prisma.shiftSchedule.findMany({
-        select: {
-          scheduleId: true,
-          scheduleCode: true,
-          name: true,
+        where: {
+          status:
+            "ACTIVE",
+
+          shift: {
+            status:
+              "ACTIVE",
+          },
         },
+
+        select: {
+          scheduleId:
+            true,
+
+          scheduleCode:
+            true,
+
+          name: true,
+
+          effectiveFrom:
+            true,
+
+          effectiveTo:
+            true,
+
+          shift: {
+            select: {
+              shiftCode:
+                true,
+
+              startTime:
+                true,
+
+              endTime:
+                true,
+            },
+          },
+        },
+
         orderBy: [
           {
-            scheduleCode: "asc",
+            scheduleCode:
+              "asc",
           },
           {
-            name: "asc",
+            name:
+              "asc",
           },
         ],
       }),
     ]);
 
   return {
-    branches: branches.map((branch) => ({
-      id: branch.branchId,
-      label: branch.name,
-    })),
-    departments: departments.map((department) => ({
-      id: department.departmentId,
-      label: department.name,
-    })),
-    designations: designations.map((designation) => ({
-      id: designation.designationId,
-      label: designation.name,
-    })),
-    employeeTypes: employeeTypes.map((employeeType) => ({
-      id: employeeType.empTypeId,
-      label: employeeType.name,
-    })),
-    schedules: schedules.map((schedule) => ({
-      id: schedule.scheduleId,
-      label: `${schedule.scheduleCode} · ${schedule.name}`,
-    })),
+    branches:
+      branches.map(
+        (branch) => ({
+          id:
+            branch.branchId,
+
+          label:
+            branch.name,
+        }),
+      ),
+
+    departments:
+      departments.map(
+        (department) => ({
+          id:
+            department.departmentId,
+
+          label:
+            department.name,
+        }),
+      ),
+
+    designations:
+      designations.map(
+        (designation) => ({
+          id:
+            designation.designationId,
+
+          label:
+            designation.name,
+        }),
+      ),
+
+    employeeTypes:
+      employeeTypes.map(
+        (employeeType) => ({
+          id:
+            employeeType.empTypeId,
+
+          label:
+            employeeType.name,
+        }),
+      ),
+
+    schedules:
+      schedules.map(
+        (schedule) => ({
+          id:
+            schedule.scheduleId,
+
+          label:
+            `${schedule.scheduleCode} · ${schedule.name} · ${schedule.shift.shiftCode} (${schedule.shift.startTime.slice(
+              0,
+              5,
+            )}-${schedule.shift.endTime.slice(
+              0,
+              5,
+            )})`,
+        }),
+      ),
   };
 }
 
 export async function getScheduleAssignmentPreview(
-  filters: ScheduleAssignmentFilters,
+  filters:
+    ScheduleAssignmentFilters,
 ): Promise<ScheduleAssignmentPreview> {
-  const where = buildScheduleAssignmentWhere(filters);
-  const targetScheduleId = parsePositiveId(filters.targetScheduleId);
+  const where =
+    buildScheduleAssignmentWhere(
+      filters,
+    );
 
-  const targetSchedule = targetScheduleId
-    ? await prisma.shiftSchedule.findUnique({
-        where: {
-          scheduleId: targetScheduleId,
-        },
-        select: {
-          scheduleCode: true,
-          name: true,
-        },
-      })
-    : null;
+  const targetScheduleId =
+    parsePositiveId(
+      filters.targetScheduleId,
+    );
+
+  const validFrom =
+    parseDateInput(
+      filters.validFrom,
+    );
+
+  const targetSchedule =
+    targetScheduleId
+      ? await prisma.shiftSchedule.findUnique({
+          where: {
+            scheduleId:
+              targetScheduleId,
+          },
+
+          select: {
+            scheduleCode:
+              true,
+
+            name: true,
+
+            status: true,
+
+            effectiveFrom:
+              true,
+
+            effectiveTo:
+              true,
+
+            shift: {
+              select: {
+                status:
+                  true,
+              },
+            },
+          },
+        })
+      : null;
+
+  let targetScheduleIssue:
+    string | null =
+    null;
+
+  if (
+    targetScheduleId &&
+    !targetSchedule
+  ) {
+    targetScheduleIssue =
+      "Target schedule was not found.";
+  } else if (
+    targetSchedule &&
+    targetSchedule.status !==
+      "ACTIVE"
+  ) {
+    targetScheduleIssue =
+      "Target schedule is not active.";
+  } else if (
+    targetSchedule &&
+    targetSchedule.shift.status !==
+      "ACTIVE"
+  ) {
+    targetScheduleIssue =
+      "The target schedule's shift is not active.";
+  } else if (
+    targetSchedule &&
+    validFrom &&
+    !isScheduleEffectiveOnDate({
+      effectiveFrom:
+        targetSchedule.effectiveFrom,
+
+      effectiveTo:
+        targetSchedule.effectiveTo,
+
+      validFrom,
+    })
+  ) {
+    targetScheduleIssue =
+      "The effective assignment date is outside the target schedule's effective date range.";
+  } else if (
+    targetSchedule &&
+    !validFrom
+  ) {
+    targetScheduleIssue =
+      "Select a valid effective assignment date.";
+  }
+
+  const targetScheduleAvailable =
+    Boolean(
+      targetScheduleId &&
+      targetSchedule &&
+      !targetScheduleIssue,
+    );
 
   const [
     matchingEmployees,
     activeMatchingEmployees,
     employeesWithoutSchedule,
     alreadyTargetSchedule,
-    wouldAssignCount,
-  ] = await Promise.all([
-    prisma.employee.count({
-      where,
-    }),
+    scheduleChangeCount,
+    historyRepairCount,
+  ] =
+    await Promise.all([
+      prisma.employee.count({
+        where,
+      }),
 
-    prisma.employee.count({
-      where: {
-        AND: [
-          where,
-          {
-            status: "ACTIVE",
-          },
-        ],
-      },
-    }),
+      prisma.employee.count({
+        where: {
+          AND: [
+            where,
+            {
+              status:
+                "ACTIVE",
+            },
+          ],
+        },
+      }),
 
-    prisma.employee.count({
-      where: {
-        AND: [
-          where,
-          {
-            scheduleId: null,
-          },
-        ],
-      },
-    }),
+      prisma.employee.count({
+        where: {
+          AND: [
+            where,
+            {
+              scheduleId:
+                null,
+            },
+          ],
+        },
+      }),
 
-    targetScheduleId
-      ? prisma.employee.count({
-          where: {
-            AND: [
-              where,
-              {
-                scheduleId: targetScheduleId,
-              },
-            ],
-          },
-        })
-      : Promise.resolve(0),
+      targetScheduleId
+        ? prisma.employee.count({
+            where: {
+              AND: [
+                where,
+                {
+                  scheduleId:
+                    targetScheduleId,
+                },
+              ],
+            },
+          })
+        : Promise.resolve(
+            0,
+          ),
 
-    targetScheduleId
-      ? prisma.employee.count({
-          where: {
-            AND: [
-              where,
-              {
-                OR: [
-                  {
-                    scheduleId: {
-                      not: targetScheduleId,
+      targetScheduleAvailable
+        ? prisma.employee.count({
+            where: {
+              AND: [
+                where,
+                {
+                  OR: [
+                    {
+                      scheduleId: {
+                        not:
+                          targetScheduleId,
+                      },
+                    },
+                    {
+                      scheduleId:
+                        null,
+                    },
+                  ],
+                },
+              ],
+            },
+          })
+        : Promise.resolve(
+            0,
+          ),
+
+      targetScheduleAvailable
+        ? prisma.employee.count({
+            where: {
+              AND: [
+                where,
+                {
+                  scheduleId:
+                    targetScheduleId,
+                },
+                {
+                  employeeScheduleAssignments: {
+                    none: {
+                      isActive:
+                        true,
+
+                      scheduleId:
+                        targetScheduleId,
                     },
                   },
-                  {
-                    scheduleId: null,
-                  },
-                ],
-              },
-            ],
-          },
-        })
-      : Promise.resolve(0),
-  ]);
+                },
+              ],
+            },
+          })
+        : Promise.resolve(
+            0,
+          ),
+    ]);
 
   return {
     matchingEmployees,
     activeMatchingEmployees,
     employeesWithoutSchedule,
     alreadyTargetSchedule,
-    wouldAssignCount,
-    hasSpecificFilters: hasSpecificScheduleAssignmentFilters(filters),
-    targetScheduleLabel: targetSchedule
-      ? `${targetSchedule.scheduleCode} · ${targetSchedule.name}`
-      : "No target schedule selected",
+    scheduleChangeCount,
+    historyRepairCount,
+
+    wouldAssignCount:
+      scheduleChangeCount +
+      historyRepairCount,
+
+    hasSpecificFilters:
+      hasSpecificScheduleAssignmentFilters(
+        filters,
+      ),
+
+    targetScheduleLabel:
+      targetSchedule
+        ? `${targetSchedule.scheduleCode} · ${targetSchedule.name}`
+        : "No target schedule selected",
+
+    targetScheduleAvailable,
+    targetScheduleIssue,
   };
 }
