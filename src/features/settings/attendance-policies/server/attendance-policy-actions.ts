@@ -19,14 +19,14 @@ import {
   type AttendancePolicyValueType,
 } from "../types/attendance-policy-types";
 import {
+  parseAttendancePolicyFormData,
+} from "../validators/attendance-policy-validation";
+import {
   ATTENDANCE_POLICY_DEFINITIONS,
 } from "./attendance-policy-definitions";
 import {
   getAttendancePolicyRuntimeConfig,
 } from "./attendance-policy-queries";
-import {
-  parseAttendancePolicyFormData,
-} from "../validators/attendance-policy-validation";
 
 type ActiveBranchRow = {
   branchId:
@@ -36,8 +36,7 @@ type ActiveBranchRow = {
 };
 
 type PolicyWriteRow = {
-  key:
-    AttendancePolicyKey;
+  key: AttendancePolicyKey;
 
   value: string;
 
@@ -48,8 +47,7 @@ type PolicyWriteRow = {
 };
 
 function definitionFor(
-  key:
-    AttendancePolicyKey,
+  key: AttendancePolicyKey,
 ) {
   const definition =
     ATTENDANCE_POLICY_DEFINITIONS.find(
@@ -67,9 +65,7 @@ function definitionFor(
 }
 
 function createWriteRow(
-  key:
-    AttendancePolicyKey,
-
+  key: AttendancePolicyKey,
   value: string,
 ): PolicyWriteRow {
   const definition =
@@ -77,7 +73,6 @@ function createWriteRow(
 
   return {
     key,
-
     value,
 
     valueType:
@@ -89,43 +84,32 @@ function createWriteRow(
 }
 
 function buildWriteRows(
-  input:
-    AttendancePolicyFormInput,
+  input: AttendancePolicyFormInput,
 ): PolicyWriteRow[] {
   return [
     createWriteRow(
       ATTENDANCE_POLICY_KEYS.DEFAULT_BRANCH_ID,
-      String(
-        input.defaultBranchId,
-      ),
+      String(input.defaultBranchId),
     ),
 
     createWriteRow(
       ATTENDANCE_POLICY_KEYS.ALLOW_WEB_TIME_IN,
-      String(
-        input.allowWebTimeIn,
-      ),
+      String(input.allowWebTimeIn),
     ),
 
     createWriteRow(
       ATTENDANCE_POLICY_KEYS.ALLOW_MANUAL_TIME_IN,
-      String(
-        input.allowManualTimeIn,
-      ),
+      String(input.allowManualTimeIn),
     ),
 
     createWriteRow(
       ATTENDANCE_POLICY_KEYS.REQUIRE_PHOTO,
-      String(
-        input.requirePhoto,
-      ),
+      String(input.requirePhoto),
     ),
 
     createWriteRow(
       ATTENDANCE_POLICY_KEYS.REQUIRE_LOCATION,
-      String(
-        input.requireLocation,
-      ),
+      String(input.requireLocation),
     ),
 
     createWriteRow(
@@ -135,16 +119,12 @@ function buildWriteRows(
 
     createWriteRow(
       ATTENDANCE_POLICY_KEYS.MAX_PHOTO_SIZE_MB,
-      String(
-        input.maxPhotoSizeMb,
-      ),
+      String(input.maxPhotoSizeMb),
     ),
 
     createWriteRow(
       ATTENDANCE_POLICY_KEYS.LATE_GRACE_MINUTES,
-      String(
-        input.lateGraceMinutes,
-      ),
+      String(input.lateGraceMinutes),
     ),
 
     createWriteRow(
@@ -210,7 +190,8 @@ export async function updateAttendancePolicyAction(
 
   formData: FormData,
 ): Promise<AttendancePolicyActionState> {
-  await requireCanManageEmployees();
+  const session =
+    await requireCanManageEmployees();
 
   const parsed =
     parseAttendancePolicyFormData(
@@ -295,7 +276,8 @@ export async function updateAttendancePolicyAction(
 
         await tx.activityLog.create({
           data: {
-            actorUserId: null,
+            actorUserId:
+              session.userId,
 
             action:
               "ATTENDANCE_POLICY_UPDATED_V1",
@@ -329,6 +311,9 @@ export async function updateAttendancePolicyAction(
 
               permissionGuard:
                 "requireCanManageEmployees",
+
+              actorUserId:
+                session.userId,
             },
           },
         });

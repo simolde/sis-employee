@@ -176,3 +176,8 @@ export type NoticeRead = Prisma.NoticeReadModel
  * 
  */
 export type AttendanceExceptionDate = Prisma.AttendanceExceptionDateModel
+/**
+ * Model AttendancePolicySetting
+ * 
+ */
+export type AttendancePolicySetting = Prisma.AttendancePolicySettingModel

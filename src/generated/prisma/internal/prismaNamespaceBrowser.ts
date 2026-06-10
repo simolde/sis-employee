@@ -77,7 +77,8 @@ export const ModelName = {
   Notice: 'Notice',
   ActivityLog: 'ActivityLog',
   NoticeRead: 'NoticeRead',
-  AttendanceExceptionDate: 'AttendanceExceptionDate'
+  AttendanceExceptionDate: 'AttendanceExceptionDate',
+  AttendancePolicySetting: 'AttendancePolicySetting'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -557,6 +558,19 @@ export const AttendanceExceptionDateScalarFieldEnum = {
 export type AttendanceExceptionDateScalarFieldEnum = (typeof AttendanceExceptionDateScalarFieldEnum)[keyof typeof AttendanceExceptionDateScalarFieldEnum]
 
 
+export const AttendancePolicySettingScalarFieldEnum = {
+  settingId: 'settingId',
+  settingKey: 'settingKey',
+  settingValue: 'settingValue',
+  valueType: 'valueType',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AttendancePolicySettingScalarFieldEnum = (typeof AttendancePolicySettingScalarFieldEnum)[keyof typeof AttendancePolicySettingScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -842,4 +856,14 @@ export const AttendanceExceptionDateOrderByRelevanceFieldEnum = {
 } as const
 
 export type AttendanceExceptionDateOrderByRelevanceFieldEnum = (typeof AttendanceExceptionDateOrderByRelevanceFieldEnum)[keyof typeof AttendanceExceptionDateOrderByRelevanceFieldEnum]
+
+
+export const AttendancePolicySettingOrderByRelevanceFieldEnum = {
+  settingKey: 'settingKey',
+  settingValue: 'settingValue',
+  valueType: 'valueType',
+  description: 'description'
+} as const
+
+export type AttendancePolicySettingOrderByRelevanceFieldEnum = (typeof AttendancePolicySettingOrderByRelevanceFieldEnum)[keyof typeof AttendancePolicySettingOrderByRelevanceFieldEnum]
 

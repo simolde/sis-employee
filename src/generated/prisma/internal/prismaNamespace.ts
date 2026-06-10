@@ -410,7 +410,8 @@ export const ModelName = {
   Notice: 'Notice',
   ActivityLog: 'ActivityLog',
   NoticeRead: 'NoticeRead',
-  AttendanceExceptionDate: 'AttendanceExceptionDate'
+  AttendanceExceptionDate: 'AttendanceExceptionDate',
+  AttendancePolicySetting: 'AttendancePolicySetting'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -426,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "branch" | "department" | "designation" | "empType" | "employee" | "employeeFamilyBackground" | "employeeChild" | "employeeEducationSummary" | "employeeEducationalBackground" | "employeeWorkExperience" | "employeeContract" | "role" | "permission" | "rolePermission" | "user" | "shift" | "shiftSchedule" | "employeeScheduleAssignment" | "rfidCard" | "attendance" | "attendanceLog" | "leaveType" | "leave" | "notice" | "activityLog" | "noticeRead" | "attendanceExceptionDate"
+    modelProps: "branch" | "department" | "designation" | "empType" | "employee" | "employeeFamilyBackground" | "employeeChild" | "employeeEducationSummary" | "employeeEducationalBackground" | "employeeWorkExperience" | "employeeContract" | "role" | "permission" | "rolePermission" | "user" | "shift" | "shiftSchedule" | "employeeScheduleAssignment" | "rfidCard" | "attendance" | "attendanceLog" | "leaveType" | "leave" | "notice" | "activityLog" | "noticeRead" | "attendanceExceptionDate" | "attendancePolicySetting"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2212,6 +2213,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AttendancePolicySetting: {
+      payload: Prisma.$AttendancePolicySettingPayload<ExtArgs>
+      fields: Prisma.AttendancePolicySettingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AttendancePolicySettingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendancePolicySettingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AttendancePolicySettingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendancePolicySettingPayload>
+        }
+        findFirst: {
+          args: Prisma.AttendancePolicySettingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendancePolicySettingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AttendancePolicySettingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendancePolicySettingPayload>
+        }
+        findMany: {
+          args: Prisma.AttendancePolicySettingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendancePolicySettingPayload>[]
+        }
+        create: {
+          args: Prisma.AttendancePolicySettingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendancePolicySettingPayload>
+        }
+        createMany: {
+          args: Prisma.AttendancePolicySettingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AttendancePolicySettingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendancePolicySettingPayload>
+        }
+        update: {
+          args: Prisma.AttendancePolicySettingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendancePolicySettingPayload>
+        }
+        deleteMany: {
+          args: Prisma.AttendancePolicySettingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AttendancePolicySettingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AttendancePolicySettingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendancePolicySettingPayload>
+        }
+        aggregate: {
+          args: Prisma.AttendancePolicySettingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAttendancePolicySetting>
+        }
+        groupBy: {
+          args: Prisma.AttendancePolicySettingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttendancePolicySettingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AttendancePolicySettingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttendancePolicySettingCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2712,6 +2779,19 @@ export const AttendanceExceptionDateScalarFieldEnum = {
 export type AttendanceExceptionDateScalarFieldEnum = (typeof AttendanceExceptionDateScalarFieldEnum)[keyof typeof AttendanceExceptionDateScalarFieldEnum]
 
 
+export const AttendancePolicySettingScalarFieldEnum = {
+  settingId: 'settingId',
+  settingKey: 'settingKey',
+  settingValue: 'settingValue',
+  valueType: 'valueType',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AttendancePolicySettingScalarFieldEnum = (typeof AttendancePolicySettingScalarFieldEnum)[keyof typeof AttendancePolicySettingScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2999,6 +3079,16 @@ export const AttendanceExceptionDateOrderByRelevanceFieldEnum = {
 export type AttendanceExceptionDateOrderByRelevanceFieldEnum = (typeof AttendanceExceptionDateOrderByRelevanceFieldEnum)[keyof typeof AttendanceExceptionDateOrderByRelevanceFieldEnum]
 
 
+export const AttendancePolicySettingOrderByRelevanceFieldEnum = {
+  settingKey: 'settingKey',
+  settingValue: 'settingValue',
+  valueType: 'valueType',
+  description: 'description'
+} as const
+
+export type AttendancePolicySettingOrderByRelevanceFieldEnum = (typeof AttendancePolicySettingOrderByRelevanceFieldEnum)[keyof typeof AttendancePolicySettingOrderByRelevanceFieldEnum]
+
+
 
 /**
  * Field references
@@ -3281,6 +3371,7 @@ export type GlobalOmitConfig = {
   activityLog?: Prisma.ActivityLogOmit
   noticeRead?: Prisma.NoticeReadOmit
   attendanceExceptionDate?: Prisma.AttendanceExceptionDateOmit
+  attendancePolicySetting?: Prisma.AttendancePolicySettingOmit
 }
 
 /* Types for Logging */
