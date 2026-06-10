@@ -5,17 +5,34 @@ export type CalculatedAttendanceStatus =
   | "MISSING_TIMEOUT"
   | "ABSENT";
 
+export type MissingTimeoutCalculationPolicy = {
+  enabled: boolean;
+  thresholdMinutes: number;
+};
+
 export type AttendanceStatusCalculationInput = {
   attDate: Date;
   timeIn: Date | null;
   timeOut: Date | null;
+
   shiftStartTime: string;
   shiftEndTime: string;
+
   graceMinutes: number;
   isOvernight: boolean;
+
   currentDate?: Date;
-  missingTimeoutCutoffHours?: number;
   halfDayRatio?: number;
+
+  /**
+   * Missing timeout calculation is disabled when this
+   * property is omitted.
+   *
+   * The normal status recalculation workflow intentionally
+   * disables this because the canonical missing-timeout
+   * service owns all MISSING_TIMEOUT updates and auditing.
+   */
+  missingTimeoutPolicy?: MissingTimeoutCalculationPolicy;
 };
 
 export type AttendanceStatusCalculationResult = {
@@ -26,43 +43,79 @@ export type AttendanceStatusCalculationResult = {
   reason: string;
 };
 
-const MANILA_UTC_OFFSET_HOURS = 8;
+const MANILA_UTC_OFFSET_HOURS =
+  8;
 
-function getManilaDateParts(date: Date): {
+function getManilaDateParts(
+  date: Date,
+): {
   year: number;
   month: number;
   day: number;
 } {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Manila",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone:
+          "Asia/Manila",
+
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      },
+    ).formatToParts(date);
 
   return {
-    year: Number(parts.find((part) => part.type === "year")?.value),
-    month: Number(parts.find((part) => part.type === "month")?.value),
-    day: Number(parts.find((part) => part.type === "day")?.value),
+    year:
+      Number(
+        parts.find(
+          (part) =>
+            part.type === "year",
+        )?.value,
+      ),
+
+    month:
+      Number(
+        parts.find(
+          (part) =>
+            part.type === "month",
+        )?.value,
+      ),
+
+    day:
+      Number(
+        parts.find(
+          (part) =>
+            part.type === "day",
+        )?.value,
+      ),
   };
 }
 
-function getManilaDateOnly(date = new Date()): Date {
-  const { year, month, day } = getManilaDateParts(date);
-
-  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-}
-
-function parseTimeValue(value: string): {
+function parseTimeValue(
+  value: string,
+): {
   hours: number;
   minutes: number;
   seconds: number;
 } {
-  const [rawHours, rawMinutes, rawSeconds] = value.split(":");
+  const [
+    rawHours,
+    rawMinutes,
+    rawSeconds,
+  ] = value.split(":");
 
-  const hours = Number(rawHours);
-  const minutes = Number(rawMinutes);
-  const seconds = Number(rawSeconds ?? "0");
+  const hours =
+    Number(rawHours);
+
+  const minutes =
+    Number(rawMinutes);
+
+  const seconds =
+    Number(
+      rawSeconds ?? "0",
+    );
 
   if (
     !Number.isInteger(hours) ||
@@ -94,15 +147,30 @@ function buildManilaDateTime(input: {
   timeValue: string;
   addDays?: number;
 }): Date {
-  const { year, month, day } = getManilaDateParts(input.date);
-  const { hours, minutes, seconds } = parseTimeValue(input.timeValue);
+  const {
+    year,
+    month,
+    day,
+  } = getManilaDateParts(
+    input.date,
+  );
+
+  const {
+    hours,
+    minutes,
+    seconds,
+  } = parseTimeValue(
+    input.timeValue,
+  );
 
   return new Date(
     Date.UTC(
       year,
       month - 1,
-      day + (input.addDays ?? 0),
-      hours - MANILA_UTC_OFFSET_HOURS,
+      day +
+        (input.addDays ?? 0),
+      hours -
+        MANILA_UTC_OFFSET_HOURS,
       minutes,
       seconds,
       0,
@@ -110,138 +178,314 @@ function buildManilaDateTime(input: {
   );
 }
 
-function differenceInMinutes(laterDate: Date, earlierDate: Date): number {
+function differenceInMinutes(
+  laterDate: Date,
+  earlierDate: Date,
+): number {
   return Math.max(
     0,
-    Math.floor((laterDate.getTime() - earlierDate.getTime()) / 60_000),
+    Math.floor(
+      (
+        laterDate.getTime() -
+        earlierDate.getTime()
+      ) / 60_000,
+    ),
   );
+}
+
+function normalizeGraceMinutes(
+  value: number,
+): number {
+  if (
+    !Number.isSafeInteger(value) ||
+    value < 0
+  ) {
+    return 0;
+  }
+
+  return value;
+}
+
+function normalizeHalfDayRatio(
+  value:
+    | number
+    | undefined,
+): number {
+  if (
+    value === undefined ||
+    !Number.isFinite(value) ||
+    value <= 0 ||
+    value > 1
+  ) {
+    return 0.5;
+  }
+
+  return value;
+}
+
+function normalizeMissingTimeoutThreshold(
+  value: number,
+): number | null {
+  if (
+    !Number.isSafeInteger(value) ||
+    value < 1
+  ) {
+    return null;
+  }
+
+  return value;
 }
 
 function isMissingTimeoutCandidate(input: {
-  attDate: Date;
   timeIn: Date;
   currentDate: Date;
-  cutoffHours: number;
+  thresholdMinutes: number;
 }): boolean {
-  const attendanceDateOnly = getManilaDateOnly(input.attDate);
-  const currentDateOnly = getManilaDateOnly(input.currentDate);
-  const cutoffDate = new Date(
-    input.currentDate.getTime() - input.cutoffHours * 60 * 60 * 1000,
-  );
+  const cutoffDate =
+    new Date(
+      input.currentDate.getTime() -
+        input.thresholdMinutes *
+          60_000,
+    );
 
-  return attendanceDateOnly < currentDateOnly || input.timeIn <= cutoffDate;
+  return (
+    input.timeIn <=
+    cutoffDate
+  );
 }
 
 export function calculateAttendanceStatus(
-  input: AttendanceStatusCalculationInput,
+  input:
+    AttendanceStatusCalculationInput,
 ): AttendanceStatusCalculationResult {
-  const currentDate = input.currentDate ?? new Date();
-  const missingTimeoutCutoffHours = input.missingTimeoutCutoffHours ?? 18;
-  const halfDayRatio = input.halfDayRatio ?? 0.5;
+  const currentDate =
+    input.currentDate ??
+    new Date();
 
-  const shiftStartDate = buildManilaDateTime({
-    date: input.attDate,
-    timeValue: input.shiftStartTime,
-  });
+  const halfDayRatio =
+    normalizeHalfDayRatio(
+      input.halfDayRatio,
+    );
 
-  const shiftEndDate = buildManilaDateTime({
-    date: input.attDate,
-    timeValue: input.shiftEndTime,
-    addDays: input.isOvernight ? 1 : 0,
-  });
+  const graceMinutes =
+    normalizeGraceMinutes(
+      input.graceMinutes,
+    );
 
-  const scheduledMinutes = Math.max(
-    1,
-    differenceInMinutes(shiftEndDate, shiftStartDate),
-  );
+  const shiftStartDate =
+    buildManilaDateTime({
+      date:
+        input.attDate,
 
-  if (!input.timeIn && !input.timeOut) {
+      timeValue:
+        input.shiftStartTime,
+    });
+
+  const sameDayShiftEnd =
+    buildManilaDateTime({
+      date:
+        input.attDate,
+
+      timeValue:
+        input.shiftEndTime,
+    });
+
+  const shiftEndDate =
+    input.isOvernight ||
+    sameDayShiftEnd <=
+      shiftStartDate
+      ? buildManilaDateTime({
+          date:
+            input.attDate,
+
+          timeValue:
+            input.shiftEndTime,
+
+          addDays:
+            1,
+        })
+      : sameDayShiftEnd;
+
+  const scheduledMinutes =
+    Math.max(
+      1,
+
+      differenceInMinutes(
+        shiftEndDate,
+        shiftStartDate,
+      ),
+    );
+
+  if (
+    !input.timeIn &&
+    !input.timeOut
+  ) {
     return {
-      status: "ABSENT",
-      totalMinutes: null,
+      status:
+        "ABSENT",
+
+      totalMinutes:
+        null,
+
       scheduledMinutes,
-      lateMinutes: 0,
-      reason: "No time-in and no time-out were recorded.",
+
+      lateMinutes:
+        0,
+
+      reason:
+        "No time-in and no time-out were recorded.",
     };
   }
 
   if (!input.timeIn) {
     return {
-      status: "ABSENT",
-      totalMinutes: null,
+      status:
+        "ABSENT",
+
+      totalMinutes:
+        null,
+
       scheduledMinutes,
-      lateMinutes: 0,
-      reason: "No valid time-in was recorded.",
+
+      lateMinutes:
+        0,
+
+      reason:
+        "No valid time-in was recorded.",
     };
   }
 
-  if (!input.timeOut) {
-    const isMissingTimeout = isMissingTimeoutCandidate({
-      attDate: input.attDate,
-      timeIn: input.timeIn,
-      currentDate,
-      cutoffHours: missingTimeoutCutoffHours,
-    });
+  const missingTimeoutPolicy =
+    input.missingTimeoutPolicy;
 
-    if (isMissingTimeout) {
+  if (
+    !input.timeOut &&
+    missingTimeoutPolicy?.enabled
+  ) {
+    const thresholdMinutes =
+      normalizeMissingTimeoutThreshold(
+        missingTimeoutPolicy
+          .thresholdMinutes,
+      );
+
+    if (
+      thresholdMinutes !== null &&
+      isMissingTimeoutCandidate({
+        timeIn:
+          input.timeIn,
+
+        currentDate,
+
+        thresholdMinutes,
+      })
+    ) {
       return {
-        status: "MISSING_TIMEOUT",
-        totalMinutes: null,
+        status:
+          "MISSING_TIMEOUT",
+
+        totalMinutes:
+          null,
+
         scheduledMinutes,
-        lateMinutes: 0,
+
+        lateMinutes:
+          0,
+
         reason:
-          "Time-in exists but no time-out was recorded after the allowed timeout cutoff.",
+          `Time-in exists but no time-out was recorded within ${thresholdMinutes} minutes.`,
       };
     }
   }
 
-  const allowedStartDate = new Date(
-    shiftStartDate.getTime() + input.graceMinutes * 60 * 1000,
-  );
+  const allowedStartDate =
+    new Date(
+      shiftStartDate.getTime() +
+        graceMinutes *
+          60_000,
+    );
 
   const lateMinutes =
-    input.timeIn > allowedStartDate
-      ? differenceInMinutes(input.timeIn, allowedStartDate)
+    input.timeIn >
+    allowedStartDate
+      ? differenceInMinutes(
+          input.timeIn,
+          allowedStartDate,
+        )
       : 0;
 
-  const baseStatus: CalculatedAttendanceStatus =
-    input.timeIn <= allowedStartDate ? "ON_TIME" : "LATE";
+  const baseStatus:
+    CalculatedAttendanceStatus =
+    input.timeIn <=
+    allowedStartDate
+      ? "ON_TIME"
+      : "LATE";
 
   if (!input.timeOut) {
     return {
-      status: baseStatus,
-      totalMinutes: null,
+      status:
+        baseStatus,
+
+      totalMinutes:
+        null,
+
       scheduledMinutes,
+
       lateMinutes,
+
       reason:
-        baseStatus === "ON_TIME"
-          ? "Employee timed in within the shift grace period."
-          : "Employee timed in after the shift grace period.",
+        baseStatus ===
+        "ON_TIME"
+          ? "Employee timed in within the effective grace period and has an open attendance record."
+          : "Employee timed in after the effective grace period and has an open attendance record.",
     };
   }
 
-  const totalMinutes = differenceInMinutes(input.timeOut, input.timeIn);
-  const minimumHalfDayMinutes = Math.floor(scheduledMinutes * halfDayRatio);
+  const totalMinutes =
+    differenceInMinutes(
+      input.timeOut,
+      input.timeIn,
+    );
 
-  if (totalMinutes > 0 && totalMinutes < minimumHalfDayMinutes) {
+  const minimumHalfDayMinutes =
+    Math.floor(
+      scheduledMinutes *
+        halfDayRatio,
+    );
+
+  if (
+    totalMinutes > 0 &&
+    totalMinutes <
+      minimumHalfDayMinutes
+  ) {
     return {
-      status: "HALF_DAY",
+      status:
+        "HALF_DAY",
+
       totalMinutes,
+
       scheduledMinutes,
+
       lateMinutes,
+
       reason:
         "Worked minutes are below the configured half-day threshold for the assigned shift.",
     };
   }
 
   return {
-    status: baseStatus,
+    status:
+      baseStatus,
+
     totalMinutes,
+
     scheduledMinutes,
+
     lateMinutes,
+
     reason:
-      baseStatus === "ON_TIME"
-        ? "Employee completed attendance and timed in within the shift grace period."
-        : "Employee completed attendance but timed in after the shift grace period.",
+      baseStatus ===
+      "ON_TIME"
+        ? "Employee completed attendance and timed in within the effective grace period."
+        : "Employee completed attendance but timed in after the effective grace period.",
   };
 }

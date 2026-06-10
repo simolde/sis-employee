@@ -1,43 +1,67 @@
-import { prisma } from "@/lib/db/prisma";
-import { buildAttendanceReviewRequiredWhere } from "@/features/attendance/server/attendance-review-policy";
+import { getMissingTimeoutPolicySnapshot } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
 import { buildEligibleMissingTimeoutWhere } from "@/features/attendance/missing-timeouts/server/missing-timeout-service";
+import { buildAttendanceReviewRequiredWhere } from "@/features/attendance/server/attendance-review-policy";
 import { getAttendanceStatusRecalculationSummary } from "@/features/attendance/status-recalculation/server/attendance-status-recalculation-service";
+import { prisma } from "@/lib/db/prisma";
 import type { AttendanceAutomationStatus } from "../types/attendance-automation-types";
 
 function getMissingTimeoutCronActorEmail(): string {
   return (
-    process.env.MISSING_TIMEOUT_CRON_ACTOR_EMAIL ??
-    process.env.SEED_ADMIN_EMAIL ??
+    process.env
+      .MISSING_TIMEOUT_CRON_ACTOR_EMAIL ??
+    process.env
+      .SEED_ADMIN_EMAIL ??
     ""
   ).trim();
 }
 
 function getAttendanceStatusCronActorEmail(): string {
   return (
-    process.env.ATTENDANCE_STATUS_CRON_ACTOR_EMAIL ??
-    process.env.MISSING_TIMEOUT_CRON_ACTOR_EMAIL ??
-    process.env.SEED_ADMIN_EMAIL ??
+    process.env
+      .ATTENDANCE_STATUS_CRON_ACTOR_EMAIL ??
+    process.env
+      .MISSING_TIMEOUT_CRON_ACTOR_EMAIL ??
+    process.env
+      .SEED_ADMIN_EMAIL ??
     ""
   ).trim();
 }
 
 export async function getAttendanceAutomationStatus(): Promise<AttendanceAutomationStatus> {
-  const cronActorEmail = getMissingTimeoutCronActorEmail();
-  const attendanceStatusCronActorEmail = getAttendanceStatusCronActorEmail();
+  const cronActorEmail =
+    getMissingTimeoutCronActorEmail();
 
-  const cronSecretConfigured = Boolean(
-    process.env.MISSING_TIMEOUT_CRON_SECRET?.trim(),
-  );
+  const attendanceStatusCronActorEmail =
+    getAttendanceStatusCronActorEmail();
 
-  const attendanceStatusCronSecretConfigured = Boolean(
-    (
-      process.env.ATTENDANCE_STATUS_CRON_SECRET ??
-      process.env.MISSING_TIMEOUT_CRON_SECRET
-    )?.trim(),
-  );
+  const cronSecretConfigured =
+    Boolean(
+      process.env
+        .MISSING_TIMEOUT_CRON_SECRET
+        ?.trim(),
+    );
 
-  const reviewRequiredWhere = buildAttendanceReviewRequiredWhere();
-  const eligibleMissingTimeoutWhere = buildEligibleMissingTimeoutWhere();
+  const attendanceStatusCronSecretConfigured =
+    Boolean(
+      (
+        process.env
+          .ATTENDANCE_STATUS_CRON_SECRET ??
+        process.env
+          .MISSING_TIMEOUT_CRON_SECRET
+      )?.trim(),
+    );
+
+  const policy =
+    await getMissingTimeoutPolicySnapshot();
+
+  const reviewRequiredWhere =
+    buildAttendanceReviewRequiredWhere();
+
+  const eligibleMissingTimeoutWhere =
+    buildEligibleMissingTimeoutWhere({
+      missingTimeoutMinutes:
+        policy.missingTimeoutMinutes,
+    });
 
   const [
     actorUser,
@@ -50,8 +74,10 @@ export async function getAttendanceAutomationStatus(): Promise<AttendanceAutomat
     cronActorEmail
       ? prisma.user.findUnique({
           where: {
-            email: cronActorEmail,
+            email:
+              cronActorEmail,
           },
+
           select: {
             username: true,
             status: true,
@@ -62,8 +88,10 @@ export async function getAttendanceAutomationStatus(): Promise<AttendanceAutomat
     attendanceStatusCronActorEmail
       ? prisma.user.findUnique({
           where: {
-            email: attendanceStatusCronActorEmail,
+            email:
+              attendanceStatusCronActorEmail,
           },
+
           select: {
             username: true,
             status: true,
@@ -72,12 +100,14 @@ export async function getAttendanceAutomationStatus(): Promise<AttendanceAutomat
       : null,
 
     prisma.attendance.count({
-      where: eligibleMissingTimeoutWhere,
+      where:
+        eligibleMissingTimeoutWhere,
     }),
 
     prisma.attendance.count({
       where: {
-        status: "MISSING_TIMEOUT",
+        status:
+          "MISSING_TIMEOUT",
       },
     }),
 
@@ -86,7 +116,8 @@ export async function getAttendanceAutomationStatus(): Promise<AttendanceAutomat
         AND: [
           reviewRequiredWhere,
           {
-            approvedAt: null,
+            approvedAt:
+              null,
           },
         ],
       },
@@ -97,29 +128,68 @@ export async function getAttendanceAutomationStatus(): Promise<AttendanceAutomat
 
   return {
     cronSecretConfigured,
-    cronActorEmail: cronActorEmail || "Not configured",
-    cronActorFound: Boolean(actorUser),
-    cronActorUsername: actorUser?.username ?? "—",
-    cronActorStatus: actorUser?.status ?? "—",
+
+    cronActorEmail:
+      cronActorEmail ||
+      "Not configured",
+
+    cronActorFound:
+      Boolean(actorUser),
+
+    cronActorUsername:
+      actorUser?.username ??
+      "—",
+
+    cronActorStatus:
+      actorUser?.status ??
+      "—",
+
     eligibleMissingTimeouts,
     markedMissingTimeouts,
     openReviewRecords,
-    endpointPath: "/api/cron/mark-missing-timeouts",
-    recommendedSchedule: "Every 1 hour",
-    batchLimit: 200,
+
+    endpointPath:
+      "/api/cron/mark-missing-timeouts",
+
+    recommendedSchedule:
+      "Every 1 hour",
+
+    batchLimit:
+      200,
 
     attendanceStatusCronSecretConfigured,
+
     attendanceStatusCronActorEmail:
-      attendanceStatusCronActorEmail || "Not configured",
-    attendanceStatusCronActorFound: Boolean(attendanceStatusActorUser),
+      attendanceStatusCronActorEmail ||
+      "Not configured",
+
+    attendanceStatusCronActorFound:
+      Boolean(
+        attendanceStatusActorUser,
+      ),
+
     attendanceStatusCronActorUsername:
-      attendanceStatusActorUser?.username ?? "—",
-    attendanceStatusCronActorStatus: attendanceStatusActorUser?.status ?? "—",
+      attendanceStatusActorUser
+        ?.username ??
+      "—",
+
+    attendanceStatusCronActorStatus:
+      attendanceStatusActorUser
+        ?.status ??
+      "—",
+
     attendanceStatusEndpointPath:
       "/api/cron/recalculate-attendance-statuses",
-    attendanceStatusBatchLimit: 300,
-    attendanceStatusNormalRecords: attendanceStatusSummary.totalNormalRecords,
+
+    attendanceStatusBatchLimit:
+      300,
+
+    attendanceStatusNormalRecords:
+      attendanceStatusSummary
+        .totalNormalRecords,
+
     attendanceStatusNormalRecordsWithSchedule:
-      attendanceStatusSummary.normalRecordsWithSchedule,
+      attendanceStatusSummary
+        .normalRecordsWithSchedule,
   };
 }

@@ -17,8 +17,11 @@ import { getAttendanceStatusRecalculationSummary } from "@/features/attendance/s
 export default async function AttendanceStatusRecalculationPage() {
   await requireCanManageEmployees();
 
-  const summary = await getAttendanceStatusRecalculationSummary();
-  const batchLimit = 300;
+  const summary =
+    await getAttendanceStatusRecalculationSummary();
+
+  const batchLimit =
+    300;
 
   return (
     <section className="starland-page space-y-5">
@@ -33,9 +36,10 @@ export default async function AttendanceStatusRecalculationPage() {
           </h1>
 
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-            Automatically calculate attendance status using each employee&apos;s
-            assigned schedule, shift start time, shift end time, grace minutes,
-            and overnight setting.
+            Recalculate normal attendance records using
+            each assigned schedule, shift start and end
+            time, overnight behavior, and the effective
+            global late-grace policy.
           </p>
         </div>
 
@@ -44,7 +48,11 @@ export default async function AttendanceStatusRecalculationPage() {
             href="/dashboard/attendance/schedule-assignment"
             className="starland-btn starland-btn-primary"
           >
-            <CalendarClock className="h-4 w-4" aria-hidden="true" />
+            <CalendarClock
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
             Assign Schedules
           </Link>
 
@@ -52,7 +60,11 @@ export default async function AttendanceStatusRecalculationPage() {
             href="/dashboard/attendance/absences/candidates"
             className="starland-btn starland-btn-soft"
           >
-            <TimerOff className="h-4 w-4" aria-hidden="true" />
+            <TimerOff
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
             Absence Candidates
           </Link>
 
@@ -60,7 +72,11 @@ export default async function AttendanceStatusRecalculationPage() {
             href="/dashboard/attendance/actions"
             className="starland-btn starland-btn-soft"
           >
-            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            <RefreshCw
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
             Attendance Actions
           </Link>
 
@@ -68,7 +84,11 @@ export default async function AttendanceStatusRecalculationPage() {
             href="/dashboard/attendance"
             className="starland-btn starland-btn-soft"
           >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <ArrowLeft
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
             Back to Attendance
           </Link>
         </div>
@@ -81,19 +101,24 @@ export default async function AttendanceStatusRecalculationPage() {
           </span>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
-            Schedule + Shift Based Calculation
+            Schedule and Policy Based Calculation
           </h2>
 
           <p className="mt-2 max-w-4xl text-sm leading-6 text-white/70">
-            ON_TIME and LATE are based on shift start time plus grace minutes.
-            HALF_DAY is based on worked minutes. MISSING_TIMEOUT is based on old
-            records with time-in but no time-out.
+            ON_TIME and LATE use the greater of the
+            shift grace and global policy grace.
+            HALF_DAY uses worked minutes. Missing
+            time-out assignment is handled separately
+            by the canonical missing-timeout service.
           </p>
         </div>
 
         <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ShieldCheck className="h-7 w-7 text-[var(--starland-info)]" />
+            <ShieldCheck
+              className="h-7 w-7 text-[var(--starland-info)]"
+              aria-hidden="true"
+            />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
               Normal Records
@@ -105,10 +130,13 @@ export default async function AttendanceStatusRecalculationPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <Clock3 className="h-7 w-7 text-[var(--starland-success)]" />
+            <Clock3
+              className="h-7 w-7 text-[var(--starland-success)]"
+              aria-hidden="true"
+            />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
-              With Schedule
+              Recalculable
             </p>
 
             <p className="mt-1 text-3xl font-extrabold text-[var(--starland-dark-text)]">
@@ -117,7 +145,10 @@ export default async function AttendanceStatusRecalculationPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <CheckCircle2 className="h-7 w-7 text-[var(--starland-success)]" />
+            <CheckCircle2
+              className="h-7 w-7 text-[var(--starland-success)]"
+              aria-hidden="true"
+            />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
               On Time
@@ -129,7 +160,10 @@ export default async function AttendanceStatusRecalculationPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ClockAlert className="h-7 w-7 text-[var(--starland-warning)]" />
+            <ClockAlert
+              className="h-7 w-7 text-[var(--starland-warning)]"
+              aria-hidden="true"
+            />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
               Late
@@ -143,7 +177,10 @@ export default async function AttendanceStatusRecalculationPage() {
 
         <div className="grid gap-4 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-4">
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <TimerOff className="h-7 w-7 text-[var(--starland-warning)]" />
+            <TimerOff
+              className="h-7 w-7 text-[var(--starland-warning)]"
+              aria-hidden="true"
+            />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
               Half Day
@@ -155,7 +192,10 @@ export default async function AttendanceStatusRecalculationPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <ClockAlert className="h-7 w-7 text-[var(--starland-danger)]" />
+            <ClockAlert
+              className="h-7 w-7 text-[var(--starland-danger)]"
+              aria-hidden="true"
+            />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
               Missing Timeout
@@ -167,7 +207,10 @@ export default async function AttendanceStatusRecalculationPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <Edit3 className="h-7 w-7 text-[var(--starland-info)]" />
+            <Edit3
+              className="h-7 w-7 text-[var(--starland-info)]"
+              aria-hidden="true"
+            />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
               Manual Skipped
@@ -179,7 +222,10 @@ export default async function AttendanceStatusRecalculationPage() {
           </article>
 
           <article className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
-            <RefreshCw className="h-7 w-7 text-[var(--starland-main-green)]" />
+            <RefreshCw
+              className="h-7 w-7 text-[var(--starland-main-green)]"
+              aria-hidden="true"
+            />
 
             <p className="mt-3 text-sm font-bold text-[var(--starland-muted-text)]">
               Batch Limit
@@ -189,6 +235,60 @@ export default async function AttendanceStatusRecalculationPage() {
               {batchLimit}
             </p>
           </article>
+        </div>
+      </section>
+
+      <section className="starland-card p-5">
+        <div className="flex items-start gap-3">
+          <ShieldCheck
+            className="mt-0.5 h-6 w-6 shrink-0 text-[var(--starland-main-green)]"
+            aria-hidden="true"
+          />
+
+          <div>
+            <h2 className="text-lg font-extrabold text-[var(--starland-dark-text)]">
+              Effective Attendance Policies
+            </h2>
+
+            <p className="mt-1 text-sm leading-6 text-[var(--starland-muted-text)]">
+              These values are loaded from the
+              persistent Attendance Policy settings.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="starland-badge starland-badge-info">
+                Global grace:{" "}
+                {summary.policyLateGraceMinutes} minute(s)
+              </span>
+
+              <span
+                className={[
+                  "starland-badge",
+
+                  summary.policyAutoMarkMissingTimeout
+                    ? "starland-badge-success"
+                    : "starland-badge-danger",
+                ].join(" ")}
+              >
+                Missing-timeout automation:{" "}
+                {summary.policyAutoMarkMissingTimeout
+                  ? "ENABLED"
+                  : "DISABLED"}
+              </span>
+
+              <span className="starland-badge starland-badge-warning">
+                Missing-timeout threshold:{" "}
+                {summary.policyMissingTimeoutMinutes} minute(s)
+              </span>
+            </div>
+
+            <p className="mt-4 text-sm leading-6 text-[var(--starland-muted-text)]">
+              This recalculation page does not assign
+              MISSING_TIMEOUT. Use the Missing Time-Out
+              automation or authorized administrative
+              action for that status.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -204,9 +304,11 @@ export default async function AttendanceStatusRecalculationPage() {
             </h2>
 
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--starland-muted-text)]">
-              Automatic status calculation requires Employee.scheduleId. Use
-              bulk schedule assignment first for employees without schedules or
-              employees assigned to the wrong schedule.
+              Automatic status calculation requires an
+              assigned employee schedule. Use schedule
+              assignment first for employees without
+              schedules or employees assigned to the
+              wrong schedule.
             </p>
           </div>
 
@@ -214,7 +316,11 @@ export default async function AttendanceStatusRecalculationPage() {
             href="/dashboard/attendance/schedule-assignment"
             className="starland-btn starland-btn-primary"
           >
-            <CalendarClock className="h-4 w-4" aria-hidden="true" />
+            <CalendarClock
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
             Open Schedule Assignment
           </Link>
         </div>
@@ -222,7 +328,9 @@ export default async function AttendanceStatusRecalculationPage() {
 
       <AttendanceStatusRecalculationRunner
         batchLimit={batchLimit}
-        eligibleCount={summary.normalRecordsWithSchedule}
+        eligibleCount={
+          summary.normalRecordsWithSchedule
+        }
       />
 
       <section className="starland-card p-5">
@@ -237,8 +345,9 @@ export default async function AttendanceStatusRecalculationPage() {
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Bulk assign schedules by branch, department, designation,
-              employee type, or current schedule.
+              Bulk assign schedules by branch,
+              department, designation, employee type,
+              or current schedule.
             </p>
           </div>
 
@@ -248,19 +357,20 @@ export default async function AttendanceStatusRecalculationPage() {
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Run automatic status recalculation so normal records follow the
-              assigned shift rules.
+              Recalculate normal records using the
+              assigned shift and global grace policy.
             </p>
           </div>
 
           <div className="rounded-2xl border border-[var(--starland-border)] bg-[var(--starland-modern-bg)] p-4">
             <p className="font-bold text-[var(--starland-dark-text)]">
-              3. Preview Absences
+              3. Mark Missing Time-Outs
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              Preview scheduled employees who have no attendance record before
-              generating ABSENT records.
+              Run the canonical missing-timeout process
+              so open records use the configured policy
+              threshold and complete audit trail.
             </p>
           </div>
 
@@ -270,8 +380,9 @@ export default async function AttendanceStatusRecalculationPage() {
             </p>
 
             <p className="mt-2 text-sm leading-6 text-[var(--starland-muted-text)]">
-              HR only reviews manual input, edits, corrections, and exceptional
-              override records.
+              HR reviews manual input, corrections,
+              exceptional overrides, and unresolved
+              attendance records.
             </p>
           </div>
         </div>

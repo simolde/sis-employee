@@ -1,26 +1,35 @@
 import type {
   Prisma,
 } from "@/generated/prisma/client";
-import { prisma } from "@/lib/db/prisma";
 import { calculateAttendanceStatus } from "@/features/attendance/status-calculation/server/attendance-status-calculator";
 import {
   getAttendanceEnforcementPolicy,
   getEffectiveLateGraceMinutes,
 } from "@/features/attendance/policies/server/attendance-policy-enforcement";
-import type { AttendanceStatusRecalculationSummary } from "../types/attendance-status-recalculation-types";
+import { prisma } from "@/lib/db/prisma";
+import type {
+  AttendanceStatusPolicySnapshot,
+  AttendanceStatusRecalculationSummary,
+} from "../types/attendance-status-recalculation-types";
 
 type AttendanceRecalculationRecord = {
   attendanceId: number;
   empId: number;
   scheduleId: number | null;
+
   attDate: Date;
+
   timeIn: Date | null;
   timeOut: Date | null;
+
   status: string;
   totalMinutes: number | null;
+
   isManual: boolean;
+
   inSource: string | null;
   outSource: string | null;
+
   updatedById: number | null;
 
   schedule: {
@@ -37,7 +46,27 @@ export type AttendanceStatusRecalculationResult = {
   processedCount: number;
   updatedCount: number;
   skippedCount: number;
+
+  policy:
+    AttendanceStatusPolicySnapshot;
 };
+
+function createPolicySnapshot(input: {
+  lateGraceMinutes: number;
+  autoMarkMissingTimeout: boolean;
+  missingTimeoutMinutes: number;
+}): AttendanceStatusPolicySnapshot {
+  return {
+    lateGraceMinutes:
+      input.lateGraceMinutes,
+
+    autoMarkMissingTimeout:
+      input.autoMarkMissingTimeout,
+
+    missingTimeoutMinutes:
+      input.missingTimeoutMinutes,
+  };
+}
 
 function buildAttendanceAuditValue(
   record:
@@ -92,12 +121,15 @@ function buildUpdatedAuditValue(input: {
 
   status: string;
   totalMinutes: number | null;
+
   actorUserId: number;
   reason: string;
 
   shiftGraceMinutes: number;
-  policyGraceMinutes: number;
   effectiveGraceMinutes: number;
+
+  policy:
+    AttendanceStatusPolicySnapshot;
 }): Prisma.InputJsonObject {
   return {
     ...buildAttendanceAuditValue(
@@ -121,10 +153,27 @@ function buildUpdatedAuditValue(input: {
         input.shiftGraceMinutes,
 
       policyGraceMinutes:
-        input.policyGraceMinutes,
+        input.policy
+          .lateGraceMinutes,
 
       effectiveGraceMinutes:
         input.effectiveGraceMinutes,
+    },
+
+    missingTimeoutPolicy: {
+      autoMarkMissingTimeout:
+        input.policy
+          .autoMarkMissingTimeout,
+
+      missingTimeoutMinutes:
+        input.policy
+          .missingTimeoutMinutes,
+
+      handledBy:
+        "canonical_missing_timeout_service",
+
+      evaluatedByStatusRecalculation:
+        false,
     },
   };
 }
@@ -139,13 +188,18 @@ function buildEligibleRecalculationWhere(): Prisma.AttendanceWhereInput {
     },
 
     status: {
-      not:
+      notIn: [
         "PENDING_REVIEW",
+        "MISSING_TIMEOUT",
+      ],
     },
   };
 }
 
 export async function getAttendanceStatusRecalculationSummary(): Promise<AttendanceStatusRecalculationSummary> {
+  const policy =
+    await getAttendanceEnforcementPolicy();
+
   const [
     totalNormalRecords,
     normalRecordsWithSchedule,
@@ -157,7 +211,8 @@ export async function getAttendanceStatusRecalculationSummary(): Promise<Attenda
   ] = await Promise.all([
     prisma.attendance.count({
       where: {
-        isManual: false,
+        isManual:
+          false,
       },
     }),
 
@@ -168,28 +223,38 @@ export async function getAttendanceStatusRecalculationSummary(): Promise<Attenda
 
     prisma.attendance.count({
       where: {
-        isManual: false,
-        status: "ON_TIME",
+        isManual:
+          false,
+
+        status:
+          "ON_TIME",
       },
     }),
 
     prisma.attendance.count({
       where: {
-        isManual: false,
-        status: "LATE",
+        isManual:
+          false,
+
+        status:
+          "LATE",
       },
     }),
 
     prisma.attendance.count({
       where: {
-        isManual: false,
-        status: "HALF_DAY",
+        isManual:
+          false,
+
+        status:
+          "HALF_DAY",
       },
     }),
 
     prisma.attendance.count({
       where: {
-        isManual: false,
+        isManual:
+          false,
 
         status:
           "MISSING_TIMEOUT",
@@ -198,7 +263,8 @@ export async function getAttendanceStatusRecalculationSummary(): Promise<Attenda
 
     prisma.attendance.count({
       where: {
-        isManual: true,
+        isManual:
+          true,
       },
     }),
   ]);
@@ -206,11 +272,22 @@ export async function getAttendanceStatusRecalculationSummary(): Promise<Attenda
   return {
     totalNormalRecords,
     normalRecordsWithSchedule,
+
     onTimeRecords,
     lateRecords,
     halfDayRecords,
     missingTimeoutRecords,
+
     skippedManualRecords,
+
+    policyLateGraceMinutes:
+      policy.lateGraceMinutes,
+
+    policyAutoMarkMissingTimeout:
+      policy.autoMarkMissingTimeout,
+
+    policyMissingTimeoutMinutes:
+      policy.missingTimeoutMinutes,
   };
 }
 
@@ -219,13 +296,31 @@ export async function recalculateNormalAttendanceStatuses(input: {
   limit?: number;
 }): Promise<AttendanceStatusRecalculationResult> {
   const limit =
-    input.limit ?? 300;
+    Math.min(
+      Math.max(
+        input.limit ?? 300,
+        1,
+      ),
+      1000,
+    );
 
   const where =
     buildEligibleRecalculationWhere();
 
-  const policy =
+  const policyConfig =
     await getAttendanceEnforcementPolicy();
+
+  const policy =
+    createPolicySnapshot({
+      lateGraceMinutes:
+        policyConfig.lateGraceMinutes,
+
+      autoMarkMissingTimeout:
+        policyConfig.autoMarkMissingTimeout,
+
+      missingTimeoutMinutes:
+        policyConfig.missingTimeoutMinutes,
+    });
 
   return prisma.$transaction(
     async (tx) => {
@@ -237,14 +332,20 @@ export async function recalculateNormalAttendanceStatuses(input: {
             attendanceId: true,
             empId: true,
             scheduleId: true,
+
             attDate: true,
+
             timeIn: true,
             timeOut: true,
+
             status: true,
             totalMinutes: true,
+
             isManual: true,
+
             inSource: true,
             outSource: true,
+
             updatedById: true,
 
             schedule: {
@@ -263,7 +364,8 @@ export async function recalculateNormalAttendanceStatuses(input: {
 
           orderBy: [
             {
-              attDate: "desc",
+              attDate:
+                "desc",
             },
             {
               attendanceId:
@@ -271,11 +373,15 @@ export async function recalculateNormalAttendanceStatuses(input: {
             },
           ],
 
-          take: limit,
+          take:
+            limit,
         });
 
-      let updatedCount = 0;
-      let skippedCount = 0;
+      let updatedCount =
+        0;
+
+      let skippedCount =
+        0;
 
       for (
         const record of records
@@ -284,7 +390,9 @@ export async function recalculateNormalAttendanceStatuses(input: {
           !record.schedule
             ?.shift
         ) {
-          skippedCount += 1;
+          skippedCount +=
+            1;
+
           continue;
         }
 
@@ -325,6 +433,19 @@ export async function recalculateNormalAttendanceStatuses(input: {
             isOvernight:
               record.schedule.shift
                 .isOvernight,
+
+            /**
+             * MISSING_TIMEOUT is deliberately disabled here.
+             * The separate canonical missing-timeout service
+             * owns that status and its attendance/activity logs.
+             */
+            missingTimeoutPolicy: {
+              enabled:
+                false,
+
+              thresholdMinutes:
+                policy.missingTimeoutMinutes,
+            },
           });
 
         const statusChanged =
@@ -339,7 +460,9 @@ export async function recalculateNormalAttendanceStatuses(input: {
           !statusChanged &&
           !totalMinutesChanged
         ) {
-          skippedCount += 1;
+          skippedCount +=
+            1;
+
           continue;
         }
 
@@ -400,15 +523,15 @@ export async function recalculateNormalAttendanceStatuses(input: {
 
                 shiftGraceMinutes,
 
-                policyGraceMinutes:
-                  policy.lateGraceMinutes,
-
                 effectiveGraceMinutes,
+
+                policy,
               }),
           },
         });
 
-        updatedCount += 1;
+        updatedCount +=
+          1;
       }
 
       return {
@@ -418,6 +541,8 @@ export async function recalculateNormalAttendanceStatuses(input: {
         updatedCount,
 
         skippedCount,
+
+        policy,
       };
     },
   );
