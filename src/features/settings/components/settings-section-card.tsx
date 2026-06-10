@@ -188,7 +188,7 @@ export function SettingsSectionCard({
   return (
     <article
       className={className}
-      aria-disabled="true"
+      data-disabled="true"
     >
       <SettingsSectionCardContent
         section={section}

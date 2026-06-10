@@ -9,7 +9,6 @@ import {
   Clock3,
   FileImage,
   Globe2,
-  MapPin,
   Save,
   Settings2,
   ShieldCheck,
@@ -26,15 +25,13 @@ import { updateAttendancePolicyAction } from "../server/attendance-policy-action
 import { INITIAL_ATTENDANCE_POLICY_ACTION_STATE } from "../validators/attendance-policy-validation";
 
 type AttendancePolicyFormProps = {
-  data:
-    AttendancePolicySettingsPageData;
+  data: AttendancePolicySettingsPageData;
 };
 
 function FieldErrors({
   errors,
 }: {
-  errors:
-    string[] | undefined;
+  errors: string[] | undefined;
 }) {
   if (
     !errors ||
@@ -62,8 +59,7 @@ function FieldErrors({
 function SourceBadge({
   source,
 }: {
-  source:
-    AttendancePolicyValueSource;
+  source: AttendancePolicyValueSource;
 }) {
   const className =
     source === "DATABASE"
@@ -94,14 +90,10 @@ function CheckboxField({
 }: {
   id: string;
   name: string;
-
   label: string;
   description: string;
-
   defaultChecked: boolean;
-
-  source:
-    AttendancePolicyValueSource;
+  source: AttendancePolicyValueSource;
 }) {
   return (
     <label
@@ -112,9 +104,7 @@ function CheckboxField({
         id={id}
         name={name}
         type="checkbox"
-        defaultChecked={
-          defaultChecked
-        }
+        defaultChecked={defaultChecked}
         className="mt-1 h-4 w-4 shrink-0 accent-[var(--starland-main-green)]"
       />
 
@@ -124,9 +114,7 @@ function CheckboxField({
             {label}
           </span>
 
-          <SourceBadge
-            source={source}
-          />
+          <SourceBadge source={source} />
         </span>
 
         <span className="mt-1 block text-sm leading-6 text-[var(--starland-muted-text)]">
@@ -247,12 +235,8 @@ export function AttendancePolicyForm({
             {data.branches.map(
               (branch) => (
                 <option
-                  key={
-                    branch.branchId
-                  }
-                  value={
-                    branch.branchId
-                  }
+                  key={branch.branchId}
+                  value={branch.branchId}
                 >
                   {branch.name} (
                   {branch.branchCode})
