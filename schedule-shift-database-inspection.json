@@ -1,0 +1,453 @@
+{
+  "generatedAt": "2026-06-10T03:14:34.611Z",
+  "databaseName": "hrs_db",
+  "tables": [
+    {
+      "tableName": "shifts",
+      "exists": true,
+      "recordCount": 1,
+      "columns": [
+        {
+          "columnName": "shift_id",
+          "ordinalPosition": 1,
+          "columnType": "int(11)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": "auto_increment"
+        },
+        {
+          "columnName": "shift_code",
+          "ordinalPosition": 2,
+          "columnType": "varchar(50)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        },
+        {
+          "columnName": "name",
+          "ordinalPosition": 3,
+          "columnType": "varchar(120)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        },
+        {
+          "columnName": "start_time",
+          "ordinalPosition": 4,
+          "columnType": "varchar(8)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        },
+        {
+          "columnName": "end_time",
+          "ordinalPosition": 5,
+          "columnType": "varchar(8)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        },
+        {
+          "columnName": "grace_minutes",
+          "ordinalPosition": 6,
+          "columnType": "int(11)",
+          "isNullable": "NO",
+          "columnDefault": "0",
+          "extra": ""
+        },
+        {
+          "columnName": "is_overnight",
+          "ordinalPosition": 7,
+          "columnType": "tinyint(1)",
+          "isNullable": "NO",
+          "columnDefault": "0",
+          "extra": ""
+        },
+        {
+          "columnName": "status",
+          "ordinalPosition": 8,
+          "columnType": "enum('ACTIVE','INACTIVE','ARCHIVED')",
+          "isNullable": "NO",
+          "columnDefault": "'ACTIVE'",
+          "extra": ""
+        },
+        {
+          "columnName": "created_at",
+          "ordinalPosition": 9,
+          "columnType": "datetime(3)",
+          "isNullable": "NO",
+          "columnDefault": "current_timestamp(3)",
+          "extra": ""
+        },
+        {
+          "columnName": "updated_at",
+          "ordinalPosition": 10,
+          "columnType": "datetime(3)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        }
+      ],
+      "indexes": [
+        {
+          "indexName": "PRIMARY",
+          "nonUnique": 0,
+          "sequenceInIndex": 1,
+          "columnName": "shift_id",
+          "indexType": "BTREE"
+        },
+        {
+          "indexName": "shifts_shift_code_key",
+          "nonUnique": 0,
+          "sequenceInIndex": 1,
+          "columnName": "shift_code",
+          "indexType": "BTREE"
+        }
+      ],
+      "outgoingForeignKeys": [],
+      "incomingForeignKeys": [
+        {
+          "tableName": "shift_schedules",
+          "constraintName": "shift_schedules_shift_id_fkey",
+          "columnName": "shift_id",
+          "referencedColumnName": "shift_id",
+          "updateRule": "CASCADE",
+          "deleteRule": "RESTRICT"
+        }
+      ],
+      "sampleRows": [
+        {
+          "shift_id": 1,
+          "shift_code": "REGULAR_DAY",
+          "name": "Regular Day Shift",
+          "start_time": "08:00",
+          "end_time": "17:00",
+          "grace_minutes": 5,
+          "is_overnight": 0,
+          "status": "ACTIVE",
+          "created_at": "2026-05-25T05:03:08.814Z",
+          "updated_at": "2026-05-25T05:28:02.315Z"
+        }
+      ]
+    },
+    {
+      "tableName": "shift_schedules",
+      "exists": true,
+      "recordCount": 1,
+      "columns": [
+        {
+          "columnName": "schedule_id",
+          "ordinalPosition": 1,
+          "columnType": "int(11)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": "auto_increment"
+        },
+        {
+          "columnName": "shift_id",
+          "ordinalPosition": 2,
+          "columnType": "int(11)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        },
+        {
+          "columnName": "schedule_code",
+          "ordinalPosition": 3,
+          "columnType": "varchar(50)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        },
+        {
+          "columnName": "name",
+          "ordinalPosition": 4,
+          "columnType": "varchar(120)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        },
+        {
+          "columnName": "days_of_week",
+          "ordinalPosition": 5,
+          "columnType": "varchar(50)",
+          "isNullable": "YES",
+          "columnDefault": "NULL",
+          "extra": ""
+        },
+        {
+          "columnName": "effective_from",
+          "ordinalPosition": 6,
+          "columnType": "date",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        },
+        {
+          "columnName": "effective_to",
+          "ordinalPosition": 7,
+          "columnType": "date",
+          "isNullable": "YES",
+          "columnDefault": "NULL",
+          "extra": ""
+        },
+        {
+          "columnName": "status",
+          "ordinalPosition": 8,
+          "columnType": "enum('ACTIVE','INACTIVE','ARCHIVED')",
+          "isNullable": "NO",
+          "columnDefault": "'ACTIVE'",
+          "extra": ""
+        },
+        {
+          "columnName": "created_at",
+          "ordinalPosition": 9,
+          "columnType": "datetime(3)",
+          "isNullable": "NO",
+          "columnDefault": "current_timestamp(3)",
+          "extra": ""
+        },
+        {
+          "columnName": "updated_at",
+          "ordinalPosition": 10,
+          "columnType": "datetime(3)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        }
+      ],
+      "indexes": [
+        {
+          "indexName": "PRIMARY",
+          "nonUnique": 0,
+          "sequenceInIndex": 1,
+          "columnName": "schedule_id",
+          "indexType": "BTREE"
+        },
+        {
+          "indexName": "shift_schedules_schedule_code_key",
+          "nonUnique": 0,
+          "sequenceInIndex": 1,
+          "columnName": "schedule_code",
+          "indexType": "BTREE"
+        },
+        {
+          "indexName": "shift_schedules_shift_id_idx",
+          "nonUnique": 1,
+          "sequenceInIndex": 1,
+          "columnName": "shift_id",
+          "indexType": "BTREE"
+        },
+        {
+          "indexName": "shift_schedules_status_idx",
+          "nonUnique": 1,
+          "sequenceInIndex": 1,
+          "columnName": "status",
+          "indexType": "BTREE"
+        }
+      ],
+      "outgoingForeignKeys": [
+        {
+          "constraintName": "shift_schedules_shift_id_fkey",
+          "columnName": "shift_id",
+          "referencedTableName": "shifts",
+          "referencedColumnName": "shift_id",
+          "updateRule": "CASCADE",
+          "deleteRule": "RESTRICT"
+        }
+      ],
+      "incomingForeignKeys": [
+        {
+          "tableName": "attendance",
+          "constraintName": "attendance_schedule_id_fkey",
+          "columnName": "schedule_id",
+          "referencedColumnName": "schedule_id",
+          "updateRule": "CASCADE",
+          "deleteRule": "SET NULL"
+        },
+        {
+          "tableName": "employees",
+          "constraintName": "employees_schedule_id_fkey",
+          "columnName": "schedule_id",
+          "referencedColumnName": "schedule_id",
+          "updateRule": "CASCADE",
+          "deleteRule": "SET NULL"
+        },
+        {
+          "tableName": "employee_schedule_assignments",
+          "constraintName": "employee_schedule_assignments_schedule_id_fkey",
+          "columnName": "schedule_id",
+          "referencedColumnName": "schedule_id",
+          "updateRule": "CASCADE",
+          "deleteRule": "RESTRICT"
+        }
+      ],
+      "sampleRows": [
+        {
+          "schedule_id": 1,
+          "shift_id": 1,
+          "schedule_code": "REGULAR_WEEKDAY",
+          "name": "Regular Weekday Schedule",
+          "days_of_week": "MON,TUE,WED,THU,FRI",
+          "effective_from": "2026-01-01T00:00:00.000Z",
+          "effective_to": null,
+          "status": "ACTIVE",
+          "created_at": "2026-05-25T05:03:08.818Z",
+          "updated_at": "2026-05-25T05:28:02.319Z"
+        }
+      ]
+    },
+    {
+      "tableName": "employee_schedule_assignments",
+      "exists": true,
+      "recordCount": 0,
+      "columns": [
+        {
+          "columnName": "assignment_id",
+          "ordinalPosition": 1,
+          "columnType": "int(11)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": "auto_increment"
+        },
+        {
+          "columnName": "emp_id",
+          "ordinalPosition": 2,
+          "columnType": "int(11)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        },
+        {
+          "columnName": "schedule_id",
+          "ordinalPosition": 3,
+          "columnType": "int(11)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        },
+        {
+          "columnName": "valid_from",
+          "ordinalPosition": 4,
+          "columnType": "date",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        },
+        {
+          "columnName": "valid_to",
+          "ordinalPosition": 5,
+          "columnType": "date",
+          "isNullable": "YES",
+          "columnDefault": "NULL",
+          "extra": ""
+        },
+        {
+          "columnName": "is_active",
+          "ordinalPosition": 6,
+          "columnType": "tinyint(1)",
+          "isNullable": "NO",
+          "columnDefault": "1",
+          "extra": ""
+        },
+        {
+          "columnName": "assigned_by",
+          "ordinalPosition": 7,
+          "columnType": "int(11)",
+          "isNullable": "YES",
+          "columnDefault": "NULL",
+          "extra": ""
+        },
+        {
+          "columnName": "remarks",
+          "ordinalPosition": 8,
+          "columnType": "text",
+          "isNullable": "YES",
+          "columnDefault": "NULL",
+          "extra": ""
+        },
+        {
+          "columnName": "created_at",
+          "ordinalPosition": 9,
+          "columnType": "datetime(3)",
+          "isNullable": "NO",
+          "columnDefault": "current_timestamp(3)",
+          "extra": ""
+        },
+        {
+          "columnName": "updated_at",
+          "ordinalPosition": 10,
+          "columnType": "datetime(3)",
+          "isNullable": "NO",
+          "columnDefault": null,
+          "extra": ""
+        }
+      ],
+      "indexes": [
+        {
+          "indexName": "employee_schedule_assignments_assigned_by_idx",
+          "nonUnique": 1,
+          "sequenceInIndex": 1,
+          "columnName": "assigned_by",
+          "indexType": "BTREE"
+        },
+        {
+          "indexName": "employee_schedule_assignments_emp_id_idx",
+          "nonUnique": 1,
+          "sequenceInIndex": 1,
+          "columnName": "emp_id",
+          "indexType": "BTREE"
+        },
+        {
+          "indexName": "employee_schedule_assignments_is_active_idx",
+          "nonUnique": 1,
+          "sequenceInIndex": 1,
+          "columnName": "is_active",
+          "indexType": "BTREE"
+        },
+        {
+          "indexName": "employee_schedule_assignments_schedule_id_idx",
+          "nonUnique": 1,
+          "sequenceInIndex": 1,
+          "columnName": "schedule_id",
+          "indexType": "BTREE"
+        },
+        {
+          "indexName": "PRIMARY",
+          "nonUnique": 0,
+          "sequenceInIndex": 1,
+          "columnName": "assignment_id",
+          "indexType": "BTREE"
+        }
+      ],
+      "outgoingForeignKeys": [
+        {
+          "constraintName": "employee_schedule_assignments_assigned_by_fkey",
+          "columnName": "assigned_by",
+          "referencedTableName": "users",
+          "referencedColumnName": "user_id",
+          "updateRule": "CASCADE",
+          "deleteRule": "SET NULL"
+        },
+        {
+          "constraintName": "employee_schedule_assignments_emp_id_fkey",
+          "columnName": "emp_id",
+          "referencedTableName": "employees",
+          "referencedColumnName": "emp_id",
+          "updateRule": "CASCADE",
+          "deleteRule": "CASCADE"
+        },
+        {
+          "constraintName": "employee_schedule_assignments_schedule_id_fkey",
+          "columnName": "schedule_id",
+          "referencedTableName": "shift_schedules",
+          "referencedColumnName": "schedule_id",
+          "updateRule": "CASCADE",
+          "deleteRule": "RESTRICT"
+        }
+      ],
+      "incomingForeignKeys": [],
+      "sampleRows": []
+    }
+  ]
+}

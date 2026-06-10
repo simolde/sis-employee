@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2026-06-10T03:18:36.581Z",
+  "employeesWithCurrentSchedule": 1,
+  "shiftDependencies": [
+    {
+      "shiftId": 1,
+      "shiftCode": "REGULAR_DAY",
+      "name": "Regular Day Shift",
+      "status": "ACTIVE",
+      "scheduleCount": 1,
+      "attendanceCount": 3
+    }
+  ],
+  "scheduleDependencies": [
+    {
+      "scheduleId": 1,
+      "scheduleCode": "REGULAR_WEEKDAY",
+      "name": "Regular Weekday Schedule",
+      "status": "ACTIVE",
+      "daysOfWeek": "MON,TUE,WED,THU,FRI",
+      "effectiveFrom": "2026-01-01T00:00:00.000Z",
+      "effectiveTo": null,
+      "shiftCode": "REGULAR_DAY",
+      "shiftStatus": "ACTIVE",
+      "currentEmployeeCount": 1,
+      "assignmentHistoryCount": 0,
+      "activeAssignmentCount": 0,
+      "attendanceCount": 3
+    }
+  ],
+  "duplicateActiveAssignments": [],
+  "currentScheduleWithoutActiveHistory": [
+    {
+      "empId": 1,
+      "empNumber": "SIS-ADMIN-0001",
+      "currentScheduleId": 1
+    }
+  ],
+  "activeHistoryMismatch": [],
+  "overlappingAssignmentDates": [],
+  "invalidScheduleDates": []
+}
